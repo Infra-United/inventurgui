@@ -37,7 +37,7 @@ def create_grid(data: DataFrame, alles: bool) -> None:
 
 def main():
     # read ods file to get inventory data
-    path = "IU_Inventur.ods"    
+    path = "IU Inventur.ods"    
     data = read_ods(path)
     
     # Drop "Regal" Column and "IU Werkeln" Entries
