@@ -1,5 +1,10 @@
+# help-files
+help.md
+hilfe.md
+
 # ods Files 
 *.ods
+*.ods#
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
