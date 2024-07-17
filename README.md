@@ -24,13 +24,18 @@ Here is the flagship instance of this program: inventur.infraunited.org
     - 90 for the fith column (Package)
 
 ## Roadmap
+### Make config available in admin page
+- create /admin page with login
+- create a nice input form for config values
+- make use of those values
+
 ### Add Links with Information
 - Add another column for Links ✅
 - display them in a nice and small way (maybe emoji) ✅
 - Add Links to the .ods-sheet
 
 ### Send a Request
-- add option to select multiple things in grids
+- add option to select multiple things in grids ✅
 - make selections visible in another tab
 - add option to edit the number
 - add option to send a mail with the list or something similar
