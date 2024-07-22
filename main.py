@@ -3,7 +3,7 @@ from nicegui import ui
 from pandas_ods_reader import read_ods
 import yaml
 from functions.cli import get_args
-from functions.grid import check_links, create_grid
+from functions.grid import handle_links, create_aggrid
 
 @ui.page('/')
 def main():
@@ -48,8 +48,8 @@ def main():
     
     # check for links and convert them to icon if enabled
     if config['links']['display']:
-        check_links(data, config)    
-                      
+        handle_links(data, config['links']['name'])                                                     
+    
     # Create Tab Panels (what is shown when Tab is selected)
     logging.debug('Creating Tab Panels (Content)...')
     with ui.card().classes('w-screen h-dvh p-0'):
@@ -64,7 +64,7 @@ def main():
             # Create one Grid for displaying everything
             logging.debug('Creating the show all grid...')
             with ui.tab_panel(everything):
-                grid = create_grid(data, config)
+                grid = create_aggrid(data, config)
         
             # Create One grid for each unique Category in the first Column
             # grids = [ui.aggrid]
@@ -72,10 +72,8 @@ def main():
             for category in categories:
                 category_data = data[data[config['data']['category']]==category]
                 with ui.tab_panel(category):
-                    grid = create_grid(category_data, config)
+                    grid = create_aggrid(category_data, config)
                     with ui.row():
-                        grid.options['columnDefs'][0]['field']
-                        ui.label().bind_text_from(grid, 'selected', lambda val: f'Current selection: {val}')
                         ui.button('Select all', on_click=lambda: grid.run_grid_method('selectAll'))
                         ui.button('Show parent', on_click=lambda: grid.run_column_method('setColumnVisible', 'link', True))
 
