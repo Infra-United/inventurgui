@@ -17,22 +17,14 @@ Here is the flagship instance of this program: inventur.infraunited.org
 - creates AGGrids under each Tab with the Data in each category
 - makes filtering available to the 2nd, 3rd and 5th column
 - pins the second column to the left, sorts it ascending order and changes the text-color to secondary color
-- sets minimum widths to
-    - 130 for the second (pinned) column, the Names of the Objects 
-    - 250 for the third column (Description)
-    - 40 for the fourth column (Number/Count)
-    - 90 for the fith column (Package)
+- creates one column with ℹ️ icons that can be clicked on to open links with further information in new tab
 
 ## Roadmap
 ### Make config available in admin page
-- create /admin page with login
+- create /admin page accessible through /login ✅
+- use Box for config dot notation
 - create a nice input form for config values
 - make use of those values
-
-### Add Links with Information
-- Add another column for Links ✅
-- display them in a nice and small way (maybe emoji) ✅
-- Add Links to the .ods-sheet
 
 ### Send a Request
 - add option to select multiple things in grids ✅
