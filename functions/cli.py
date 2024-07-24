@@ -13,10 +13,11 @@ def get_args() -> dict:
   # Get argparser
   argparser = argparse.ArgumentParser(prog="inventurgui", description='A web application to display the content of an .ods (Libre Office Calc) file in a nice way.')
   # Add arguments to argparser
-  argparser.add_argument("-c", "--config", dest='config_file', help='specify path to config file, defaults to config.yml')
+  argparser.add_argument("-c", "--config", dest='config_file', help='specify path to config file, defaults to files/config.yml')
   argparser.add_argument("-d", "--debug", dest='debug', help='set the log level to debug, defaults to info', action='store_true') 
   argparser.add_argument("-p", "--set-password", dest='set_pass', help='set the password required for the admin panel (configuration)', action='store_true')
-  argparser.set_defaults(config_file="files/config.yml", log_level='info')
+  argparser.add_argument("-u", "--users", dest='users_file', help='specify path to users_file, defaults to files/users.yml')
+  argparser.set_defaults(config_file="files/config.yml", log_level='info', users_file='files/users.yml')
   # Parse args to dictionary
   args:dict = argparser.parse_args()
   if args.debug == True:
@@ -26,3 +27,4 @@ def get_args() -> dict:
   logging.debug(f"Args: {args}")
   return args # Return Args
 
+args = get_args()
