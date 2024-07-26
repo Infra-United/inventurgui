@@ -4,3 +4,4 @@ from nicegui import ui
 def settings():
    ui.label("Settings Page")
    
+   # TODO implement gui to change settings
