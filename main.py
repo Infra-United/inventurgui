@@ -1,10 +1,10 @@
 from logging import debug
 from nicegui import ui
-from functions.settings import settings
-from functions.auth import login
+from ui.settings import settings
+from ui.auth import login
 from functions.data import data
 from functions.config import config
-from functions.grid import create_aggrid, handle_links
+from ui.grid import create_aggrid, handle_links
 
 @ui.page('/')
 def main(): 

@@ -1,5 +1,5 @@
 admin:
-  username: infraunited
+  username: admin # This has to be "admin", else it won't work!!
   password: =QYZdPhR5j+lqjn5vxrEm+kubik0RYfXpk6L5dmKVtzH
 users:
   - username: scc24
