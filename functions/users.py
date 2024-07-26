@@ -21,8 +21,8 @@ def load_user_data():
     except FileNotFoundError:
         exception('File not Found:', users_file); exit() 
 
-def get_users(user_data:dict, users:list[User] = [{}]) -> list[User]:
-    for count, user_yml in enumerate(user_data['Users']):
+def get_users(user_data:dict, users:list[User] = []) -> list[User]:
+    for count, user_yml in enumerate(user_data['users']):
         user = User(count, user_yml['username'], user_yml['password'])
         users.append(user)
     global user_count; user_count = count
