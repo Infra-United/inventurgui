@@ -1,4 +1,6 @@
 from logging import debug
+import random
+import string
 from nicegui import ui
 from ui.settings import settings
 from ui.auth import login
@@ -60,9 +62,9 @@ def main():
     ui.dark_mode(True)
     ui.query('.nicegui-content').classes('p-0') # remove default padding from site
     debug('Finished. Starting UI...')
-    ui.run(title=config['title'], favicon=config['favicon'], port=8081, storage_secret=config['storage_secret'])
+    storage_secret = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(32))
+    ui.run(title=config['title'], favicon=config['favicon'], port=8081, storage_secret=storage_secret)
     
-if __name__ in {"__main__", "__mp_main__"}:                         # get Arguments from Command-Line and set log-level
-
+if __name__ in {"__main__", "__mp_main__"}:                        
     main()
     
