@@ -1,7 +1,7 @@
 from logging import debug
 import random
 import string
-from nicegui import ui
+from nicegui import app, ui
 from ui.settings import settings
 from ui.auth import login
 from functions.data import data
@@ -10,9 +10,9 @@ from ui.grid import create_aggrid, handle_links
 
 @ui.page('/')
 def main(): 
-      # Set colors
+    # Set colors and clear browser storage
     ui.colors(primary=config['colors']['primary'], secondary=config['colors']['secondary'])
-        
+    # app.storage.clear()    
     # Create Tabs
     debug('Creating Tabs...')
     with ui.header().classes('fixed p-0 m-0 bg-secondary text-primary') as header:
@@ -40,7 +40,7 @@ def main():
             debug(f"Creating Help Panel with the content of {config['help']['path']}...")
             with ui.tab_panel(help):                
                 with open(config['help']['path'], 'r') as f: # open file 
-                    with ui.card().classes('md:w-1/2 sm:w-full h-dvh pl-10 pb-20 bg-black text-base anitaliased font-light text-secondary decoration-primary'):
+                    with ui.card().classes('md:w-1/2 w-full h-dvh pl-10 pb-20 bg-black text-base anitaliased font-light text-secondary decoration-primary'):
                         ui.markdown(f.read()).classes('') 
             
             # Create one Grid for displaying everything
@@ -64,6 +64,7 @@ def main():
     debug('Finished. Starting UI...')
     storage_secret = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(32))
     ui.run(title=config['title'], favicon=config['favicon'], port=8081, storage_secret=storage_secret)
+    debug('Successfully started UI.')
     
 if __name__ in {"__main__", "__mp_main__"}:                        
     main()
