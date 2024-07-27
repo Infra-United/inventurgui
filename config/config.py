@@ -1,6 +1,6 @@
 from logging import debug
 from sys import exception
-from config.cli import args
+from cli import args
 from config.yaml import dump_yaml, load_yaml
 
 # Load from yaml file

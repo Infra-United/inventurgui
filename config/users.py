@@ -3,7 +3,7 @@ from getpass import getpass
 import hashlib
 from sys import exception
 from config.yaml import load_yaml, dump_yaml
-from config.cli import args
+from cli import args
 
 users_file = args.users_file
 user_count = int
