@@ -1,7 +1,7 @@
 from logging import debug
 from sys import exception
-from functions.cli import args
-from functions.yaml import dump_yaml, load_yaml
+from config.cli import args
+from config.yaml import dump_yaml, load_yaml
 
 # Load from yaml file
 # Here it is also possible to use PyYAML arguments, 

@@ -2,8 +2,8 @@ from base64 import b64encode
 from getpass import getpass
 import hashlib
 from sys import exception
-from functions.yaml import load_yaml, dump_yaml
-from functions.cli import args
+from config.yaml import load_yaml, dump_yaml
+from config.cli import args
 
 users_file = args.users_file
 user_count = int

@@ -2,10 +2,10 @@ from logging import debug
 import random
 import string
 from nicegui import app, ui
-from ui.settings import settings
+from ui.admin import admin
 from ui.auth import login
-from functions.data import data
-from functions.config import config
+from config.data import data
+from config.config import config
 from ui.grid import create_aggrid, handle_links
 
 @ui.page('/')
@@ -13,6 +13,7 @@ def main():
     # Set colors and clear browser storage
     ui.colors(primary=config['colors']['primary'], secondary=config['colors']['secondary'])
     # app.storage.clear()    
+    
     # Create Tabs
     debug('Creating Tabs...')
     with ui.header().classes('fixed p-0 m-0 bg-secondary text-primary') as header:

@@ -4,7 +4,7 @@ from fastapi import Request
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from nicegui import Client, app, ui
-from functions.users import get_users, hash_password, load_user_data
+from config.users import get_users, hash_password, load_user_data
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
