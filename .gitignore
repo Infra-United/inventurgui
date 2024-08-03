@@ -1,12 +1,12 @@
 # help-files
-help.md
-hilfe.md
-config.yml
-users.yml
+#help.md
+#hilfe.md
+#config.yml
+#users.yml
 
 # ods Files 
-*.ods
-*.ods#
+#*.ods
+#*.ods#
 
 storage-*
 

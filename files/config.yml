@@ -1,0 +1,23 @@
+theme:
+  primary: '#254060'
+  secondary: '#FD916B'
+  dark: True
+data:
+  category: Kategorie
+  count: Zahl
+  desc: Art
+  object: Objekt
+  pack: Packung
+  path: files/IU_Inventur.ods
+everything:
+  display: true
+  label: Alles
+favicon: files/favicon.jpeg
+help:
+  display: true
+  label: ''
+  path: files/help.md
+links:
+  display: true
+  name: Link
+title: IU Inventur
