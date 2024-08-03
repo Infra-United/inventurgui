@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from nicegui import Client, app, ui
 from config.config import theme
-from config.users import get_users, hash_password, load_user_data
+from config.users import get_users, hash_password, load_user_data, User
 
 
 
@@ -41,20 +41,23 @@ app.add_middleware(AuthMiddleware)
 @ui.page('/login')
 def login():
     theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
+    user_data = load_user_data()
+    users = get_users(user_data)
     def try_login() -> None:  # local function to avoid passing username and password as arguments
-        user_data = load_user_data()
-        users = get_users(user_data)
         if users is not None:
             for user in users: # iterate through users to check if input matches a user
                 if user.username == username.value and user.password == hash_password(password.value):
                     app.storage.user.update({'username': username.value, 'authenticated': True})
                     ui.navigate.to(f"/{username.value}")  # go to the users page 
                 else:
-                    ui.notify('There is no Account with this username and password', color='negative')
+                    user = User(id=users.count(User)+1, username=username.value, password=hash_password(password.value))
+                    users.append(user)
+                    # TODO write to users.yml
+                    print(users)
     with ui.card().classes('absolute-center'):
         username = ui.input('Username').on('keydown.enter', try_login)
         password = ui.input('Password', password=True, password_toggle_button=True).on('keydown.enter', try_login)
-        ui.button('Log in', on_click=try_login)
+        ui.button('Log in/Register', on_click=try_login)
     
 def check_logout():
     if app.storage.user.get('authenticated', False):

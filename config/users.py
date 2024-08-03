@@ -1,7 +1,7 @@
 from base64 import b64encode
 from getpass import getpass
 import hashlib
-from sys import exception
+from logging import exception
 from config.yaml import load_yaml, dump_yaml
 from cli import args
 
@@ -29,21 +29,10 @@ def get_users(user_data:dict, users:list[User] = []) -> list[User]:
     print(user_count)
     return users
 
-def add_user(username:str, password:str):
-    # TODO implement
-    pass
-
 #def write_user_data():
   #  dump_yaml(user_data, open_file(users_file, 'w'))
     # User Data needs to be reloaded for changes to apply
-  
-def set_password(user:User, password:str = None):
-    print(f"Set a new password for {user.name}:")
-    if password is not None:
-        user.password = hash_password(password)
-    if args.set_pass:
-        user.password = hash_password(getpass())
-    
+
 def hash_password(password:str):
     encoded=(password).encode()
     result = hashlib.sha256(encoded)
