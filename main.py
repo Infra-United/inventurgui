@@ -5,13 +5,13 @@ from nicegui import app, ui
 from ui.admin import admin
 from ui.auth import login
 from config.data import data
-from config.config import config
+from config.config import config, theme
 from ui.grid import create_aggrid, handle_links
 
 @ui.page('/')
 def main(): 
     # Set colors and clear browser storage
-    ui.colors(primary=config['colors']['primary'], secondary=config['colors']['secondary'])
+    theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
     # app.storage.clear()    
     
     # Create Tabs
@@ -60,7 +60,6 @@ def main():
                         ui.button('Select all', on_click=lambda: grid.run_grid_method('selectAll'))
                         ui.button('Show parent', on_click=lambda: grid.run_column_method('setColumnVisible', 'link', True))
 
-    ui.dark_mode(True)
     ui.query('.nicegui-content').classes('p-0') # remove default padding from site
     debug('Finished. Starting UI...')
     storage_secret = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(32))

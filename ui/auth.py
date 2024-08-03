@@ -4,7 +4,9 @@ from fastapi import Request
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from nicegui import Client, app, ui
+from config.config import theme
 from config.users import get_users, hash_password, load_user_data
+
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -17,7 +19,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
         user_authenticated = app.storage.user.get('authenticated', False)
         user_username = app.storage.user.get('username')
         path = request.url.path
-        
         if path in Client.page_routes.values():
             debug(path)
             if not user_authenticated:
@@ -37,8 +38,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(AuthMiddleware)
 
-@ui.page('/login', dark=True)
+@ui.page('/login')
 def login():
+    theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
     def try_login() -> None:  # local function to avoid passing username and password as arguments
         user_data = load_user_data()
         users = get_users(user_data)
@@ -54,3 +56,10 @@ def login():
         password = ui.input('Password', password=True, password_toggle_button=True).on('keydown.enter', try_login)
         ui.button('Log in', on_click=try_login)
     
+def check_logout():
+    if app.storage.user.get('authenticated', False):
+        def try_logout():
+            app.storage.user.update({'authenticated': False})
+        with ui.button(on_click=try_logout()):
+            ui.tab(name='logout', label='Logout', icon='logout')
+            
