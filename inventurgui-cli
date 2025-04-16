@@ -2,12 +2,18 @@
 
 cd "$(dirname "$0")"
 
+
 if [ ! -f ./.venv/initialized ]; then
     python3 -m pip install --upgrade pip
     pip3 install virtualenv
     python3 -m venv .venv
+    if [ ! command -v poetry &> /dev/null]; then
+        curl -sSL https://install.python-poetry.org | python3 -
+        poetry install
+        exit 1
+    fi
     ./.venv/bin/pip install -r requirements.txt
     touch ./.venv/initialized
 fi
 
-exec ./venv/bin/python ./main.py $@
+exec ./.venv/bin/python ./main.py $@
