@@ -1,5 +1,19 @@
 users:
-  - username: admin # This has to be "admin"!!
-    password: =QYZdPhR5j+lqjn5vxrEm+kubik0RYfXpk6L5dmKVtzH
-  - username: scc24
-    password: something
+- id: 0
+  password: =QYZdPhR5j+lqjn5vxrEm+kubik0RYfXpk6L5dmKVtzH
+  username: admin
+- id: 1
+  password: =IGn4k5PbPFlvCEiqV7YSAOZVRkmzExC/iYiY8Xdakty
+  username: test
+- id: 2
+  password: =QdiSLcYj5RbIgngw2UEWRZkT8B7CPBYZa33tzmINnTJ
+  username: debt4climate
+- id: 1
+  password: =UFuSh3GZWJpMN5mkReQueCJ5+WmIT/+aSBH8jpQED74
+  username: ''
+- id: 1
+  password: =UFuSh3GZWJpMN5mkReQueCJ5+WmIT/+aSBH8jpQED74
+  username: ''
+- id: 1
+  password: =UFuSh3GZWJpMN5mkReQueCJ5+WmIT/+aSBH8jpQED74
+  username: ''
