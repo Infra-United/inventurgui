@@ -1,3 +1,4 @@
+import logging
 from logging import debug
 import random
 import string
@@ -7,10 +8,10 @@ from config.users import hash_password
 #from ui.auth import try_login
 from config.data import data
 from config.config import config, theme
-from ui.grid import create_aggrid, handle_links
+from ui.grid import create_aggrid
 
 @ui.page('/')
-def main(): 
+def main():
     # Set colors and clear browser storage
     theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
     # app.storage.clear()    
@@ -29,11 +30,6 @@ def main():
             categories:list[str] = sorted(data[config['data']['category']].unique())
             for category in categories:
                 ui.tab(category).classes('')
-    
-    # check for links and convert them to icon if enabled
-    if config['links']['display']:
-        handle_links(data, config['links']['name'])                                                     
-    
     # Create Tab Panels (what is shown when Tab is selected)
     debug('Creating Tab Panels (Content)...')
 
@@ -72,7 +68,7 @@ def main():
     ui.query('.nicegui-content').classes('p-0') # remove default padding from site
     debug('Finished. Starting UI...')
     storage_secret = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(32))
-    ui.run(title=config['title'], favicon=config['favicon'], port=8082, storage_secret=storage_secret)
+    ui.run(title=config['title'], favicon=config['favicon'], port=8080, storage_secret=storage_secret)
     debug('Successfully started UI.')
     
 if __name__ in {"__main__", "__mp_main__"}:                        

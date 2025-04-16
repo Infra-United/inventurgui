@@ -1,3 +1,5 @@
+import pandas
+from nicegui import ui
 from pandas import DataFrame
 from nicegui.ui import aggrid
 
@@ -21,8 +23,20 @@ def create_aggrid(data: DataFrame, config:dict) -> aggrid:
         {'field': config['data']['pack'], 'minWidth': 90}]
     
     if config['links']['display']:
-        columnDefs.insert(0,{'headerName': '', 'field': config['links']['name'], 'filter': False, 'minWidth': 30, 'maxWidth': 30, 'cellStyle': {'padding-left':'2.5px', 'padding-right': '2.5px'}})
-    
+        # Function to replace https links with HTML string
+        def replace_https_with_html(link):
+            if pandas.isna(link):
+                return link  # Return NaN as is
+            if link.startswith('http'):
+                return f'<span style="font-size: 24px;">ℹ️</span>'
+            return link  # Return the link as is if it doesn't start with https://
+        
+        # Apply the function to the 'links' column
+        pandas.options.mode.copy_on_write = True
+        data['has_link'] = data[config['links']['column']].apply(replace_https_with_html)
+        link_column = {'headerName': '', 'field': 'has_link', 'filter': False, 'minWidth': 50, 'maxWidth': 50}
+        columnDefs.insert(0, link_column)
+        
     # Create Grid with given Data
     return aggrid({
         'columnDefs': columnDefs,
@@ -32,7 +46,7 @@ def create_aggrid(data: DataFrame, config:dict) -> aggrid:
         #'rowMultiSelectWithClick': True,
             },      
         html_columns=[0],
-        theme='alpine-dark').classes('h-full')
+        theme='alpine-dark').classes('h-full').on('cellClicked', lambda event: dialog(event.args) if event.args['colId'] == 'has_link' else None)
     
     
 def default_column_defs() -> dict:
@@ -45,19 +59,9 @@ def default_column_defs() -> dict:
         'floatingFilter': True}
     return defaultColDef
 
-
-def handle_links(data: DataFrame, links:str) -> DataFrame:
-    """Checks for data in the given DataFrame and convert them to HTML <a> tags inside the same DataFrame. 
-    Args:
-        data (DataFrame): The pandas DataFrame that contains the links column.
-        links (string): The name of the column with links.
-    Returns:
-        DataFrame: The modified links column as a pandas Dataframe.
-    """    
-    links = data[links]
-    #(grid.options['columnDefs'][0]['field'])
-    if links.isna().all():
-        return links
-    else: # Replace URLs in the data column with HTML strings and return it
-        return links.where(links.isna(), other = '<a href="' + links + '" target="_blank">' + '<span style="font-size: 24px;">ℹ️</span>' + '</a>', inplace=True)
-        
+def dialog(event_args:dict):
+    with ui.dialog() as dia:
+        with ui.card():
+            ui.label(text=f"{event_args['data']['Objekt']} ({event_args['data']['Art']})")
+            ui.image(event_args['data']['Link'])
+    return dia

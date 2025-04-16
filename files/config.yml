@@ -19,5 +19,5 @@ help:
   path: files/help.md
 links:
   display: true
-  name: Link
+  column: "Link"
 title: IU Inventur
