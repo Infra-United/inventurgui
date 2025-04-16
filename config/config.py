@@ -1,5 +1,4 @@
-from logging import debug
-from sys import exception
+from logging import debug, exception
 from cli import args
 from nicegui import ui, binding
 from config.yaml import dump_yaml, load_yaml
