@@ -15,9 +15,9 @@ def create_aggrid(data: DataFrame, config:dict) -> aggrid:
     """   
     # Define Columns for AG Grids
     columnDefs = [
-        {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'pinned': 'left', 'sort': 'asc', 'cellClassRules': {'text-secondary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
+        {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-secondary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},   
-        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 50, 'maxWidth': 80},
+        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 50, 'maxWidth': 80, 'editable': True},
         {'field': config['data']['pack'], 'minWidth': 90}]
     
     if config['links']['display']:
@@ -28,11 +28,11 @@ def create_aggrid(data: DataFrame, config:dict) -> aggrid:
         'columnDefs': columnDefs,
         'defaultColDef': default_column_defs(),
         'rowData': data.to_dict('records'),
-        'rowSelection': 'multiple',
-        'rowMultiSelectWithClick': True,
+       # 'rowSelection': 'multiple',
+        #'rowMultiSelectWithClick': True,
             },      
         html_columns=[0],
-        theme='alpine-dark').classes('h-5/6')
+        theme='alpine-dark').classes('h-full')
     
     
 def default_column_defs() -> dict:
