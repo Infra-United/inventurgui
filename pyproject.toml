@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "inventurgui"
+version = "0.1.0"
+description = "This is a simple Python GUI that displays data from table sheets (.ods) on a Website in a nice way. It is used for inventory management in organizations that lend stuff for free or vs donations."
+authors = ["whoami <schmusi@systemli.org>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+nicegui = ">=2.0.1, <2.10"
+pandas = "^2.2.3"
+pandas-ods-reader = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
