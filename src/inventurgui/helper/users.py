@@ -1,10 +1,10 @@
 from base64 import b64encode
 import hashlib
 from logging import exception
-from config.yaml import load_yaml, dump_yaml
-from cli import args
+from inventurgui.helper.config import load_yaml, dump_yaml
+from inventurgui.cli import ARGS
 
-users_file = args.users_file
+users_file = ARGS.users_file
 user_count = int
 
 class User:

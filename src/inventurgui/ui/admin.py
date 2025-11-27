@@ -1,6 +1,6 @@
 from nicegui import ui
-from config.config import theme
-from ui.auth import check_logout
+from inventurgui.helper.config import theme
+from inventurgui.ui.auth import check_logout
 from config.routers import user
 
 lorem_ipsum:str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
