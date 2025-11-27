@@ -42,11 +42,11 @@ def create_aggrid(data: DataFrame, config:dict) -> aggrid:
         'columnDefs': columnDefs,
         'defaultColDef': default_column_defs(),
         'rowData': data.to_dict('records'),
-       # 'rowSelection': 'multiple',
-        #'rowMultiSelectWithClick': True,
+        'rowSelection': 'multiple',
+        'rowMultiSelectWithClick': True,
             },      
         html_columns=[0],
-        theme='alpine-dark').classes('h-full').on('cellClicked', lambda event: dialog(event.args) if event.args['colId'] == 'has_link' else None)
+        theme='balham').classes('h-dvh w-screen').on('cellClicked', lambda event: dialog(event.ARGS) if event.ARGS['colId'] == 'has_link' else None)
     
     
 def default_column_defs() -> dict:

@@ -8,15 +8,15 @@ data:
   desc: Art
   object: Objekt
   pack: Packung
-  path: files/IU_Inventur.ods
+  path: "Infra United (Intern)/Inventur/IU_Inventur.ods"
 everything:
   display: true
   label: Alles
-favicon: files/favicon.jpeg
+favicon: favicon.jpeg
 help:
   display: true
   label: ''
-  path: files/help.md
+  path: help.md
 links:
   display: true
   column: "Link"
