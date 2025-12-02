@@ -1,12 +1,7 @@
-import asyncio
 import random
 import string
-from pathlib import Path
 
-import ezodf
 from nicegui import ui, app
-from pandas.core.interchange.dataframe_protocol import DataFrame
-from pandas_ods_reader import read_ods
 
 from inventurgui.helper.config import config, theme, get_path
 from inventurgui.helper.logger import LOGGER
@@ -14,9 +9,8 @@ from inventurgui.helper.safe_url import url_safe
 # from ui.admin import admin
 # from ui.auth import try_login
 from inventurgui.io.nextcloud import Nextcloud
-from inventurgui.ui.grid import create_aggrid
-from inventurgui.ui.layout import header, left_drawer
-from inventurgui.ui.sub_pages import help_page, warehouse_page
+from inventurgui.ui.layout import header, left_drawer, footer
+from inventurgui.ui.sub_pages import help_page, warehouse_page, category_page
 
 
 def root():
@@ -33,17 +27,27 @@ def root():
     warehouses = nc.warehouses
     pages = ui.sub_pages(data={'warehouses': warehouses})
     pages.add('/', help_page)
+
+    # Create Left Drawer
+    ld = left_drawer()
+
     #with ui.card().tight().classes('w-screen bg-black container overflow-auto p-0'):
     for warehouse in warehouses:
         warehouse = warehouse
-        pages.add(f'/{url_safe(warehouse['name'])}', lambda w=warehouse: warehouse_page(w))
+        name = url_safe(warehouse['name'])
+        pages.add(f'/{name}', lambda w=warehouse: warehouse_page(w, ld))
+        categories = sorted(warehouse['inventory'][config['data']['category']].unique())
+        if len(categories) > 1:
+            everything = url_safe(config['everything']['label'])
+            pages.add(f'/{name}/{everything}', lambda w=warehouse: warehouse_page(w, ld))
+        for category in categories:
+            pages.add(f'/{name}/{url_safe(category)}', lambda i=warehouse['inventory'], c=category: category_page(c, i))
 
 
-    # Create Left Drawer
-    #ld = left_drawer(sub_page.pages)
 
-    # Create Header
-    header(warehouses)
+
+    header(warehouses, ld)
+    footer(warehouses, ld)
     """
     # Create Sub Pages
     with ui.card().tight().classes('w-screen bg-black container overflow-auto p-0'):
