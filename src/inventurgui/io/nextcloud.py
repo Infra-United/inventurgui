@@ -2,18 +2,17 @@
 import asyncio
 import datetime
 from pathlib import Path
-from typing import AsyncGenerator, TypedDict, List
+from typing import List
 
 import ezodf
 from aiowebdav.client import Client
 from aiowebdav.exceptions import NoConnection
-from dateutil.utils import today
-from pandas import DataFrame
 from pandas_ods_reader import read_ods
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from inventurgui.helper.config import get_path, config
 from inventurgui.helper.logger import LOGGER
+from inventurgui.io.warehouse import Warehouse
 
 
 class NextcloudSettings(BaseSettings):
@@ -26,11 +25,6 @@ class NextcloudSettings(BaseSettings):
     domain: str
     user: str
     token: str
-
-
-class Warehouse(TypedDict):
-    name: str
-    inventory: DataFrame
 
 class Nextcloud(Client):
     inventory_path: str
@@ -58,7 +52,7 @@ class Nextcloud(Client):
         for sheet_num, sheet in enumerate(ezodf.opendoc(self.inventory_file).sheets):
             if sheet_num < config['data']['sheets']:
                 LOGGER.debug(f"Reading sheet {sheet.name}...")
-                warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(self.inventory_file, sheet_num+1)))
+                warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(self.inventory_file, sheet_num + 1)))
         return warehouses
 
     @staticmethod
@@ -73,9 +67,9 @@ class Nextcloud(Client):
 
     async def update_inventory(self) -> None:
         try:
-            if self.inventory_file.is_file() and self.get_mod_time(self.inventory_file).date() == today().date():
-                LOGGER.info(f"Inventory file is up to date. Using cached data.")
-                return
+          #  if self.inventory_file.is_file() and self.get_mod_time(self.inventory_file).date() == today().date():
+           #     LOGGER.info(f"Inventory file is up to date. Using cached data.")
+            #    return
             LOGGER.debug(f"Getting Data from {self.inventory_path}...")
             if await self.check(self.inventory_path):
                 await self.download_file(self.inventory_path, self.inventory_file)

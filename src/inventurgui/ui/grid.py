@@ -1,22 +1,28 @@
 import pandas
-from nicegui import ui
+from nicegui import ui, app
+from nicegui.elements.aggrid import AgGrid
 from pandas import DataFrame
 from nicegui.ui import aggrid
 
+from inventurgui.io import warehouse
+
 """This module implements functions to create AG Grids which display the data."""
 
-def create_aggrid(data: DataFrame, config:dict) -> aggrid:
+def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
 
     Args:
+        name (str): name of the AG Grid to display
         data (DataFrame): The data to be displayed as a pandas DataFrame.
         config (dictionary): The configuration as a dictionary.
 
     Returns:
         aggrid: The AG Grid that results from the given Arguments.
-    """   
+    """
+
     # Define Columns for AG Grids
     columnDefs = [
+        {'checkboxSelection': True , 'maxWidth': 40, 'filter': False},
         {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-secondary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},   
         {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 50, 'maxWidth': 80, 'editable': True},
@@ -36,18 +42,28 @@ def create_aggrid(data: DataFrame, config:dict) -> aggrid:
         data['has_link'] = data[config['links']['column']].apply(replace_https_with_html)
         link_column = {'headerName': '', 'field': 'has_link', 'filter': False, 'minWidth': 50, 'maxWidth': 50}
         columnDefs.insert(0, link_column)
-        
+
+    theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'quartz'
     # Create Grid with given Data
-    return aggrid({
+    return (aggrid({
+        'headerName': name,
         'columnDefs': columnDefs,
         'defaultColDef': default_column_defs(),
         'rowData': data.to_dict('records'),
         'rowSelection': 'multiple',
+        ':getRowId': '(params) => params.data.perma_id',
         'rowMultiSelectWithClick': True,
             },      
         html_columns=[0],
-        theme='balham').classes('h-dvh w-screen').on('cellClicked', lambda event: dialog(event.ARGS) if event.ARGS['colId'] == 'has_link' else None)
-    
+        theme=theme).classes('h-dvh w-screen')
+    .on('cellClicked', lambda event: handle_selection(name, event.args['rowId'])))
+
+def handle_selection(name:str, row_id:int):
+    if row_id not in app.storage.user[name]:
+        app.storage.user[name].append(row_id)
+    else:
+        app.storage.user[name].remove(row_id)
+
     
 def default_column_defs() -> dict:
     # Define default column properties for AG Grids
@@ -65,3 +81,12 @@ def dialog(event_args:dict):
             ui.label(text=f"{event_args['data']['Objekt']} ({event_args['data']['Art']})")
             ui.image(event_args['data']['Link'])
     return dia
+
+def grid_buttons(grid:AgGrid, classes:str="stretch", props:str="flat square"):
+    with ui.page_sticky(x_offset=18, y_offset=18):
+        with ui.fab(icon='construction', direction='up').classes('m-0 align-right'):
+            #TODO trigger reload or update theme
+            ui.fab_action(icon='zoom_in', on_click=lambda: app.storage.user.update(grid_theme='alpine'))
+            ui.fab_action(icon='zoom_out', on_click=lambda: app.storage.user.update(grid_theme='balham'))
+            ui.fab_action(icon='select_all', on_click=lambda: grid.run_grid_method('selectAll'))
+            ui.fab_action(icon='deselect', on_click=lambda: grid.run_grid_method('deselectAll'))
