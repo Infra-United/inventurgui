@@ -45,7 +45,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
         link_column = {'headerName': '', 'field': 'has_link', 'filter': False, 'minWidth': 50, 'maxWidth': 50}
         columnDefs.insert(0, link_column)
 
-    theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'quartz'
+    theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'alpine'
     # Create Grid with given Data
     grid =aggrid({
         'headerName': name,
