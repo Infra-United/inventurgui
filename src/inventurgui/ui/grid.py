@@ -1,6 +1,7 @@
 import pandas
 from nicegui import ui, app
 from nicegui.elements.aggrid import AgGrid
+from nicegui.events import GenericEventArguments
 from pandas import DataFrame
 from nicegui.ui import aggrid
 
@@ -56,11 +57,14 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
             },      
         html_columns=[0],
         theme=theme).classes('sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)] w-screen')
-    grid.on('cellClicked', lambda event: handle_selection(name, event.args['rowId']))
+    #grid.on('cellClicked', lambda: grid.run_grid_method(''))
+    grid.on('rowSelected', lambda event: handle_selection(name, event.args['rowId'], event))
+    for row in app.storage.user[name]:
+        grid.on('firstDataRendered', lambda: grid.run_row_method(row, 'setSelected', True))
     #grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns', config['data']['desc']))
     return grid
 
-def handle_selection(name:str, row_id:int):
+def handle_selection(name:str, row_id:int, event:GenericEventArguments):
     if row_id not in app.storage.user[name]:
         app.storage.user[name].append(row_id)
     else:
