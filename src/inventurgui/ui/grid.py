@@ -45,7 +45,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
 
     theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'quartz'
     # Create Grid with given Data
-    return (aggrid({
+    grid =aggrid({
         'headerName': name,
         'columnDefs': columnDefs,
         'defaultColDef': default_column_defs(),
@@ -55,8 +55,10 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
         'rowMultiSelectWithClick': True,
             },      
         html_columns=[0],
-        theme=theme).classes('h-dvh w-screen')
-    .on('cellClicked', lambda event: handle_selection(name, event.args['rowId'])))
+        theme=theme).classes('sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)] w-screen')
+    grid.on('cellClicked', lambda event: handle_selection(name, event.args['rowId']))
+    #grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns', config['data']['desc']))
+    return grid
 
 def handle_selection(name:str, row_id:int):
     if row_id not in app.storage.user[name]:
@@ -81,12 +83,3 @@ def dialog(event_args:dict):
             ui.label(text=f"{event_args['data']['Objekt']} ({event_args['data']['Art']})")
             ui.image(event_args['data']['Link'])
     return dia
-
-def grid_buttons(grid:AgGrid, classes:str="stretch", props:str="flat square"):
-    with ui.page_sticky(x_offset=18, y_offset=18):
-        with ui.fab(icon='construction', direction='up').classes('m-0 align-right'):
-            #TODO trigger reload or update theme
-            ui.fab_action(icon='zoom_in', on_click=lambda: app.storage.user.update(grid_theme='alpine'))
-            ui.fab_action(icon='zoom_out', on_click=lambda: app.storage.user.update(grid_theme='balham'))
-            ui.fab_action(icon='select_all', on_click=lambda: grid.run_grid_method('selectAll'))
-            ui.fab_action(icon='deselect', on_click=lambda: grid.run_grid_method('deselectAll'))

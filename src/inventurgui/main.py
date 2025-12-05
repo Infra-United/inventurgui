@@ -4,7 +4,7 @@ import string
 
 from nicegui import ui, app
 
-from inventurgui.helper.config import config, theme, get_path
+from inventurgui.helper.config import config, get_path
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 # from ui.admin import admin
@@ -12,6 +12,7 @@ from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.ui.layout import header, left_drawer, footer
 from inventurgui.ui.sub_pages import help_page, warehouse_page, category_page
+from inventurgui.ui.theme import theme
 
 
 def root():

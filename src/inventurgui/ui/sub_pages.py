@@ -7,7 +7,8 @@ from nicegui.elements.drawer import LeftDrawer
 from inventurgui.helper.config import config, get_path
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.grid import create_aggrid, grid_buttons
+from inventurgui.ui.grid import create_aggrid
+from inventurgui.ui.layout import tool_buttons
 
 
 def help_page(help_file:Path = get_path(config['help']['path'])):
@@ -22,7 +23,7 @@ def warehouse_page(warehouse: Warehouse, ld:LeftDrawer):
     grid:AgGrid = create_aggrid(warehouse.name, warehouse.inventory, config)
     for row in app.storage.user[warehouse.name]:
         grid.run_row_method(row, 'setSelected', True)
-    grid_buttons(grid)
+    tool_buttons(grid)
     #grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeAllColumns'))
     LOGGER.debug(f"Created grid with props: {grid.props}")
 
@@ -34,7 +35,7 @@ def category_page(category:str, warehouse: Warehouse):
 
     for row in app.storage.user[warehouse.name]:
         grid.run_row_method(row, 'setSelected', True)
-    grid_buttons(grid)
+    tool_buttons(grid)
     LOGGER.debug(f"Created grid with props: {grid.props}")
     # with ui.row():
     #   ui.button('Select all', on_click=lambda: grid.run_grid_method('selectAll'))
