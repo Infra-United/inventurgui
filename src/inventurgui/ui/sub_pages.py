@@ -19,10 +19,10 @@ def help_page(help_file:Path = get_path(config['help']['path'])):
 
 def warehouse_page(warehouse: Warehouse):
     # Create one Grid for displaying everything inside a warehouse
-    LOGGER.debug(f'Creating the show all grid for {warehouse.name}...')
+    LOGGER.debug(f'Creating grid for {warehouse.name}...')
     grid:AgGrid = create_aggrid(warehouse.name, warehouse.inventory, config)
     tool_buttons(grid)
-    LOGGER.debug(f"Created grid with props: {grid.props}")
+    LOGGER.info(f"Created grid for: {warehouse.name}")
 
 def category_page(category:str, warehouse: Warehouse):
     # Create One grid for each unique Category in the first Column
@@ -30,7 +30,7 @@ def category_page(category:str, warehouse: Warehouse):
     category_data = warehouse.inventory[warehouse.inventory[config['data']['category']] == category]
     grid:AgGrid = create_aggrid(warehouse.name, category_data, config)
     tool_buttons(grid)
-    LOGGER.debug(f"Created grid with props: {grid.props}")
+    LOGGER.info(f"Created grid for: {category}")
     # with ui.row():
     #   ui.button('Select all', on_click=lambda: grid.run_grid_method('selectAll'))
     #  ui.button('Show parent', on_click=lambda: grid.run_column_method('setColumnVisible', 'link', True))
