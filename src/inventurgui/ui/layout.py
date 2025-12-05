@@ -13,7 +13,7 @@ def main_menu(ld:LeftDrawer, classes:str="stretch", props:str="flat square"):
      .classes(classes).props(props))
 
 def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer,
-                   classes:str="w-full text-secondary text-center py-2 font-normal subpixel-antialiased tracking-widest",
+                   classes:str="w-full text-secondary text-center py-2 font-bold subpixel-antialiased tracking-widest",
                    props:str="flat square hide-expand-icon popup"):
     for warehouse in warehouses:
         name = warehouse.name
@@ -22,11 +22,11 @@ def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer,
             category_menu(warehouse, ld)
 
 def category_menu(warehouse:Warehouse, ld:LeftDrawer,
-              classes:str="w-full h-full text-secondary py-2 font-normal subpixel-antialiased tracking-widest",
-              props:str="square toggle-color=secondary"):
+              classes:str="w-full h-full text-secondary font-normal subpixel-antialiased tracking-widest",
+              props:str="square unelevated toggle-color=secondary"):
     ui.toggle(warehouse.categories, value=warehouse.categories[0],
               on_change=lambda v:ui.navigate.to(f"/{url_safe(warehouse.name)}/{url_safe(v.value)}")
-              ).classes(classes).props(props).classes('wrap column')
+              ).classes(classes).props(props).classes('column')
 
 
 @contextmanager
