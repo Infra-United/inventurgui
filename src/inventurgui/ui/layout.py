@@ -1,6 +1,4 @@
-from contextlib import contextmanager
-
-from nicegui import ui, app
+from nicegui import ui
 from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import config
@@ -28,20 +26,12 @@ def category_menu(warehouse:Warehouse, ld:LeftDrawer,
               on_change=lambda v:ui.navigate.to(f"/{url_safe(warehouse.name)}/{url_safe(v.value)}")
               ).classes(classes).props(props).classes('column')
 
-
-@contextmanager
 def header(ld:LeftDrawer):
     with ui.header().classes("fixed max-sm:hidden flex-nowrap bg-secondary m-0 px-3 py-2 border-none items-center"):
         ui.button(on_click=lambda: ld.toggle(), icon="menu").classes("lg:hidden stretch").props('flat square')
         main_menu(ld)
         ui.space().classes()
-        """
-        ui.space().classes("max-lg:hidden")
-        with ui.row().classes("lg:hidden"):
-            with ui.dropdown_button('Kategorien', auto_close=True).props("flat square"):
-                secondary_menu(pages)"""
 
-@contextmanager
 def footer(ld:LeftDrawer):
     # Footer is only shown on small screens
     with ui.footer(fixed=True).classes("sm:hidden bg-secondary p-2"):
