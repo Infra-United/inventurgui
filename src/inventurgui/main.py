@@ -38,7 +38,7 @@ def root():
         app.storage.user[warehouse.name] = [] if not app.storage.user.get(warehouse.name) else app.storage.user[warehouse.name]
         warehouse = warehouse
         name = url_safe(warehouse.name)
-        pages.add(f'/{name}', lambda w=warehouse: warehouse_page(w, ld))
+        pages.add(f'/{name}', lambda w=warehouse: warehouse_page(w))
         for category in warehouse.categories:
             pages.add(f'/{name}/{url_safe(category)}', lambda w=warehouse, c=category: category_page(c, w))
 

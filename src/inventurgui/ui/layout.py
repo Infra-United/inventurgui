@@ -50,7 +50,7 @@ def left_drawer(warehouses:list[Warehouse]) -> LeftDrawer:
     return ld
 
 
-def tool_buttons(grid:AgGrid, classes:str="stretch bg-secondary", props:str="push glosssy color=secondary"):
+def tool_buttons(grid:AgGrid, classes:str="stretch bg-secondary", props:str="push glossy color=secondary"):
     with ui.page_sticky(x_offset=18, y_offset=18):
         with ui.fab(icon='construction', direction='up').classes(classes).props(props):
             ui.fab_action(icon='zoom_out', on_click=lambda e: handle_theme_change(e.sender ,grid)).classes(classes).props(props)

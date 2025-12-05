@@ -2,6 +2,7 @@ import pandas
 from nicegui import ui, app
 from nicegui.elements.aggrid import AgGrid
 from nicegui.events import GenericEventArguments
+from nicegui.html import source
 from pandas import DataFrame
 from nicegui.ui import aggrid
 
@@ -26,7 +27,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
         {'checkboxSelection': True , 'maxWidth': 40, 'filter': False},
         {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-secondary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},   
-        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 50, 'maxWidth': 80, 'editable': True},
+        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 50, 'maxWidth': 80, 'editable': True, 'cellDataType': 'number'},
         {'field': config['data']['pack'], 'minWidth': 90}]
     
     if config['links']['display']:
@@ -52,6 +53,9 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
         'defaultColDef': default_column_defs(),
         'rowData': data.to_dict('records'),
         'rowSelection': 'multiple',
+        'enterNavigatesVertically': True,
+        'enterNavigatesVerticallyAfterEdit': True,
+        'singleClickEdit': True,
         ':getRowId': '(params) => params.data.perma_id',
         'rowMultiSelectWithClick': True,
             },      
@@ -62,9 +66,12 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
     for row in app.storage.user[name]:
         grid.on('firstDataRendered', lambda: grid.run_row_method(row, 'setSelected', True))
     #grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns', config['data']['desc']))
+    grid.on('cellValueChanged') #TODO implement handler
     return grid
 
 def handle_selection(name:str, row_id:int, event:GenericEventArguments):
+    if event.args['source'] == 'api':
+        return
     if row_id not in app.storage.user[name]:
         app.storage.user[name].append(row_id)
     else:
