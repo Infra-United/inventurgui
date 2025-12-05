@@ -34,6 +34,7 @@ def root():
 
     #with ui.card().tight().classes('w-screen bg-black container overflow-auto p-0'):
     for warehouse in warehouses:
+        app.storage.user[warehouse.name] = [] if not app.storage.user.get(warehouse.name) else app.storage.user[warehouse.name]
         warehouse = warehouse
         name = url_safe(warehouse.name)
         pages.add(f'/{name}', lambda w=warehouse: warehouse_page(w, ld))
