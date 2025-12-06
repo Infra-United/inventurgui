@@ -1,3 +1,4 @@
+from nicegui import app
 from nicegui.elements.aggrid import AgGrid
 from pandas import DataFrame
 
@@ -9,9 +10,20 @@ class Warehouse:
         self.name = name
         self.inventory = inventory
         self.inventory.insert(0, 'perma_id', self.inventory.index.tolist()) # This ensures we can have selection across grids
+        self.inventory.insert(0, 'warehouse', self.name)
 
     @property
     def categories(self) -> list[str]:
         c:list[str] = sorted(self.inventory[config['data']['category']].unique())
         c.insert(0, config['everything'])
         return c
+
+    @property
+    def selected(self) -> DataFrame:
+        row_ids:list = app.storage.user[self.name]
+        rows = []
+        for row_id in row_ids:
+            for i, row_data in self.inventory.iterrows():
+                if str(i) == row_id:
+                    rows.append(row_data)
+        return DataFrame.from_records(rows)

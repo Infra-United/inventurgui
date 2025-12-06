@@ -11,11 +11,24 @@ from inventurgui.helper.safe_url import url_safe
 # from ui.auth import try_login
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.ui.layout import header, left_drawer, footer
-from inventurgui.ui.sub_pages import help_page, category_page
+from inventurgui.ui.sub_pages import help_page, category_page, cart_page
 from inventurgui.ui.theme import theme
 
 
 def root():
+    ui.add_head_html('''
+        <script>
+        function emitSize() {
+            emitEvent('resize', {
+                width: document.body.offsetWidth,
+                height: document.body.offsetHeight,
+            });
+        }
+        window.onload = emitSize;
+        window.onresize = emitSize;
+        </script>
+    ''')
+
     LOGGER.setLevel(10) # DEBUG
     Nextcloud.inventory_path = config['data']['path']
     nc = Nextcloud()
@@ -25,10 +38,12 @@ def root():
     theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
     # app.storage.clear()
     ui.query(".nicegui-content").classes("p-0 min-h-full w-screen no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
-
+    app.storage.user['screen'] = 0 if not app.storage.user.get('screen') else app.storage.user['screen']
+    ui.on('resize', lambda e: app.storage.user.update({'screen': e.args}), throttle=0.4, trailing_events=True)
     warehouses = nc.warehouses
     pages = ui.sub_pages(data={'warehouses': warehouses})
     pages.add('/', help_page)
+    pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
 
     # Create Left Drawer
     ld = left_drawer(warehouses)
@@ -55,7 +70,6 @@ def root():
 
     LOGGER.debug('Finished. Starting UI...')
 
-#async def backend():
 
 def frontend():
     storage_secret = os.environ['UI_STORAGE_SECRET']
@@ -63,7 +77,6 @@ def frontend():
     LOGGER.debug('Successfully started UI.')
 
 if __name__ in {"__main__", "__mp_main__"}:
-    #asyncio.run(backend())
     frontend()
 
 

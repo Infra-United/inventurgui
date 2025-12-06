@@ -1,3 +1,5 @@
+import asyncio
+
 from nicegui import ui, app, PageArguments, context
 from nicegui.elements.aggrid import AgGrid
 from nicegui.elements.drawer import LeftDrawer
@@ -11,10 +13,13 @@ from inventurgui.io.warehouse import Warehouse
 
 def main_menu(ld:LeftDrawer, classes:str="stretch", props:str="flat square"):
     ui.button(on_click=lambda: ld.toggle(), icon="menu").classes(f"{classes} lg:hidden").props(props)
-    (ui.button(icon='help_outline', on_click=lambda l=config['help']['label']: ui.navigate.to(f"/"))
-     .classes(classes).props(props))
+    help_button = ui.button(icon='help_outline').classes(classes).props(props)
+    help_button.on_click(lambda l=url_safe(config['help']['label']): ui.navigate.to(f"/"))
+    with ui.button(icon=config['cart']['icon']).classes(classes).props(props) as truck_button:
+        truck_button.on_click(lambda l=url_safe(config['cart']['label']): ui.navigate.to(f"/{l}"))
 
-def warehouse_menu(warehouses:list[Warehouse],
+
+def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer,
                    classes:str="w-full text-secondary text-center py-2 font-bold subpixel-antialiased tracking-widest",
                    props:str="flat square hide-expand-icon popup"):
     path_category = reverse_url(ui.context.client.sub_pages_router.current_path.split('/')[-1])
@@ -27,14 +32,15 @@ def warehouse_menu(warehouses:list[Warehouse],
             expansion.on('click', lambda e=expansion: e.open())
             with expansion.add_slot('header'):
                 with ui.label(name.upper()).classes('w-full'):
-                    badge = ui.badge('0', color='secondary', outline=True).props("transparent floating")
+                    badge = ui.badge('0', color='gray-300', text_color='black', outline=True).props("transparent floating")
                     badge.bind_text_from(app.storage.user, warehouse.name, backward=lambda v:str(len(v)), strict=False)
             toggle = ui.toggle(warehouse.categories)
             toggle.set_value(path_category)
             toggle.classes(f"{classes} column").props('square unelevated toggle-color=secondary')
             toggle.on_value_change(lambda v, w=warehouse: ui.navigate.to(f"/{url_safe(w.name)}/{url_safe(v.value)}"))
             expansion.on('click', lambda t=toggle: t.set_value(config['everything']))
-            toggle.on_value_change(lambda v, t=toggle: ui.notify([v.value, t.value]))
+            #toggle.on_value_change(lambda v, t=toggle: ui.notify([v.value, t.value]))
+            toggle.on_value_change(lambda: ld.hide() if app.storage.user.get('screen')['width'] < 1024 else None)
 
 
 def header(ld:LeftDrawer):
@@ -53,7 +59,7 @@ def footer(ld:LeftDrawer):
 def left_drawer(warehouses:list[Warehouse]) -> LeftDrawer:
     with ui.left_drawer().classes("py-3 px-0 items-stretch bg-dark").props('width=250') as ld:
         ui.space().classes("sm:hidden")
-        warehouse_menu(warehouses)
+        warehouse_menu(warehouses, ld)
         ui.button(icon="close", on_click=lambda: ld.hide()).props("flat color=contrast align=center").classes("h-24px lg:hidden")
     return ld
 
