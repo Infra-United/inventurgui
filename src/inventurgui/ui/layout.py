@@ -75,4 +75,6 @@ def handle_theme_change(e:FabAction, grid:AgGrid):
             app.storage.user['grid_theme'] = 'alpine'
             e.set_icon('zoom_out')
     e.bind_icon_to(grid, 'theme', forward=lambda i: 'balham' if i == 'zoom_in' else 'alpine')
+    for row in app.storage.user[grid.props['options']['headerName']]:
+        grid.run_row_method(row, 'setSelected', True)
 

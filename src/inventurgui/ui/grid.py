@@ -64,7 +64,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
     #grid.on('cellClicked', lambda: grid.run_grid_method(''))
     grid.on('rowSelected', lambda event: handle_selection(name, event.args['rowId'], event))
     for row in app.storage.user[name]:
-        grid.on('firstDataRendered', lambda: grid.run_row_method(row, 'setSelected', True))
+        grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setSelected', True))
     #grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns', config['data']['desc']))
     grid.on('cellValueChanged') #TODO implement handler
     return grid
