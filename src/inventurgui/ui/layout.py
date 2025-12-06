@@ -20,7 +20,9 @@ def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer,
         name = warehouse.name
         with (ui.expansion(name.upper(),value=True if name == warehouses[0].name else False, group='menu').classes(classes).props(props)
             .on('click', lambda l=url_safe(name): ui.navigate.to(f"/{l}"))):
+            ui.badge('0', color='secondary', outline=True).props("align='middle' transparent floating").bind_text_from(app.storage.user, warehouse.name, backward=lambda v:str(len(v)), strict=False)
             category_menu(warehouse, ld)
+
 
 def category_menu(warehouse:Warehouse, ld:LeftDrawer,
               classes:str="w-full h-full text-secondary font-normal subpixel-antialiased tracking-widest",
@@ -58,7 +60,7 @@ def tool_buttons(grid:AgGrid, classes:str="stretch bg-secondary", props:str="pus
             ui.fab_action(icon='deselect', on_click=lambda: grid.run_grid_method('deselectAll')).classes(classes).props(props)
 
 def handle_theme_change(e:FabAction, grid:AgGrid):
-    current_theme = app.storage.user.get('grid_theme')
+    current_theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'alpine'
     match current_theme:
         case 'alpine':
             app.storage.user['grid_theme'] = 'balham'
