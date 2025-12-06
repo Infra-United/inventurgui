@@ -15,8 +15,6 @@ help:
   display: true
   label: ''
   path: help.md
-everything:
-  label: 'Alles'
 links:
   display: false
   column: "Link"
