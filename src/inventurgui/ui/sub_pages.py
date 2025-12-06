@@ -13,24 +13,19 @@ from inventurgui.ui.layout import tool_buttons
 def help_page(help_file:Path = get_path(config['help']['path'])):
     # Create one Page for displaying help
     LOGGER.debug(f"Creating Help Panel with the content of {help_file}...")
-    with ui.row().classes('w-screen p-2 m-0') as row:
+    with ui.row().classes('w-screen p-2 m-0'):
         with open(help_file, 'r') as f:  # open file
             ui.markdown(f.read()).classes('pl-10 pb-20 m-0 text-base font-light text-secondary')
 
-def warehouse_page(warehouse: Warehouse):
-    # Create one Grid for displaying everything inside a warehouse
-    LOGGER.debug(f'Creating grid for {warehouse.name}...')
-    grid:AgGrid = create_aggrid(warehouse.name, warehouse.inventory, config)
-    tool_buttons(grid)
-    LOGGER.info(f"Created grid for: {warehouse.name}")
-
 def category_page(category:str, warehouse: Warehouse):
     # Create One grid for each unique Category in the first Column
-    LOGGER.debug(f'Creating Grid for {category}...')
+    LOGGER.debug(f'Creating Grid for {warehouse.name}/{category}...')
     category_data = warehouse.inventory[warehouse.inventory[config['data']['category']] == category]
+    if category == config['everything']:
+        category_data = warehouse.inventory
     grid:AgGrid = create_aggrid(warehouse.name, category_data, config)
     tool_buttons(grid)
-    LOGGER.info(f"Created grid for: {category}")
+    LOGGER.info(f"Created grid for: {warehouse.name}/{category}")
     # with ui.row():
     #   ui.button('Select all', on_click=lambda: grid.run_grid_method('selectAll'))
     #  ui.button('Show parent', on_click=lambda: grid.run_column_method('setColumnVisible', 'link', True))

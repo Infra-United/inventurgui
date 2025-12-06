@@ -11,7 +11,7 @@ from inventurgui.helper.safe_url import url_safe
 # from ui.auth import try_login
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.ui.layout import header, left_drawer, footer
-from inventurgui.ui.sub_pages import help_page, warehouse_page, category_page
+from inventurgui.ui.sub_pages import help_page, category_page
 from inventurgui.ui.theme import theme
 
 
@@ -38,7 +38,6 @@ def root():
         app.storage.user[warehouse.name] = [] if not app.storage.user.get(warehouse.name) else app.storage.user[warehouse.name]
         warehouse = warehouse
         name = url_safe(warehouse.name)
-        pages.add(f'/{name}', lambda w=warehouse: warehouse_page(w))
         for category in warehouse.categories:
             pages.add(f'/{name}/{url_safe(category)}', lambda w=warehouse, c=category: category_page(c, w))
 

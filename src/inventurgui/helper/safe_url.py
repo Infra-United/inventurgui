@@ -6,3 +6,11 @@ def url_safe(label:str) -> str:
             replace('ä', 'ae').
             replace('ö', 'oe')
             .lower())
+
+def reverse_url(url:str) -> str:
+    return (url.
+            replace('_', ' & ').
+            replace('ue', 'ü').
+            replace('ae', 'ä').
+            replace('oe', 'ö')
+            .title())

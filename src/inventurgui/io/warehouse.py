@@ -13,4 +13,5 @@ class Warehouse:
     @property
     def categories(self) -> list[str]:
         c:list[str] = sorted(self.inventory[config['data']['category']].unique())
+        c.insert(0, config['everything'])
         return c
