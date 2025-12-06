@@ -1,15 +1,18 @@
 # read ods file to get inventory data
-from logging import debug
+import asyncio
+import datetime
 from pathlib import Path
-from urllib.parse import quote
+from typing import List
 
+import ezodf
 from aiowebdav.client import Client
-from pandas import DataFrame
+from aiowebdav.exceptions import NoConnection
 from pandas_ods_reader import read_ods
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from inventurgui.helper.config import get_path
+from inventurgui.helper.config import get_path, config
 from inventurgui.helper.logger import LOGGER
+from inventurgui.io.warehouse import Warehouse
 
 
 class NextcloudSettings(BaseSettings):
@@ -24,8 +27,7 @@ class NextcloudSettings(BaseSettings):
     token: str
 
 class Nextcloud(Client):
-    data: DataFrame
-    data_path: Path
+    inventory_path: str
 
     def __init__(self, ncs: NextcloudSettings = NextcloudSettings()):
         self._domain = ncs.domain
@@ -38,20 +40,43 @@ class Nextcloud(Client):
         }
         super().__init__(options)
 
-    async def __post_init__(self):
-        await self.get_inventory()
-        self.read_inventory()
 
-    async def get_inventory(self) -> None:
-        if await self.check(self.data_path):
-            await self.download_file(self.data_path, get_path(Path(self.data_path).name))
-            await self.list(self.data_path, get_info=True)
-        else:
-            LOGGER.exception(f"\nFile: >>>{self.data_path}<<< does not exist.\n"
-                             f"Checked in {self._webdav_url}.\nPlease review config.")
+    @property
+    def inventory_file(self) -> Path:
+        return get_path(Path(self.inventory_path).name)
+
+    @property
+    def warehouses(self) -> List[Warehouse]:
+        warehouses = []
+        LOGGER.debug(f"Reading Data from {self.inventory_file}...")
+        for sheet_num, sheet in enumerate(ezodf.opendoc(self.inventory_file).sheets):
+            if sheet_num < config['data']['sheets']:
+                LOGGER.debug(f"Reading sheet {sheet.name}...")
+                warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(self.inventory_file, sheet_num + 1)))
+        return warehouses
+
+    @staticmethod
+    def get_mod_time(path: Path) -> datetime.datetime:
+        return datetime.datetime.fromtimestamp(path.stat().st_mtime)
+
+    async def shut_down_if_missing_file(self, path:Path) -> None:
+        if not path.is_file():
+            LOGGER.exception(f"\nFile: >>>{path}<<< does not exist.\n Shutting down.")
             await self.close()
             exit(1)
 
-    def read_inventory(self) -> None:
-        LOGGER.debug(f"Reading Data from {self.data_path}...")
-        self.data = read_ods(get_path(Path(self.data_path).name))
+    async def update_inventory(self) -> None:
+        try:
+          #  if self.inventory_file.is_file() and self.get_mod_time(self.inventory_file).date() == today().date():
+           #     LOGGER.info(f"Inventory file is up to date. Using cached data.")
+            #    return
+            LOGGER.debug(f"Getting Data from {self.inventory_path}...")
+            if await self.check(self.inventory_path):
+                await self.download_file(self.inventory_path, self.inventory_file)
+            else:
+                LOGGER.exception(f"\nFile: >>>{self.inventory_path}<<< does not exist in remote location.\n"
+                                 f"Checked in {self._webdav_url}.\nPlease review config.")
+                await self.shut_down_if_missing_file(self.inventory_file)
+        except asyncio.TimeoutError, NoConnection:
+            LOGGER.warning(f"Cannot connect to {self._domain}.\nPlease check your Internet Connection.")
+            await self.shut_down_if_missing_file(self.inventory_file)

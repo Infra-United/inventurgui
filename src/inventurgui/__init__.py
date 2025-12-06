@@ -1,6 +1,6 @@
 import asyncio
 
-from inventurgui.main import main, start_ui
+from inventurgui.main import frontend
 
-asyncio.run(main())
-start_ui()
+#asyncio.run(backend())
+frontend()

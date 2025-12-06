@@ -3,21 +3,21 @@ theme:
   secondary: '#FD916B'
   dark: True
 data:
+  sheets: 3
   category: Kategorie
   count: Zahl
   desc: Art
   object: Objekt
   pack: Packung
   path: "Infra United (Intern)/Inventur/IU_Inventur.ods"
-everything:
-  display: true
-  label: Alles
 favicon: favicon.jpeg
 help:
   display: true
   label: ''
   path: help.md
+everything:
+  label: 'Alles'
 links:
-  display: true
+  display: false
   column: "Link"
 title: IU Inventur

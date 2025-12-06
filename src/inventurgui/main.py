@@ -1,82 +1,70 @@
-import asyncio
+import os
 import random
 import string
 
-from nicegui import ui
+from nicegui import ui, app
 
-from inventurgui.helper.config import config, theme, get_path
+from inventurgui.helper.config import config, get_path
+from inventurgui.helper.logger import LOGGER
+from inventurgui.helper.safe_url import url_safe
 # from ui.admin import admin
 # from ui.auth import try_login
 from inventurgui.io.nextcloud import Nextcloud
-from inventurgui.helper.logger import LOGGER
-from inventurgui.helper.safe_url import url_safe
-from inventurgui.ui.sub_pages import SubPage
+from inventurgui.ui.layout import header, left_drawer, footer
+from inventurgui.ui.sub_pages import help_page, warehouse_page, category_page
+from inventurgui.ui.theme import theme
 
 
 def root():
+    LOGGER.setLevel(10) # DEBUG
+    Nextcloud.inventory_path = config['data']['path']
+    nc = Nextcloud()
+    app.timer(7200, nc.update_inventory) # Update inventory_file every 2 hours
+    app.storage.user.indent = True
     # Set colors and clear browser storage
     theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
     # app.storage.clear()
+    ui.query(".nicegui-content").classes("p-0 min-h-full w-screen no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
 
-    pages = ui.sub_pages()
-    sub_page = SubPage()
+    warehouses = nc.warehouses
+    pages = ui.sub_pages(data={'warehouses': warehouses})
+    pages.add('/', help_page)
 
-    ui.query('.nicegui-content').classes('p-0') # remove default padding from site
+    # Create Left Drawer
+    ld = left_drawer(warehouses)
 
-    # Create Header
-    with ui.header().classes('p-0 m-0 h-50px bg-secondary text-primary') as header:
-        for key, label in sub_page.pages.items():
-            if key == 'help': # Register as Start Page
-                ui.button(icon='help_outline', on_click=lambda l=label: ui.navigate.to(f"/"))
-            else:
-                ui.button(label, on_click=lambda l=url_safe(label): ui.navigate.to(f"/{l}"))
-
-    # Create Sub Pages
-    with ui.card().tight().classes('w-screen bg-black container overflow-auto p-0'):
-        for key, label in sub_page.pages.items():
-            label = url_safe(label)
-            match key:
-                case 'help':
-                    pages.add(f"/{label}", sub_page.help)
-                case 'everything':
-                    pages.add(f"/{label}", sub_page.everything)
-                case _:
-                    pages.add(f"/{label}", lambda k=key: sub_page.category(k))
+    #with ui.card().tight().classes('w-screen bg-black container overflow-auto p-0'):
+    for warehouse in warehouses:
+        app.storage.user[warehouse.name] = [] if not app.storage.user.get(warehouse.name) else app.storage.user[warehouse.name]
+        warehouse = warehouse
+        name = url_safe(warehouse.name)
+        pages.add(f'/{name}', lambda w=warehouse: warehouse_page(w))
+        for category in warehouse.categories:
+            pages.add(f'/{name}/{url_safe(category)}', lambda w=warehouse, c=category: category_page(c, w))
 
 
-                  #  with ui.card().classes('m-0 h-dvh content-center bg-black text-base anitaliased font-light text-secondary decoration-primary'):
-                  #      with ui.card().classes(''):
-                #            username = ui.input('Username').value
-                 #           password = ui.input('Password', password=True, password_toggle_button=True).value
-                          #  ui.button('Log in/Register', on_click=try_login(username, hash_password(password)))
+
+
+    header(ld)
+    footer(ld)
+
+  #  with ui.card().classes('m-0 h-dvh content-center bg-black text-base anitaliased font-light text-secondary decoration-primary'):
+  #      with ui.card().classes(''):
+#            username = ui.input('Username').value
+ #           password = ui.input('Password', password=True, password_toggle_button=True).value
+          #  ui.button('Log in/Register', on_click=try_login(username, hash_password(password)))
 
     LOGGER.debug('Finished. Starting UI...')
 
-async def main():
-    LOGGER.setLevel(10) # DEBUG
-    Nextcloud.data_path = config['data']['path']
-    nc = Nextcloud()
-    await nc.__post_init__()
+#async def backend():
 
-    SubPage.nc = nc
-    SubPage.help_path = get_path(config['help']['path'])
-    SubPage.pages = {}
-    if config['help']['display']:
-        SubPage.pages['help'] = config['help']['label']
-    if config['everything']['display']:
-        SubPage.pages['everything'] = config['everything']['label']
-
-    categories: list[str] = sorted(nc.data[config['data']['category']].unique())
-    for category in categories:
-        SubPage.pages[category] = category
-
-def start_ui():
-    storage_secret = ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(32))
+def frontend():
+    storage_secret = os.environ['UI_STORAGE_SECRET']
     ui.run(root=root, uvicorn_logging_level='debug', show=False, reload=True, title=config['title'], favicon=get_path(config['favicon']), port=8080, storage_secret=storage_secret)
     LOGGER.debug('Successfully started UI.')
 
 if __name__ in {"__main__", "__mp_main__"}:
-    asyncio.run(main())
-    start_ui()
+    #asyncio.run(backend())
+    frontend()
 
 
