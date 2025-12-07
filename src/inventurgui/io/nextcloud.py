@@ -7,6 +7,7 @@ from typing import List
 import ezodf
 from aiowebdav.client import Client
 from aiowebdav.exceptions import NoConnection
+from dateutil.utils import today
 from pandas_ods_reader import read_ods
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -67,9 +68,9 @@ class Nextcloud(Client):
 
     async def update_inventory(self) -> None:
         try:
-          #  if self.inventory_file.is_file() and self.get_mod_time(self.inventory_file).date() == today().date():
-           #     LOGGER.info(f"Inventory file is up to date. Using cached data.")
-            #    return
+            if self.inventory_file.is_file() and self.get_mod_time(self.inventory_file).date() == today().date():
+                LOGGER.info(f"Inventory file is up to date. Using cached data.")
+                return
             LOGGER.debug(f"Getting Data from {self.inventory_path}...")
             if await self.check(self.inventory_path):
                 await self.download_file(self.inventory_path, self.inventory_file)

@@ -20,10 +20,4 @@ class Warehouse:
 
     @property
     def selected(self) -> DataFrame:
-        row_ids:list = app.storage.user[self.name]
-        rows = []
-        for row_id in row_ids:
-            for i, row_data in self.inventory.iterrows():
-                if str(i) == row_id:
-                    rows.append(row_data)
-        return DataFrame.from_records(rows)
+        return

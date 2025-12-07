@@ -37,7 +37,7 @@ def root():
     # Set colors and clear browser storage
     theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
     # app.storage.clear()
-    ui.query(".nicegui-content").classes("p-0 min-h-full w-screen no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
+    ui.query(".nicegui-content").classes("p-0 gap-0!important min-h-full w-screen no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
     app.storage.user['screen'] = 0 if not app.storage.user.get('screen') else app.storage.user['screen']
     ui.on('resize', lambda e: app.storage.user.update({'screen': e.args}), throttle=0.4, trailing_events=True)
     warehouses = nc.warehouses
@@ -73,7 +73,7 @@ def root():
 
 def frontend():
     storage_secret = os.environ['UI_STORAGE_SECRET']
-    ui.run(root=root, uvicorn_logging_level='debug', show=False, reload=True, title=config['title'], favicon=get_path(config['favicon']), port=8080, storage_secret=storage_secret)
+    ui.run(root=root, uvicorn_logging_level='debug', show=False, reload=True, title=config['title'], favicon=get_path(config['favicon']), port=8080, storage_secret=storage_secret if storage_secret else 12341232312)
     LOGGER.debug('Successfully started UI.')
 
 if __name__ in {"__main__", "__mp_main__"}:
