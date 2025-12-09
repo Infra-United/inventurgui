@@ -1,6 +1,6 @@
 theme:
-  primary: '#254060'
-  secondary: '#FD916B'
+  primary: '#FD916B'
+  secondary: '#254060'
   dark: True
 data:
   sheets: 3
@@ -19,8 +19,12 @@ everything: 'Alles'
 cart:
   label: 'Anfragen'
   icon: 'local_shipping'
-  form: 'Angaben'
   grid: 'Auswahl'
+  caption: "Bitte passe die Stückzahlen an, in dem du darauf klickst."
+  warehouse: 'Lager'
+form:
+  label: 'Angaben'
+  icon: 'edit_note'
 links:
   display: false
   column: "Link"

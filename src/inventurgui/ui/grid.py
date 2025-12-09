@@ -2,15 +2,12 @@ import pandas
 from nicegui import ui, app
 from nicegui.elements.aggrid import AgGrid
 from nicegui.events import GenericEventArguments
-from nicegui.html import source
-from pandas import DataFrame
 from nicegui.ui import aggrid
-
-from inventurgui.io import warehouse
+from pandas import DataFrame
 
 """This module implements functions to create AG Grids which display the data."""
 
-def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
+def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False, multiple:bool=False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
 
     Args:
@@ -22,12 +19,10 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
     Returns:
         aggrid: The AG Grid that results from the given Arguments.
     """
-    cart = True if name == 'cart' else False
     # Define Columns for AG Grids
     columnDefs = [
-        {'checkboxSelection': True , 'maxWidth': 35, 'filter': False},
-        {'field': 'warehouse', 'headerName': '', 'minWidth': 100, 'maxWidth':200, 'hide': not cart},
-        {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-secondary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
+        {'checkboxSelection': True , 'maxWidth': 35, 'filter': False, 'hide': cart},
+        {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},
         {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 50, 'maxWidth': 80, 'editable': cart, 'cellDataType': 'number'},
         {'field': config['data']['pack'], 'minWidth': 90}]
@@ -47,15 +42,16 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
         link_column = {'headerName': '', 'field': 'has_link', 'filter': False, 'minWidth': 50, 'maxWidth': 50}
         columnDefs.insert(0, link_column)
 
+    height = 'sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]' if not cart else 'h-[calc(100vh-126px)]' #if multiple else
     theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'alpine'
     # Create Grid with given Data
     grid =aggrid({
         'headerName': name,
         'selectionColumnDef': {'hide': True},
         'columnDefs': columnDefs,
-        'defaultColDef': default_column_defs(),
+        'defaultColDef': default_column_defs(cart),
         'rowData': data.to_dict('records'),
-        'rowSelection': {'mode': 'multiRow', 'enableClickSelection': False, 'checkboxes': False,} if cart else 'multiple',
+        'rowSelection':  'multiple' if not cart else '',
         'enterNavigatesVertically': True,
         'suppressCellFocus': True,
         'enterNavigatesVerticallyAfterEdit': True,
@@ -64,44 +60,38 @@ def create_aggrid(name:str, data: DataFrame, config:dict) -> AgGrid:
         'rowMultiSelectWithClick': True,
     },
         html_columns=[0],
-        theme=theme).classes('sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)] w-screen')
-    #grid.on('cellClicked', lambda: grid.run_grid_method(''))
+        theme=theme).classes(f'{height} w-screen')
     grid.on('rowSelected', lambda event: handle_selection(name, event))
-    if cart:
-        grid.on('firstDataRendered', lambda: grid.run_grid_method('selectAll'))
-        grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns', config['data']['desc']))
-    else:
-        for row in app.storage.user[name]:
+    for row in app.storage.user[name]:
+        if not cart:
             grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setSelected', True))
-        #grid.on('firstDataRendered', lambda rows=app.storage.user[name]: grid.run_grid_method('setGridOption', 'rowData', rows))
-    grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns', config['data']['desc']))
+    if int(app.storage.user.get('screen').get('width')) < 640:
+        grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns', config['data']['desc']))
     grid.on('cellValueChanged') #TODO implement handler
+    ui.on('resize', lambda: grid.update(), throttle=0.3)
     return grid
 
 def handle_selection(name:str, event:GenericEventArguments):
     match event.args['source'] :
         case 'api':
             return
-        case 'apiSelectAll':
-            if name == 'cart':
-                return
-    if name == 'cart':
-        name = event.args['data']['warehouse']
     row_id = event.args['rowId']
     if row_id not in app.storage.user[name]:
         app.storage.user[name].append(row_id)
+        app.storage.user['Total'] += 1
     else:
         app.storage.user[name].remove(row_id)
+        app.storage.user['Total'] -= 1
 
     
-def default_column_defs() -> dict:
+def default_column_defs(cart:bool) -> dict:
     # Define default column properties for AG Grids
     defaultColDef:dict = {
         'flex': 1,
         'sortable': True,
         #'resizable': True,
-        'filter': True,
-        'floatingFilter': True}
+        'filter': not cart,
+        'floatingFilter': not cart}
     return defaultColDef
 
 def dialog(event_args:dict):

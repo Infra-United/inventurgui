@@ -1,7 +1,8 @@
 from nicegui import ui
-from inventurgui.helper.config import theme
 from inventurgui.ui.auth import check_logout
 from config.routers import user
+
+from inventurgui.ui.theme import theme
 
 lorem_ipsum:str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
@@ -9,7 +10,7 @@ lorem_ipsum:str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed 
 def admin():
    ui.query('.nicegui-content').classes('p-0')
    theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
-   with ui.header().classes('fixed p-0 m-0 bg-secondary text-primary'):     
+   with ui.header().classes('fixed p-0 m-0'):
       with ui.tabs().classes('w-full') as tabs:
          theme_tab = ui.tab(name='theme_tab', label='Colors', icon='colorize')
          check_logout()
