@@ -62,7 +62,7 @@ def form_page():
                 email.bind_value(request, 'email')
                 email.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
                 donation = ui.input(config['form']['donation']).bind_value(request, 'donation')
-                message = ui.editor(placeholder='Deine Mail an uns...')
+                message = ui.editor(placeholder='Deine Mail an uns...').bind_value(request, 'message')
                 check = ui.checkbox(config['form']['checkbox']).bind_value(request, 'checkbox')
                 check.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
                 submit = ui.button(config['form']['submit'])
