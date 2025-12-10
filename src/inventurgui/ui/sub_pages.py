@@ -67,20 +67,30 @@ async def truck_page(warehouses:list[Warehouse]) -> None:
     LOGGER.info(f"Created grid for cart page")
 
 def form_page():
-    with ui.tab_panel('test').classes('w-screen h-screen p-0 m-0'):
+    with ui.card().classes('w-screen h-screen p-0 m-0'):
         with ui.scroll_area().classes('h-[calc(100vh-52px)]'):
+            request = Request()
+            today = datetime.date.today()
             with ui.grid(columns=1).classes('xl:w-1/2 w-full p-3 max-sm:p-0'):
-                props = 'color=secondary'
-                classes = 'self-start'
-                ui.input('Camp/Organisation').classes(classes).props(props)
-                ui.input('Ort').classes(classes).props(props)
-                ui.date_input('Start Aufbau').classes(classes).props(props)
-                ui.date_input('Ende Aufbau').classes(classes).props(props)
-                ui.input('E-Mail-Adresse').classes(classes).props(props)
-                ui.input('Eingeplante Spende').classes(classes).props(props)
-                ui.editor(placeholder='Deine Mail an uns...').classes(f"{classes}").props(props)
-                ui.checkbox('Ich habe die Leihbedingungen gelesen.').classes(classes).props(props)
-                ui.button('Abschicken')
+                name = ui.input(config['form']['name']).bind_value(request, 'name')
+                place = ui.input(config['form']['place']).bind_value(request, 'place')
+                start = ui.date_input(config['form']['start'], placeholder='DD.MM.YYYY').bind_value(request, 'start')
+                start.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
+                start.picker.props['mask'] = 'DD.MM.YYYY'
+                end = ui.date_input(config['form']['end'], placeholder='DD.MM.YYYY').bind_value(request, 'end')
+                end.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
+                end.picker.props['mask'] = 'DD.MM.YYYY'
+                email = ui.input(config['form']['email'], validation={'Not a valid email': lambda v: True if re.match(EMAIL_REGEX, v) else False})
+                email.bind_value(request, 'email')
+                email.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
+                donation = ui.input(config['form']['donation']).bind_value(request, 'donation')
+                message = ui.editor(placeholder='Deine Mail an uns...')
+                check = ui.checkbox(config['form']['checkbox']).bind_value(request, 'checkbox')
+                check.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
+                submit = ui.button(config['form']['submit'])
+                submit.disable()
+                submit.on_click(lambda: Mail.send_mail(request.html, request.text, request.subject, request.email))
+
 
 def help_page(help_file:Path = get_path(config['help']['path'])) -> None:
     # Create one Page for displaying help
