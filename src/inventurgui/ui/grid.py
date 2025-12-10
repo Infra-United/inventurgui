@@ -7,7 +7,7 @@ from pandas import DataFrame
 
 """This module implements functions to create AG Grids which display the data."""
 
-def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False, multiple:bool=False) -> AgGrid:
+def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
 
     Args:
@@ -21,11 +21,10 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False, multi
     """
     # Define Columns for AG Grids
     columnDefs = [
-        {'checkboxSelection': True , 'maxWidth': 35, 'filter': False, 'hide': cart},
         {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},
-        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 50, 'maxWidth': 80, 'editable': cart, 'cellDataType': 'number'},
-        {'field': config['data']['pack'], 'minWidth': 90}]
+        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 80, 'editable': cart, 'cellDataType': 'number', 'pinned': 'left' if cart else ''},
+        {'field': config['data']['pack'], 'minWidth': 90, 'pinned': 'left' if cart else ''}]
 
     if config['links']['display']:
         # Function to replace https links with HTML string
@@ -42,22 +41,27 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False, multi
         link_column = {'headerName': '', 'field': 'has_link', 'filter': False, 'minWidth': 50, 'maxWidth': 50}
         columnDefs.insert(0, link_column)
 
-    height = 'sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]' if not cart else 'h-[calc(100vh-126px)]' #if multiple else
+    height = 'sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]' if not cart else 'sm:h-[calc(100vh-114px)] h-[calc(100vh-110px)]'
     theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'alpine'
     # Create Grid with given Data
     grid =aggrid({
-        'headerName': name,
-        'selectionColumnDef': {'hide': True},
+        'selectionColumnDef': {'hide': cart, 'maxWidth': 35, 'sortable': True},
         'columnDefs': columnDefs,
         'defaultColDef': default_column_defs(cart),
         'rowData': data.to_dict('records'),
-        'rowSelection':  'multiple' if not cart else '',
+        'rowSelection':  {'mode': 'multiRow',
+                          'selectAll': 'filtered',
+                          'ctrlASelectsRows': True,
+                          'enableClickSelection': True,
+                          'checkboxes': True,
+                          'headerCheckbox': True,
+                          'enableSelectionWithoutKeys': True,
+                          } if not cart else '',
         'enterNavigatesVertically': True,
         'suppressCellFocus': True,
         'enterNavigatesVerticallyAfterEdit': True,
         'singleClickEdit': True,
         ':getRowId': '(params) => params.data.perma_id',
-        'rowMultiSelectWithClick': True,
     },
         html_columns=[0],
         theme=theme).classes(f'{height} w-screen')
@@ -66,7 +70,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False, multi
         if not cart:
             grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setSelected', True))
     if int(app.storage.user.get('screen').get('width')) < 640:
-        grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns', config['data']['desc']))
+        grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns'))
     grid.on('cellValueChanged') #TODO implement handler
     ui.on('resize', lambda: grid.update(), throttle=0.3)
     return grid

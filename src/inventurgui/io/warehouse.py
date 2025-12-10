@@ -1,8 +1,11 @@
-from nicegui import app
+from typing import Generator, Any
+
+from nicegui import app, run
 from nicegui.elements.aggrid import AgGrid
-from pandas import DataFrame
+from pandas import DataFrame, Series
 
 from inventurgui.helper.config import config
+
 
 class Warehouse:
     _grid: AgGrid = None
@@ -19,5 +22,15 @@ class Warehouse:
         return c
 
     @property
-    def selected(self) -> DataFrame:
-        return
+    async def selected(self) -> DataFrame:
+        row_ids: list = list(app.storage.user.get(self.name))
+        return await run.cpu_bound(_get_selected, self.inventory.iterrows, row_ids)
+
+
+def _get_selected(iterator:Any, row_ids:list[str]) -> DataFrame:
+    def _match_selected() -> Generator[Series, None, None]:
+        for row_id in row_ids:
+            for i, row_data in iterator():
+                if str(i) == row_id:
+                    yield row_data
+    return DataFrame.from_records([r for r in _match_selected()])

@@ -10,6 +10,8 @@ from nicegui import ui, binding
 
 # Methods to handle helper from and to yaml file
 
+EMAIL_REGEX = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+
 def get_path(filename:str) -> Path:
     return Path(inventurgui.__file__).parent.parent.parent.joinpath(f"files/{filename}")
 

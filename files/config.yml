@@ -1,3 +1,5 @@
+title: IU Inventur
+favicon: favicon.jpeg
 theme:
   primary: '#FD916B'
   secondary: '#254060'
@@ -10,22 +12,34 @@ data:
   object: Objekt
   pack: Packung
   path: "Infra United (Intern)/Inventur/IU_Inventur.ods"
-favicon: favicon.jpeg
 help:
   display: true
-  label: ''
+  label: 'Start'
+  icon: 'home'
   path: help.md
 everything: 'Alles'
-cart:
-  label: 'Anfragen'
+truck:
+  label: 'Beladen'
   icon: 'local_shipping'
-  grid: 'Auswahl'
-  caption: "Bitte passe die Stückzahlen an, in dem du darauf klickst."
-  warehouse: 'Lager'
+  tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
 form:
-  label: 'Angaben'
+  label: 'Anfragen'
   icon: 'edit_note'
+  name: 'Camp/Organisation'
+  place: 'Ort'
+  start: 'Abholung'
+  end: 'Rückgabe'
+  email: 'E-Mail-Adresse'
+  donation: 'Eingeplante Spende'
+  checkbox: 'Ich habe die Leihbedingungen gelesen.'
+  submit: 'Anfragen'
+warehouse:
+  label: 'Lager'
+  icon: 'warehouse'
 links:
   display: false
   column: "Link"
-title: IU Inventur
+mail:
+  subject: '[Anfrage] '
+  mail_to: 'aberallesisgut@riseup.net'
+

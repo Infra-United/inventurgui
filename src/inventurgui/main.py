@@ -10,6 +10,7 @@ from inventurgui.helper.safe_url import url_safe
 # from ui.admin import admin
 # from ui.auth import try_login
 from inventurgui.io.nextcloud import Nextcloud
+from inventurgui.io.request import Request
 from inventurgui.ui.layout import header, right_drawer, footer
 from inventurgui.ui.sub_pages import help_page, category_page, truck_page, form_page
 from inventurgui.ui.theme import theme
@@ -39,13 +40,14 @@ def root():
     # app.storage.clear()
     ui.query(".nicegui-content").classes("p-0 min-h-full w-screen no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
     app.storage.user['screen'] = 0 if not app.storage.user.get('screen') else app.storage.user['screen']
+    app.storage.user['form'] =  Request() if not app.storage.user.get('form') else app.storage.user['form']
     app.storage.user['Total'] = 0 if not app.storage.user.get('Total') else app.storage.user['Total']
     app.storage.user['notified'] = {'truck': False} if not app.storage.user.get('notified') else app.storage.user['notified']
     ui.on('resize', lambda e: app.storage.user.update({'screen': e.args}), throttle=0.4, trailing_events=True)
     warehouses = nc.warehouses
     pages = ui.sub_pages(data={'warehouses': warehouses})
     pages.add('/', help_page)
-    pages.add(f"/{url_safe(config['cart']['label'])}", truck_page)
+    pages.add(f"/{url_safe(config['truck']['label'])}", truck_page)
     pages.add(f"/{url_safe(config['form']['label'])}", form_page)
 
     # Create Left Drawer
