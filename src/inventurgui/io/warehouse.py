@@ -22,7 +22,7 @@ class Warehouse:
         return c
 
     @property
-    async def selected(self) -> DataFrame:
+    async def selected(self) -> DataFrame | None:
         row_ids: list = list(app.storage.user.get(self.name))
         return await run.cpu_bound(_get_selected, self.inventory.iterrows, row_ids)
 

@@ -24,7 +24,7 @@ async def truck_page(warehouses:list[Warehouse]) -> None:
     LOGGER.debug(f'Creating Cart page...')
     for w in warehouses:
         selected = await w.selected
-        if selected.empty:
+        if selected is None or selected.empty:
             continue
         with tabs:
             with ui.tab(w.name.upper(), icon=config['truck']['icon']) as tab:
@@ -38,10 +38,10 @@ async def truck_page(warehouses:list[Warehouse]) -> None:
     tab_panels.set_value(warehouses[0].name.upper())
     total = app.storage.user.get('Total')
     if not app.storage.user.get('notified')['truck'] and total != 0:
-        ui.notify(config['truck']['ecit_tip'], position='center', color='primary', textColor='dark')
+        ui.notify(config['truck']['edit_tip'], position='center', color='primary', textColor='dark')
+        app.storage.user['notified']['truck'] = True
     elif total == 0:
         ui.notify(config['truck']['select_tip'], position='center', color='primary', textColor='dark')
-    app.storage.user['notified']['truck'] = True
     LOGGER.info(f"Created grid for cart page")
 
 def form_page():
@@ -71,9 +71,8 @@ def form_page():
 def help_page(help_file:Path = get_path(config['help']['path'])) -> None:
     # Create one Page for displaying help
     LOGGER.debug(f"Creating Help Panel with the content of {help_file}...")
-    with ui.row().classes('w-screen p-2 m-0'):
-        with open(help_file, 'r') as f:  # open file
-            ui.markdown(f.read()).classes('pl-10 pb-20 m-0 text-base font-light text-primary')
+    with open(help_file, 'r') as f:  # open file
+        ui.markdown(f.read()).classes('pl-10 pb-20 pt-10 m-0 text-base font-light text-primary')
 
 def category_page(category:str, warehouse: Warehouse) -> None:
     # Create One grid for each unique Category in the first Column
