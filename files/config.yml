@@ -21,7 +21,8 @@ everything: 'Alles'
 truck:
   label: 'Beladen'
   icon: 'local_shipping'
-  tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
+  edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
+  select_tip: "Bitte wähle zunächst Dinge aus dem Lager aus und bringe sie an die Laderampe."
 form:
   label: 'Anfragen'
   icon: 'edit_note'

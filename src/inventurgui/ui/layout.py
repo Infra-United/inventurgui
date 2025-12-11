@@ -11,16 +11,16 @@ from inventurgui.io.warehouse import Warehouse
 def main_menu(rd:RightDrawer, classes:str="stretch", props:str="unelevated no-wrap text-color=secondary square"):
     help_button = ui.button(config['help']['label'], icon=config['help']['icon']).classes(classes).props(props)
     help_button.on_click(lambda l=url_safe(config['help']['label']): ui.navigate.to(f"/"))
-    help_button.on_click(lambda: rd.hide())
+    #help_button.on_click(lambda: rd.hide())
     with ui.button(config['truck']['label'], icon=config['truck']['icon']).classes(classes).props(props) as truck_button:
         truck_button.on_click(lambda l=url_safe(config['truck']['label']): ui.navigate.to(f"/{l}"))
-        truck_button.on_click(lambda: rd.hide())
+        #truck_button.on_click(lambda: rd.hide())
         badge = ui.badge('0', color='white', text_color='dark').props(
             "rounded floating")
         badge.bind_text_from(app.storage.user, 'Total')
     form_button = ui.button(config['form']['label'],icon=config['form']['icon']).classes(classes).props(props)
     form_button.on_click(lambda l=url_safe(config['form']['label']): ui.navigate.to(f"/{url_safe(config['form']['label'])}"))
-    form_button.on_click(lambda: rd.hide())
+    #form_button.on_click(lambda: rd.hide())
     #form_button.on_click(lambda: form_button.classes(add=''))
     ui.space().classes('max-sm:hidden')
     ui.button(config['warehouse']['label'], on_click=lambda: rd.show(), icon=config['warehouse']['icon']).classes(classes).props(props)
@@ -44,6 +44,7 @@ def warehouse_menu(warehouses:list[Warehouse], rd:RightDrawer,
             expansion.on('click', lambda l=url_safe(name): ui.navigate.to(f"/{l}/{url_safe(config['everything'])}"))
             expansion.on('click', lambda e=expansion: e.open())
             with expansion.add_slot('header'):
+                ui.icon(config['warehouse']['icon'], size='20px')
                 with ui.label(name.upper()).classes('w-full'):
                     badge = ui.badge('0', color='white', text_color='dark').props("rounded floating")
                     badge.bind_text_from(app.storage.user, warehouse.name, backward=lambda v:str(len(v)), strict=False)
@@ -70,8 +71,6 @@ def footer(rd:RightDrawer):
 def right_drawer(warehouses:list[Warehouse]) -> RightDrawer:
     with ui.right_drawer().classes("py-3 px-0 items-stretch bg-dark").props('width=250') as rd:
         ui.space().classes("sm:hidden")
-        path_warehouse = reverse_url(ui.context.client.sub_pages_router.current_path.split('/')[-2])
-        [rd.set_value(True if w.name == path_warehouse else False) for w in warehouses]
         warehouse_menu(warehouses, rd)
     return rd
 

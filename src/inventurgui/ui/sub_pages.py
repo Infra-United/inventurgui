@@ -16,11 +16,10 @@ from inventurgui.ui.layout import tool_buttons
 
 async def truck_page(warehouses:list[Warehouse]) -> None:
 
-    ui.query(".nicegui-sub-pages").style(replace='gap:0')
-    with ui.row().classes('w-screen gap-0'):
-        tabs = ui.tabs().classes('bg-dark h-[56px] w-full scroll m-0 p-0').props(
-                'height=56px active-bg-color=secondary inline-label mobile-arrows active-color=primary stretch')
-        tab_panels = ui.tab_panels(tabs).classes('w-dvw')
+    #with ui.row().classes('w-screen gap-0'):
+    tabs = ui.tabs().classes('bg-dark h-[56px] w-full scroll m-0 p-0').props(
+            'height=56px active-bg-color=secondary inline-label mobile-arrows active-color=primary stretch')
+    tab_panels = ui.tab_panels(tabs).classes('w-dvw')
 
     LOGGER.debug(f'Creating Cart page...')
     for w in warehouses:
@@ -37,35 +36,36 @@ async def truck_page(warehouses:list[Warehouse]) -> None:
             with ui.tab_panel(w.name.upper()).classes('m-0 p-0 w-full'):
                 grid: AgGrid = create_aggrid(w.name, selected, config, cart=True)
     tab_panels.set_value(warehouses[0].name.upper())
-    if not app.storage.user.get('notified')['truck']:
-        ui.notify(config['truck']['tip'], position='center', color='primary', textColor='dark')
+    total = app.storage.user.get('Total')
+    if not app.storage.user.get('notified')['truck'] and total != 0:
+        ui.notify(config['truck']['ecit_tip'], position='center', color='primary', textColor='dark')
+    elif total == 0:
+        ui.notify(config['truck']['select_tip'], position='center', color='primary', textColor='dark')
     app.storage.user['notified']['truck'] = True
     LOGGER.info(f"Created grid for cart page")
 
 def form_page():
-    with ui.card().classes('w-screen h-screen p-0 m-0'):
-        with ui.scroll_area().classes('h-[calc(100vh-52px)]'):
-            request = Request()
-            today = datetime.date.today()
-            with ui.grid(columns=1).classes('xl:w-1/2 w-full p-3 max-sm:p-0'):
-                name = ui.input(config['form']['name']).bind_value(request, 'name')
-                place = ui.input(config['form']['place']).bind_value(request, 'place')
-                start = ui.date_input(config['form']['start'], placeholder='DD.MM.YYYY').bind_value(request, 'start')
-                start.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
-                start.picker.props['mask'] = 'DD.MM.YYYY'
-                end = ui.date_input(config['form']['end'], placeholder='DD.MM.YYYY').bind_value(request, 'end')
-                end.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
-                end.picker.props['mask'] = 'DD.MM.YYYY'
-                email = ui.input(config['form']['email'], validation={'Not a valid email': lambda v: True if re.match(EMAIL_REGEX, v) else False})
-                email.bind_value(request, 'email')
-                email.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
-                donation = ui.input(config['form']['donation']).bind_value(request, 'donation')
-                message = ui.editor(placeholder='Deine Mail an uns...').bind_value(request, 'message')
-                check = ui.checkbox(config['form']['checkbox']).bind_value(request, 'checkbox')
-                check.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
-                submit = ui.button(config['form']['submit'])
-                submit.disable()
-                submit.on_click(lambda: Mail.send_mail(request.html, request.text, request.subject, request.email))
+    request = Request()
+    today = datetime.date.today()
+    with ui.grid(columns=1).classes('xl:w-1/2 w-full p-3'):
+        name = ui.input(config['form']['name']).bind_value(request, 'name')
+        place = ui.input(config['form']['place']).bind_value(request, 'place')
+        start = ui.date_input(config['form']['start'], placeholder='DD.MM.YYYY').bind_value(request, 'start')
+        start.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
+        start.picker.props['mask'] = 'DD.MM.YYYY'
+        end = ui.date_input(config['form']['end'], placeholder='DD.MM.YYYY').bind_value(request, 'end')
+        end.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
+        end.picker.props['mask'] = 'DD.MM.YYYY'
+        email = ui.input(config['form']['email'], validation={'Not a valid email': lambda v: True if re.match(EMAIL_REGEX, v) else False})
+        email.bind_value(request, 'email')
+        email.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
+        donation = ui.input(config['form']['donation']).bind_value(request, 'donation')
+        message = ui.editor(placeholder='Deine Mail an uns...').bind_value(request, 'message')
+        check = ui.checkbox(config['form']['checkbox']).bind_value(request, 'checkbox')
+        check.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
+        submit = ui.button(config['form']['submit'])
+        submit.disable()
+        submit.on_click(lambda: Mail.send_mail(request.html, request.text, request.subject, request.email))
 
 
 def help_page(help_file:Path = get_path(config['help']['path'])) -> None:

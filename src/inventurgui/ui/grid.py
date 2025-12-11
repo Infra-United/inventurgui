@@ -23,8 +23,8 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
     columnDefs = [
         {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},
-        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 80, 'editable': cart, 'cellDataType': 'number', 'pinned': 'left' if cart else ''},
-        {'field': config['data']['pack'], 'minWidth': 90, 'pinned': 'left' if cart else ''}]
+        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 50, 'editable': cart, 'cellDataType': 'number', 'pinned': 'left' if cart else ''},
+        {'field': config['data']['pack'], 'minWidth': 90, 'maxWidth': 100, 'pinned': 'left' if cart else ''}]
 
     if config['links']['display']:
         # Function to replace https links with HTML string
@@ -64,7 +64,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
         ':getRowId': '(params) => params.data.perma_id',
     },
         html_columns=[0],
-        theme=theme).classes(f'{height} w-screen')
+        theme=theme).classes(f'{height} lg:w-[calc(100dvw-250px)] max-lg:w-screen')
     grid.on('rowSelected', lambda event: handle_selection(name, event))
     for row in app.storage.user[name]:
         if not cart:
@@ -72,7 +72,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
     if int(app.storage.user.get('screen').get('width')) < 640:
         grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns'))
     grid.on('cellValueChanged') #TODO implement handler
-    ui.on('resize', lambda: grid.update(), throttle=0.3)
+    ui.on('resize', lambda: grid.update(), throttle=0.4)
     return grid
 
 def handle_selection(name:str, event:GenericEventArguments):

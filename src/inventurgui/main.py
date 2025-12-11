@@ -38,7 +38,8 @@ def root():
     # Set colors and clear browser storage
     theme.set_colors(), ui.dark_mode(theme.dark, on_change=lambda e: theme.toggle_dark(e.value))
     # app.storage.clear()
-    ui.query(".nicegui-content").classes("p-0 min-h-full w-screen no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
+    ui.query(".nicegui-content").classes("p-0 min-h-full lg:w-[calc(100dvw-250px)] max-lg:w-screen no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
+    ui.query(".nicegui-sub-pages").classes('lg:w-[calc(100dvw-250px)] max-lg:w-screen scroll').style(replace='gap:0')
     app.storage.user['screen'] = 0 if not app.storage.user.get('screen') else app.storage.user['screen']
     app.storage.user['form'] =  Request() if not app.storage.user.get('form') else app.storage.user['form']
     app.storage.user['Total'] = 0 if not app.storage.user.get('Total') else app.storage.user['Total']
