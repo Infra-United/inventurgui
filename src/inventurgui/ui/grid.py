@@ -20,8 +20,11 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
         aggrid: The AG Grid that results from the given Arguments.
     """
     # Define Columns for AG Grids
+
+    css = f'''{{background-color: {config['theme']['secondary']}}}'''
+    #ui.add_body_html(f'<style>.ag-row-selected .ag-cell  {css}</style>')
     columnDefs = [
-        {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x'}, 'cellStyle': {'padding-left':'10px'}},
+        {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x', 'text-bold': 'x', 'tracking-wider':'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},
         {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 50, 'editable': cart, 'cellDataType': 'number', 'pinned': 'left' if cart else ''},
         {'field': config['data']['pack'], 'minWidth': 90, 'maxWidth': 100, 'pinned': 'left' if cart else ''}]
@@ -41,14 +44,16 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
         link_column = {'headerName': '', 'field': 'has_link', 'filter': False, 'minWidth': 50, 'maxWidth': 50}
         columnDefs.insert(0, link_column)
 
-    height = 'sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]' if not cart else 'sm:h-[calc(100vh-114px)] h-[calc(100vh-110px)]'
+    height = 'sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]' if not cart else 'sm:h-[calc(100vh-104px)] h-[calc(100vh-102px)]'
     theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'alpine'
+    #theme = f"{theme}.withParams({{accentColor: {config['theme']['accent']}}})"
     # Create Grid with given Data
     grid =aggrid({
         'selectionColumnDef': {'hide': cart, 'maxWidth': 35, 'sortable': True},
         'columnDefs': columnDefs,
         'defaultColDef': default_column_defs(cart),
         'rowData': data.to_dict('records'),
+        'theme': theme,
         'rowSelection':  {'mode': 'multiRow',
                           'selectAll': 'filtered',
                           'ctrlASelectsRows': True,
@@ -64,15 +69,15 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
         ':getRowId': '(params) => params.data.perma_id',
     },
         html_columns=[0],
-        theme=theme).classes(f'{height} lg:w-[calc(100dvw-250px)] max-lg:w-screen')
+        theme=theme).classes(f'{height}')
     grid.on('rowSelected', lambda event: handle_selection(name, event))
     for row in app.storage.user[name]:
         if not cart:
             grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setSelected', True))
-    if int(app.storage.user.get('screen').get('width')) < 640:
-        grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns'))
+    #if int(app.storage.user.get('screen').get('width')) < 640:
+    grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns'))
     grid.on('cellValueChanged') #TODO implement handler
-    ui.on('resize', lambda: grid.update(), throttle=0.4)
+    ui.on('resize', lambda: grid.update(), throttle=0.8, trailing_events=True)
     return grid
 
 def handle_selection(name:str, event:GenericEventArguments):
