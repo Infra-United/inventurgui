@@ -2,18 +2,14 @@
 import asyncio
 import datetime
 from pathlib import Path
-from typing import List
 
-import ezodf
-from aiowebdav.client import Client
-from aiowebdav.exceptions import NoConnection
+from aiowebdav2.client import Client
+from aiowebdav2.exceptions import ConnectionExceptionError
 from dateutil.utils import today
-from pandas_ods_reader import read_ods
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from inventurgui.helper.config import get_path, config
+from inventurgui.helper.config import get_path
 from inventurgui.helper.logger import LOGGER
-from inventurgui.io.warehouse import Warehouse
 
 
 class NextcloudSettings(BaseSettings):
@@ -28,33 +24,12 @@ class NextcloudSettings(BaseSettings):
     token: str
 
 class Nextcloud(Client):
-    inventory_path: str
-
-    def __init__(self, ncs: NextcloudSettings = NextcloudSettings()):
+    def __init__(self, remote_dir:str, ncs: NextcloudSettings = NextcloudSettings()):
         self._domain = ncs.domain
         self._user = ncs.user
         self._webdav_url = f"https://{self._domain}/remote.php/dav/files/{self._user}"
-        options = {
-            'webdav_hostname': self._webdav_url,
-            'webdav_login': self._user,
-            'webdav_password': ncs.token,
-        }
-        super().__init__(options)
-
-
-    @property
-    def inventory_file(self) -> Path:
-        return get_path(Path(self.inventory_path).name)
-
-    @property
-    def warehouses(self) -> List[Warehouse]:
-        warehouses = []
-        LOGGER.debug(f"Reading Data from {self.inventory_file}...")
-        for sheet_num, sheet in enumerate(ezodf.opendoc(self.inventory_file).sheets):
-            if sheet_num < config['data']['sheets']:
-                LOGGER.debug(f"Reading sheet {sheet.name}...")
-                warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(self.inventory_file, sheet_num + 1)))
-        return warehouses
+        self.remote_dir = remote_dir
+        super().__init__(self._webdav_url, self._user, ncs.token)
 
     @staticmethod
     def get_mod_time(path: Path) -> datetime.datetime:
@@ -66,18 +41,20 @@ class Nextcloud(Client):
             await self.close()
             exit(1)
 
-    async def update_inventory(self) -> None:
+    async def update_file(self, file:str) -> None:
+        local = get_path(Path(file).name)
+        remote = "/".join((self.remote_dir, file))
         try:
-            if self.inventory_file.is_file() and self.get_mod_time(self.inventory_file).date() == today().date():
-                LOGGER.info(f"Inventory file is up to date. Using cached data.")
+            if local.is_file() and self.get_mod_time(local).date() == today().date():
+                LOGGER.info(f"{file} is up to date. Using cached data.")
                 return
-            LOGGER.debug(f"Getting Data from {self.inventory_path}...")
-            if await self.check(self.inventory_path):
-                await self.download_file(self.inventory_path, self.inventory_file)
+            if await self.check(remote):
+                LOGGER.debug(f"Getting Data from {remote}...")
+                await self.download_file(remote, local)
             else:
-                LOGGER.exception(f"\nFile: >>>{self.inventory_path}<<< does not exist in remote location.\n"
+                LOGGER.exception(f"\nFile: >>>{remote}<<< does not exist in remote location.\n"
                                  f"Checked in {self._webdav_url}.\nPlease review config.")
-                await self.shut_down_if_missing_file(self.inventory_file)
-        except asyncio.TimeoutError, NoConnection:
+                await self.shut_down_if_missing_file(local)
+        except asyncio.TimeoutError, ConnectionExceptionError:
             LOGGER.warning(f"Cannot connect to {self._domain}.\nPlease check your Internet Connection.")
-            await self.shut_down_if_missing_file(self.inventory_file)
+            await self.shut_down_if_missing_file(local)
