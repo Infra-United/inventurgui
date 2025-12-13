@@ -84,18 +84,19 @@ wheels = [
 ]
 
 [[package]]
-name = "aiowebdav"
-version = "0.1.0rc5"
+name = "aiowebdav2"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
     { name = "aiohttp" },
     { name = "lxml" },
     { name = "python-dateutil" },
+    { name = "yarl" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/eb/2cc5a9b133d95516009db90d249e527397fd229afe8b6a6372b4a12fa500/aiowebdav-0.1.0rc5.tar.gz", hash = "sha256:8345f8a55a5eea4e029de0b5c7ba38fbeaaee3e0fdc1e0ca29e60d997643cc2f", size = 23963, upload-time = "2022-08-07T14:40:21.796Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bc/f7/46d04b0b25264e98c1eaa134bb264253c4c64f00e4a86d9dbf7829356623/aiowebdav2-0.5.0.tar.gz", hash = "sha256:1688cd0c06a2ab0be7f1ec6fe392bbef0e76cc33638d375aea2700911223fd5b", size = 21985, upload-time = "2025-06-30T07:26:38.695Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/b1/3ed16f06e87ccebd90a44558de02ee9d45db7806ad3aca44de0a1962913a/aiowebdav-0.1.0rc5-py3-none-any.whl", hash = "sha256:1b7be6122ab69f06f1639bfea9fd3beb43a7d375b5e1ced560b832e04c000026", size = 22568, upload-time = "2022-08-07T14:40:19.852Z" },
+    { url = "https://files.pythonhosted.org/packages/09/77/6c67f96c22190e4edfd4da0124f13cdbb0102e03b530f972bf7c2cbd83aa/aiowebdav2-0.5.0-py3-none-any.whl", hash = "sha256:53a79763c33f54285b09cef8588fe10bd83071c8c03a7186fb0c613ecb98049e", size = 20626, upload-time = "2025-06-30T07:26:37.652Z" },
 ]
 
 [[package]]
@@ -348,7 +349,7 @@ name = "inventurgui"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "aiowebdav" },
+    { name = "aiowebdav2" },
     { name = "nicegui" },
     { name = "pandas" },
     { name = "pandas-ods-reader" },
@@ -359,7 +360,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiowebdav", specifier = ">=0.1.0rc5" },
+    { name = "aiowebdav2", specifier = ">=0.5.0" },
     { name = "nicegui", specifier = ">=3.3.1" },
     { name = "pandas", specifier = ">=2.2.3,<3" },
     { name = "pandas-ods-reader", specifier = ">=1.0.1,<2" },

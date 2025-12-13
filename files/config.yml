@@ -1,9 +1,19 @@
 title: IU Inventur
 favicon: favicon.jpeg
 theme:
-  primary: '#FD916B'
-  secondary: '#254060'
-  dark: True
+  primary: '#e89769'
+  secondary: '#37474f'
+  accent: '#607d8b'
+  dark_page: '#0d1626'
+  dark_mode: True
+cloud:
+  dir: "Infra United (Intern)/Inventur"
+  pull:
+    inventory: "IU_Inventur.ods"
+    start: 'start.md'
+    help: 'help.md'
+  push:
+    requests: 'IU_Anfragen.ods'
 data:
   sheets: 3
   category: Kategorie
@@ -11,21 +21,26 @@ data:
   desc: Art
   object: Objekt
   pack: Packung
-  path: "Infra United (Intern)/Inventur/IU_Inventur.ods"
-help:
-  display: true
-  label: 'Start'
-  icon: 'home'
-  path: help.md
+  path: "IU_Inventur.ods"
 everything: 'Alles'
-truck:
-  label: 'Beladen'
-  icon: 'local_shipping'
+menu:
+  warehouse:
+    label: 'Lager'
+    icon: 'warehouse'
+  start:
+    label: 'Hilfe'
+    icon: 'help_outline'
+    path: 'start.md'
+  request:
+    label: 'Anfragen'
+    icon: 'edit_note'
+  truck:
+    label: 'LKW'
+    icon: 'local_shipping'
+selection:
   edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
   select_tip: "Bitte wähle zunächst Dinge aus dem Lager aus und bringe sie an die Laderampe."
 form:
-  label: 'Anfragen'
-  icon: 'edit_note'
   name: 'Camp/Organisation'
   place: 'Ort'
   start: 'Abholung'
@@ -34,13 +49,27 @@ form:
   donation: 'Eingeplante Spende'
   checkbox: 'Ich habe die Leihbedingungen gelesen.'
   submit: 'Anfragen'
-warehouse:
-  label: 'Lager'
-  icon: 'warehouse'
 links:
   display: false
   column: "Link"
 mail:
   subject: '[Anfrage] '
   mail_to: 'aberallesisgut@riseup.net'
+start:
+  start:
+    display: true
+    label: 'Info'
+    icon: 'info'
+    path: 'start.md'
+  terms:
+    display: true
+    label: 'Bedingungen'
+    icon: 'menu_book'
+    url: 'https://wiki.aktivismus.org/books/camp-wiki-infraunited-de/page/was-ist-infra-united/export/markdown'
+    path: 'bedingungen.md'
+  help:
+    display: true
+    label: 'Hilfe'
+    icon: 'help_outline'
+    path: 'help.md'
 

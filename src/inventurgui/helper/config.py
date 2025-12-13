@@ -50,4 +50,6 @@ def dump_config(config:dict) -> None:
         exception('File not Found:', config_file); exit()
 
 config = load_config()
-
+start:dict[str, dict[str, str]] = config["start"]
+menu:dict[str, dict[str, str]] = config["menu"]
+theme:dict[str, str] = config["theme"]
