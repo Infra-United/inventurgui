@@ -1,30 +1,54 @@
-import time
-
 from nicegui import ui, app
-from nicegui.elements.aggrid import AgGrid
-from nicegui.elements.drawer import LeftDrawer, RightDrawer
-from nicegui.elements.fab import FabAction
+from nicegui.elements.button import Button
+from nicegui.elements.drawer import LeftDrawer
+from pydantic.v1.parse import load_file
 
 from inventurgui.helper.config import config, menu, get_path
 from inventurgui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
 
+menu_buttons:list[Button] = []
 
-def main_menu(ld:LeftDrawer, classes:str="stretch", props:str="unelevated no-wrap text-color=secondary square"):
+def handle_path_change(warehouse:bool=False):
+    def invert_button(btn:Button):
+        [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons]
+        btn.classes(add='bg-accent').props.update({'text-color': 'white'})
+    path = reverse_url(ui.context.client.sub_pages_router.current_path.split('/')[-1])
+    for btn in menu_buttons:
+        label = btn.props.get('label')
+        btn.classes(remove='bg-accent').props.update({'text-color': 'secondary'})
+        if warehouse and menu['warehouse']['label'] == label:
+            #invert_button(btn)
+            return True
+        if ui.context.client.sub_pages_router.current_path == "/" and label == 'Start':
+            invert_button(btn)
+            return True
+        elif path == label:
+            invert_button(btn)
+            return True
+    return [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons]
+
+
+def main_menu(ld:LeftDrawer, classes:str="stretch", props:str="unelevated no-wrap text-color=secondary square") -> list[Button]:
+    global menu_buttons
     for key, values in menu.items():
-        btn = ui.button(values['label'], icon=values['icon']).classes(classes).props(props)
+        btn:Button = ui.button(values.get('label'), icon=values.get('icon')).classes(classes).props(props)
         if key == 'start':
-            btn.on_click(lambda: ui.navigate.to(f"/"))
+            btn.on_click(lambda l=url_safe(values['label']): ui.navigate.to(f"/"))
+            ui.on('resize', lambda b=btn: b.move(target_index=1) if app.storage.user.get('screen')['width'] < 1024 else b.move(target_index=3) , throttle=0.8, trailing_events=True)
+            ui.space().classes('max-sm:hidden')
         elif key == 'warehouse':
-            btn.classes(f"{classes} lg:hidden").on_click(lambda: ld.show())
+            btn.classes(classes).on_click(lambda: ld.show())
         else:
             btn.on_click(lambda l=url_safe(values['label']): ui.navigate.to(f"/{l}"))
-        if key == 'truck':
-            with btn:
-                badge = ui.badge('0', color='primary', text_color='secondary').props(
-                    "rounded floating").classes('text-bold')
-                badge.bind_text_from(app.storage.user, 'Total')
-    #form_button.on_click(lambda: form_button.classes(add=''))
+        if not key == 'warehouse':
+            btn.on_click(
+                lambda: [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons])
+            btn.on_click((lambda b=btn: b.classes(add='bg-accent').props.update({'text-color': 'white'})))
+        menu_buttons.append(btn)
+    handle_path_change()
+    return menu_buttons
+
 
 def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer, classes:str, props:str):
     """
@@ -32,6 +56,10 @@ def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer, classes:str, props
     """
     path_category = reverse_url(ui.context.client.sub_pages_router.current_path.split('/')[-1])
     path_warehouse = reverse_url(ui.context.client.sub_pages_router.current_path.split('/')[-2])
+
+    with ui.row().classes('flex bg-primary row w-full px-20 py-3 mb-1'):
+        ui.icon(config['menu']['warehouse']['icon'], size='20px', color='secondary').classes(classes)
+        ui.label(config['menu']['warehouse']['label'].upper()).classes(classes).classes('text-secondary')
     for warehouse in warehouses:
         name = warehouse.name
         with ui.expansion(group='menu').classes(classes) as expansion:
@@ -42,6 +70,7 @@ def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer, classes:str, props
             expansion.set_value(True if name == path_warehouse else True if name == warehouses[0].name else False)
             expansion.on('click', lambda l=url_safe(name): ui.navigate.to(f"/{l}/{url_safe(config['everything'])}"))
             expansion.on('click', lambda e=expansion: e.open())
+            expansion.on('click', lambda: handle_path_change(warehouse=True))
             with expansion.add_slot('header'):
                 with ui.label(name.upper()).classes('py-3 w-full'):
                     badge = ui.badge('0', color='secondary').props("floating").classes('text-bold')
@@ -53,15 +82,16 @@ def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer, classes:str, props
             toggle.set_value(path_category)
             toggle.classes(f"{classes} column").props('square unelevated stretch toggle-color=accent')
             toggle.on_value_change(lambda v, w=warehouse: ui.navigate.to(f"/{url_safe(w.name)}/{url_safe(v.value)}"))
-            toggle.on_value_change(lambda: (ld.hide()) if app.storage.user.get('screen')['width'] < 1024 else None)
+            toggle.on_value_change(lambda: handle_path_change(warehouse=True))
+            toggle.on_value_change(lambda: ld.hide() if app.storage.user.get('screen')['width'] < 1024 else None)
 
 
 def header(ld:LeftDrawer):
     with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
-        ui.image(source=get_path(config.get('favicon'))).classes('h-full m-0 p-0 w-[56px]').on('click', lambda: ui.navigate.to("/"))
-        ui.label(str(config.get('title')).upper()).classes('text-secondary max-lg:hidden text-bold text-xl').on('click', lambda: ui.navigate.to("/"))
-        ui.space().classes('max-sm:hidden')
-        main_menu(ld)
+        ui.image(source=get_path(config.get('favicon'))).classes('h-full m-0 p-0 w-[56px]')
+        ui.label(str(config.get('title')).upper()).classes('text-secondary w-[161px] max-lg:hidden text-bold text-xl')
+        ui.separator().props('vertical color=secondary size=1px').classes('max-lg:hidden')
+        main_menu(ld, classes='stretch h-full')
 
 def footer(ld:LeftDrawer):
     # Footer is only shown on small screens
@@ -76,32 +106,18 @@ def left_drawer(warehouses:list[Warehouse]) -> LeftDrawer:
         classes: str = "text-center text-gray-200 py-1 m-0 font-bold subpixel-antialiased tracking-widest"
         props: str = "unelevated square"
         ui.space().classes("sm:hidden")
-        with ui.row().classes('flex bg-primary row w-full px-20 py-3 mb-1'):
-            ui.icon(config['menu']['warehouse']['icon'], size='20px', color='secondary').classes(classes)
-            ui.label(config['menu']['warehouse']['label'].upper()).classes(classes).classes('text-secondary')
         warehouse_menu(warehouses, ld, classes, props)
     return ld
 
-
-def tool_buttons(grid:AgGrid, classes:str="stretch", props:str="text-color=secondary"):
-    with ui.page_sticky(x_offset=18, y_offset=18).classes('z-999'):
+def checkout_fab(next_icon:str, navigate_to:str):
+    props: str = f"text-color=secondary"
+    with ui.page_sticky(position='bottom-right', x_offset=18, y_offset=18).classes('z-999'):
         #TODO Tooltip
         #ui.tooltip("Hier findest du ein paar Werkzeuge.").props('left')
-        with ui.fab(icon='construction', direction='up').classes(classes).props(props):
-            ui.fab_action(icon='zoom_out', on_click=lambda e: handle_theme_change(e.sender ,grid)).classes(classes).props(props)
-            ui.fab_action(icon='select_all', on_click=lambda: grid.run_grid_method('selectAll')).classes(classes).props(props)
-            ui.fab_action(icon='deselect', on_click=lambda: grid.run_grid_method('deselectAll')).classes(classes).props(props)
-
-def handle_theme_change(e:FabAction, grid:AgGrid):
-    current_theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'alpine'
-    match current_theme:
-        case 'alpine':
-            app.storage.user['grid_theme'] = 'balham'
-            e.set_icon('zoom_in')
-        case 'balham':
-            app.storage.user['grid_theme'] = 'alpine'
-            e.set_icon('zoom_out')
-    e.bind_icon_to(grid, 'theme', forward=lambda i: 'balham' if i == 'zoom_in' else 'alpine')
-    for row in app.storage.user[grid.props['options']['headerName']]:
-        grid.run_row_method(row, 'setSelected', True)
-
+        fab = ui.fab(icon=next_icon, direction='up').props(props).on('click', lambda: ui.navigate.to(navigate_to))
+        fab.on('click', lambda: handle_path_change(warehouse=False))
+        with fab.add_slot('label'):
+            ui.icon('navigate_next')
+            badge = ui.badge('0', color='primary', text_color='secondary').props(
+                "rounded floating").classes('text-bold')
+            badge.bind_text_from(app.storage.user, 'Total')

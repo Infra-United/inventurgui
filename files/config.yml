@@ -12,6 +12,8 @@ cloud:
     inventory: "IU_Inventur.ods"
     start: 'start.md'
     help: 'help.md'
+    terms: 'terms.md'
+    about: 'about.md'
   push:
     requests: 'IU_Anfragen.ods'
 data:
@@ -28,27 +30,33 @@ menu:
     label: 'Lager'
     icon: 'warehouse'
   start:
-    label: 'Hilfe'
-    icon: 'help_outline'
-    path: 'start.md'
-  request:
-    label: 'Anfragen'
-    icon: 'edit_note'
-  truck:
-    label: 'LKW'
-    icon: 'local_shipping'
-selection:
+    label: 'Start'
+    icon: 'home'
+cart:
+  label: 'Laderampe'
+  icon: 'local_shipping'
   edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
   select_tip: "Bitte wähle zunächst Dinge aus dem Lager aus und bringe sie an die Laderampe."
-form:
-  name: 'Camp/Organisation'
-  place: 'Ort'
-  start: 'Abholung'
-  end: 'Rückgabe'
-  email: 'E-Mail-Adresse'
-  donation: 'Eingeplante Spende'
-  checkbox: 'Ich habe die Leihbedingungen gelesen.'
-  submit: 'Anfragen'
+  invalid_edit: "So viele haben wir nicht!"
+request:
+  label: 'Anfragen'
+  icon: 'sym_o_delivery_truck_speed'
+  form:
+    label: 'Daten'
+    icon: 'article'
+    name: 'Camp/Organisation'
+    place: 'Ort'
+    start: 'Abholung'
+    end: 'Rückgabe'
+    email: 'E-Mail-Adresse'
+    donation: 'Eingeplante Spende'
+    checkbox: 'Ich habe die Leihbedingungen gelesen.'
+    submit: 'Anfragen'
+  terms:
+    display: true
+    label: 'Leihbedingungen'
+    icon: 'policy'
+    path: 'terms.md'
 links:
   display: false
   column: "Link"
@@ -56,20 +64,24 @@ mail:
   subject: '[Anfrage] '
   mail_to: 'aberallesisgut@riseup.net'
 start:
-  start:
+  about:
     display: true
-    label: 'Info'
+    label: 'Über Uns'
     icon: 'info'
-    path: 'start.md'
-  terms:
+    path: 'about.md'
+  how_to:
     display: true
-    label: 'Bedingungen'
+    label: 'How To'
     icon: 'menu_book'
-    url: 'https://wiki.aktivismus.org/books/camp-wiki-infraunited-de/page/was-ist-infra-united/export/markdown'
-    path: 'bedingungen.md'
+    path: 'start.md'
   help:
     display: true
     label: 'Hilfe'
     icon: 'help_outline'
     path: 'help.md'
+  terms:
+    display: true
+    label: 'Leihbedingungen'
+    icon: 'policy'
+    path: 'terms.md'
 

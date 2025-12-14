@@ -14,7 +14,7 @@ from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.request import Request
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.layout import header, left_drawer, footer
-from inventurgui.ui.sub_pages import category_page, truck_page, form_page, main_page
+from inventurgui.ui.sub_pages import category_page, form_page, main_page, cart_page
 from inventurgui.ui.theme import Theme
 
 
@@ -25,6 +25,7 @@ def root():
         app.timer(7200, lambda f=file: nc.update_file(f))  # Update files every 2 hours
 
     ui.add_head_html('''
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <script>
         function emitSize() {
             emitEvent('resize', {
@@ -48,8 +49,8 @@ def root():
     # Set colors
     t = (Theme(theme).set_colors())
     ui.dark_mode(theme.get('dark_mode'), on_change=lambda e: t.toggle_dark(e.value))
-    ui.query(".nicegui-content").classes("p-0 min-h-full lg:w-[calc(100dvw-250px)] max-lg:w-screen no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
-    ui.query(".nicegui-sub-pages").classes('lg:w-[calc(100dvw-250px)] max-lg:w-screen scroll').style(replace='gap:0')
+    ui.query(".nicegui-content").classes("p-0 min-h-full bg-dark w-full no-scroll sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]") # remove default padding from site
+    ui.query(".nicegui-sub-pages").classes(' bg-dark w-full scroll').style(replace='gap:0')
     ui.on('resize', lambda e: app.storage.user.update({'screen': e.args}), throttle=0.4, trailing_events=True)
 
     # init app storage
@@ -57,25 +58,23 @@ def root():
     app.storage.user['screen'] = 0 if not app.storage.user.get('screen') else app.storage.user['screen']
     app.storage.user['form'] = Request() if not app.storage.user.get('form') else app.storage.user['form']
     app.storage.user['Total'] = 0 if not app.storage.user.get('Total') else app.storage.user['Total']
+    app.storage.user['amounts'] = {} if not app.storage.user.get('amounts') else app.storage.user['amounts']
     app.storage.user['notified'] = {'selection': False} if not app.storage.user.get('notified') else app.storage.user[
         'notified']
 
-    # Register Pages
-    pages = ui.sub_pages(data={'warehouses': warehouses})
-    for key, values in menu.items():
-        match key:
-            case 'start':
-                pages.add('/', main_page)
-            case 'truck':
-                pages.add(f"/{url_safe(values['label'])}", truck_page)
-            case 'request':
-                pages.add(f"/{url_safe(values['label'])}", form_page)
 
     # Create Left Drawer
     ld = left_drawer(warehouses)
 
+    # Register Pages
+    pages = ui.sub_pages(data={'warehouses': warehouses, 'ld': ld})
+    pages.add(f"/", main_page)
+    pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
+    pages.add(f"/{url_safe(config['request']['label'])}", form_page)
+
     for warehouse in warehouses:
         app.storage.user[warehouse.name] = [] if not app.storage.user.get(warehouse.name) else app.storage.user[warehouse.name]
+        app.storage.user['amounts'][warehouse.name] = {} if not app.storage.user['amounts'].get(warehouse.name) else app.storage.user['amounts'][warehouse.name]
         warehouse = warehouse
         name = url_safe(warehouse.name)
         for category in warehouse.categories:

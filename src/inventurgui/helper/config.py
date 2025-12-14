@@ -53,3 +53,4 @@ config = load_config()
 start:dict[str, dict[str, str]] = config["start"]
 menu:dict[str, dict[str, str]] = config["menu"]
 theme:dict[str, str] = config["theme"]
+request_conf:dict[str, str|dict[str, str]] = config["request"]
