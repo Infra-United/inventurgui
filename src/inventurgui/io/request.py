@@ -1,6 +1,14 @@
 from dataclasses import dataclass
 
-from inventurgui.helper.config import config
+import pandas as pd
+from ezodf import opendoc, Sheet, newdoc
+from ezodf.document import FlatXMLDocument, PackagedDocument
+from nicegui import app
+from pandas import Series
+
+from inventurgui.helper.config import config, get_path, request_conf
+from inventurgui.helper.logger import LOGGER
+from inventurgui.io.warehouse import Warehouse
 
 
 @dataclass
@@ -13,29 +21,47 @@ class Request:
     donation: str = ''
     message: str = ''
     checkbox: bool = False
+    conf = request_conf.get('form')
+    path = get_path(config['cloud']['push']['requests'])
 
     @property
     def subject(self) -> str:
         return f"[{self.name}] {self.start} - {self.end}"
 
     @property
-    def text(self) -> str:
-        text = f"\n{config['form']['name']}: {self.name}"
-        text += f"\n{config['form']['place']}: {self.place}"
-        text += f"\n{config['form']['start']}: {self.start}"
-        text += f"\n{config['form']['end']}: {self.end}"
-        text += f"\n{config['form']['email']}: {self.email}"
-        text += f"\n{config['form']['donation']}: {self.donation}"
-        text += f"\n\n{self.message}"
-        return text
-
-    @property
     def html(self) -> str:
-        html = f"</br>{config['form']['name']}: {self.name}"
-        html += f"</br>{config['form']['place']}: {self.place}"
-        html += f"</br>{config['form']['start']}: {self.start}"
-        html += f"</br>{config['form']['end']}: {self.end}"
-        html += f"</br>{config['form']['email']}: {self.email}"
-        html += f"</br>{config['form']['donation']}: {self.donation}"
-        html += f"</br></br>{self.message}"
+        html = ""
+        for key, value in self.__dict__.items():
+            if key == 'message':
+                continue
+            html += f"</br>{self.conf.get(key)}: {value}"
+
+        html += f"\n\n{self.message}"
         return html
+
+    async def write(self, warehouses:list[Warehouse]) -> None:
+        LOGGER.info(f"Writing to file {self.path}")
+        if self.path.exists():
+            ods: FlatXMLDocument = opendoc(self.path)
+        else:
+            ods: PackagedDocument = newdoc("ods", self.path)
+
+        df = pd.concat(await w.get_final() for w in warehouses)
+
+        # Add new Sheet
+        sheet = Sheet(self.name,  size=(len(df)+1, len(df.columns)))
+        ods.sheets += sheet
+
+        # Write the header
+        for col_idx, col_name in enumerate(df.columns):
+            cell = sheet[0, col_idx]
+            cell.set_value(str(col_name))
+
+        # Write the data
+        for row_idx, (index, row) in enumerate(df.iterrows(), start=1):
+            for col_idx, value in enumerate(row):
+                cell = sheet[row_idx, col_idx]
+                cell.set_value(str(value) if value is not None else "")
+
+        ods.saveas(self.path)
+        LOGGER.info(f"Successfully wrote to sheet {sheet.name} @ {self.path}")

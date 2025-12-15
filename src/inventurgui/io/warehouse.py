@@ -1,3 +1,4 @@
+from collections.abc import ItemsView
 from typing import Generator, Any
 
 from nicegui import app, run
@@ -21,16 +22,28 @@ class Warehouse:
         c.insert(0, config['everything'])
         return c
 
-    @property
     async def selected(self) -> DataFrame | None:
         row_ids: list = list(app.storage.user.get(self.name))
         return await run.cpu_bound(_get_selected, self.inventory.iterrows, row_ids)
 
+    async def get_final(self) -> DataFrame | None:
+        df = await self.selected()
+        if df is None or df.empty:
+            return None
+        user_amounts = app.storage.user['amounts'].get(self.name, {})
+        # For each row_id and associated values
+        for row_id, values in user_amounts.items():
+            # Create a boolean mask where 'perma_id' matches row_id
+            mask = df.get('perma_id') == int(row_id)
+            # Update the target column for all matching rows
+            df.loc[mask, config['data']['count']] = float(values[0])
+        df.drop('perma_id', axis=1, inplace=True)
+        return df
 
 def _get_selected(iterator:Any, row_ids:list[str]) -> DataFrame:
     def _match_selected() -> Generator[Series, None, None]:
         for row_id in row_ids:
-            for i, row_data in iterator():
-                if str(i) == row_id:
+            for df_id, row_data in iterator():
+                if str(df_id) == row_id:
                     yield row_data
     return DataFrame.from_records([r for r in _match_selected()])

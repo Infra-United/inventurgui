@@ -14,6 +14,7 @@ def max_amount(name:str, event:GenericEventArguments):
         ui.notify(f"Maximum: {amount}", position='center', type='info', color='secondary')
 
 def handle_edit(grid:AgGrid, name:str, event:GenericEventArguments):
+    ui.notify(event.args)
     row_id = event.args['rowId']
     new_value = event.args['newValue']
     edited_rows:ObservableDict = app.storage.user['amounts'][name]
@@ -33,9 +34,7 @@ def handle_edit(grid:AgGrid, name:str, event:GenericEventArguments):
     grid.run_row_method(row_id,'setData', row_data)
 
 def handle_select(name:str, event:GenericEventArguments):
-    match event.args['source'] :
-        case 'api':
-            return
+    ui.notify(event.args)
     row_id = event.args['rowId']
     if row_id not in app.storage.user[name]:
         app.storage.user[name].append(row_id)

@@ -1,7 +1,6 @@
 from nicegui import ui, app
 from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
-from pydantic.v1.parse import load_file
 
 from inventurgui.helper.config import config, menu, get_path
 from inventurgui.helper.safe_url import url_safe, reverse_url

@@ -21,21 +21,20 @@ class MailSettings(BaseSettings):
 
 class Mail:
     @classmethod
-    def send_mail(cls, html: str, txt: str, subject: str, email:str, settings: MailSettings = MailSettings()) -> None:
+    def send_mail(cls, html: str, subject: str, email:str, settings: MailSettings = MailSettings()) -> None:
         LOGGER.debug("Connecting to SMTP Server...")
         with smtplib.SMTP_SSL(settings.domain, settings.port, context=ssl.create_default_context()) as smtp:
             smtp.ehlo()
             smtp.set_debuglevel(1)
             LOGGER.debug("Logging into SMTP Client with credentials...")
             smtp.login(settings.user, settings.password)
-            mail = MIMEMultipart("alternative")
+            mail = MIMEMultipart("mixed")
             mail.add_header("subject", subject)
             mail.add_header("from", f"{settings.user.split('@')[0].capitalize()} <{settings.user}>")
             mail.add_header("date", formatdate(localtime=True))
             mail.add_header("Message-ID", make_msgid())
             mail.add_header("Return-Path", "noreply-anfragen@infraunited.org")
             mail.add_header('reply-to', f"{email.split('@')[0].capitalize()} <{email}>")
-            mail.attach(MIMEText(txt, "txt"))
             mail.attach(MIMEText(html, "html"))
 
             receiver = config["mail"]["mail_to"]
