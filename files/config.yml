@@ -1,5 +1,6 @@
 title: IU Inventur
 favicon: favicon.jpeg
+language: 'de'
 theme:
   primary: '#e89769'
   secondary: '#37474f'
@@ -45,11 +46,13 @@ request:
     label: 'Daten'
     icon: 'article'
     name: 'Camp/Organisation'
+    name_invalid: 'Der Name muss länger als 3 Zeichen sein.'
     place: 'Ort'
     start: 'Abholung'
     end: 'Rückgabe'
-    email: 'E-Mail-Adresse'
-    donation: 'Eingeplante Spende'
+    email: 'E-Mail'
+    email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
+    donation: 'Spende'
     checkbox: 'Ich habe die Leihbedingungen gelesen.'
     submit: 'Anfragen'
   terms:

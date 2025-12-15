@@ -1,15 +1,11 @@
 import datetime
 import re
-from collections.abc import dict_items
-
-import pandas as pd
 import requests
 from nicegui import ui, app, run
 from nicegui.elements.aggrid import AgGrid
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.markdown import Markdown
 from nicegui.elements.tabs import Tabs
-from pandas.core.interchange.dataframe_protocol import DataFrame
 from requests import ReadTimeout
 
 from inventurgui.helper.config import config, get_path, EMAIL_REGEX, start, request_conf
@@ -56,10 +52,10 @@ async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
     checkout_fab(next_icon=config['request']['icon'], navigate_to=f"/{url_safe(config['request']['label'])}")
 
 async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
-    def validate_form() -> None:
-        if check.value and email.validate() and name.validate():
-            submit.enable()
-        submit.disable()
+    def validate_form() -> bool:
+        if check.value and dates.value and name.value and email.validate():
+            return True
+        return False
 
     ld.hide()
     request = Request()
@@ -75,9 +71,9 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
         with form_panels:
             with ui.tab_panel(form.get('label')).classes('m-0 p-0'):
                 with ui.grid(columns=1).classes('xl:w-1/2 w-full p-5 bg-dark h-screen lg:w-1/2'):
-                    name = ui.input(form.get('name'), validation={'Not a valid name': lambda v: len(v) > 1})
-                    name.bind_value(request, 'name')
-                    name.on_value_change(lambda: validate_form())
+                    name = ui.input(form.get('name'), validation={form.get('name_invalid'): lambda v: len(v) > 3})
+                    name.bind_value(request, 'name').props('debounce=1000')
+                    name.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
                     place = ui.input(form.get('place')).bind_value(request, 'place')
                     start = ui.date_input(form.get('start'), placeholder='DD.MM.YYYY').bind_value(request, 'start')
                     start.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
@@ -85,18 +81,20 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
                     end = ui.date_input(form.get('end'), placeholder='DD.MM.YYYY').bind_value(request, 'end')
                     end.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
                     end.picker.props['mask'] = 'DD.MM.YYYY'
-                    email = ui.input(form.get('email'), validation={'Not a valid email': lambda v: True if re.match(EMAIL_REGEX, v) else False})
-                    email.bind_value(request, 'email')
-                    email.on_value_change(lambda: validate_form())
+                    email = ui.input(form.get('email'), validation={form.get('email_invalid'): lambda v: True if re.match(EMAIL_REGEX, v) else False})
+                    email.bind_value(request, 'email').props('debounce=1000')
+                    email.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    dates = ui.date().classes('sm: w-[400px] mx-auto').props('range minimal flat color=secondary')
+                    dates.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    dates.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
+                    message = ui.editor(placeholder='Deine Mail an uns...')
                     donation = ui.input(form.get('donation')).bind_value(request, 'donation')
-                    message = ui.editor(placeholder='Deine Mail an uns...').bind_value(request, 'message')
-                    check = ui.checkbox(form.get('checkbox')).bind_value(request, 'checkbox')
-                    check.on_value_change(lambda: validate_form())
-                    check.on_value_change(lambda c: submit.enable() if c.value and email.validate() else submit.disable())
+                    check = ui.checkbox(form.get('checkbox'))
+                    check.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
                     submit = ui.button(form.get('submit'), icon='send')
-                    #submit.disable()
-                    #submit.on_click(lambda: Mail.send_mail(request.html, request.subject, request.email))
-                    submit.on_click(lambda: request.write(warehouses))
+                    submit.disable()
+                    submit.on_click(lambda: Mail.send_mail(request.html(message.value), request.subject, request.email))
+                    submit.on_click(lambda: request.write_ods(warehouses))
             with ui.tab_panel(terms.get('label')).classes('m-0 p-0'):
                 await render_markdown(request_conf.get('terms'))
     form_panels.set_value([t.props.get('label') for t in form_tabs.descendants()][0]) # First tab is open by default

@@ -14,7 +14,7 @@ class Warehouse:
         self.name = name
         self.inventory = inventory
         self.inventory.insert(0, 'perma_id', self.inventory.index.tolist()) # This ensures we can have selection across grids
-        self.inventory.insert(0, 'warehouse', self.name)
+        self.inventory.insert(0, config['menu']['warehouse']['label'], self.name)
 
     @property
     def categories(self) -> list[str]:
@@ -36,7 +36,7 @@ class Warehouse:
             # Create a boolean mask where 'perma_id' matches row_id
             mask = df.get('perma_id') == int(row_id)
             # Update the target column for all matching rows
-            df.loc[mask, config['data']['count']] = float(values[0])
+            df.loc[mask, config['data']['count']] = int(values[0])
         df.drop('perma_id', axis=1, inplace=True)
         return df
 
