@@ -14,9 +14,8 @@ from inventurgui.io.warehouse import Warehouse
 class Request:
     name: str = ''
     place: str = ''
-    dates: dict[str, str] = field(default_factory=dict)
-    start: str = ''
-    end: str = ''
+    start: datetime.date = None
+    end: datetime.date = None
     email: str = ''
     donation: str = ''
     conf = request_conf.get('form')
@@ -29,8 +28,9 @@ class Request:
     def html(self, message) -> str:
         html = ""
         for key, value in self.__dict__.items():
+            if isinstance(value, datetime.date):
+                html += f"</br>{self.conf.get(key)}: {f"{value.strftime('%d.%m.%Y')}"}"
             html += f"</br>{self.conf.get(key)}: {value}"
-
         html += f"\n\n{message}"
         return html
 
@@ -58,12 +58,13 @@ class Request:
             ods.sheets.insert(0, overview_sheet)
 
         # Write to overview
-
-
         current_rows = overview_sheet.nrows()
         overview_sheet.append_rows(1)
         for col_idx, value in enumerate(self.__dict__.values()):
             cell = overview_sheet.get_cell((current_rows, col_idx))
+            if isinstance(value, datetime.date):
+                cell.set_value(f"{value.strftime('%d.%m.%Y')}")
+                continue
             cell.set_value(str(value) if value is not None else "")
 
         # Get Data

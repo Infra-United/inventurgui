@@ -1,8 +1,12 @@
 import datetime
 import re
+from contextlib import suppress
+from typing import Literal
+
 import requests
 from nicegui import ui, app, run
 from nicegui.elements.aggrid import AgGrid
+from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.markdown import Markdown
 from nicegui.elements.tabs import Tabs
@@ -52,49 +56,73 @@ async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
     checkout_fab(next_icon=config['request']['icon'], navigate_to=f"/{url_safe(config['request']['label'])}")
 
 async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
+    ld.hide()
+    def parse_date(v:dict, t:Literal['from', 'to']) -> datetime.date|None:
+        with suppress(AttributeError):
+            return datetime.date.fromisoformat(v.get(t, None))
+        return None
+
     def validate_form() -> bool:
-        if check.value and dates.value and name.value and email.validate():
-            return True
+        with suppress(NameError):
+            if check.value and dates.value and name.value and donation.value and email.validate():
+                return True
         return False
 
-    ld.hide()
     request = Request()
     today = datetime.date.today()
     form = request_conf.get('form')
     terms = request_conf.get('terms')
     form_tabs = tabs()
     form_panels = tab_panels(form_tabs)
-    with form_tabs:
+    with ((form_tabs)):
         with form_tabs:
             ui.tab(form.get('label'), icon=form.get('icon')).classes('px-7').props('inline-label')
             ui.tab(terms.get('label'), icon=terms.get('icon')).props('inline-label')
         with form_panels:
-            with ui.tab_panel(form.get('label')).classes('m-0 p-0'):
-                with ui.grid(columns=1).classes('xl:w-1/2 w-full p-5 bg-dark h-screen lg:w-1/2'):
-                    name = ui.input(form.get('name'), validation={form.get('name_invalid'): lambda v: len(v) > 3})
+            with ui.tab_panel(form.get('label')).classes('m-0'):
+                with ui.grid(columns=1).classes('xl:w-1/2 w-full bg-dark h-screen lg:w-1/2'):
+                    name = ui.input(form.get('name'), validation={form.get('please_fill'): lambda v: len(v) > 0})
                     name.bind_value(request, 'name').props('debounce=1000')
-                    name.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
-                    place = ui.input(form.get('place')).bind_value(request, 'place')
-                    start = ui.date_input(form.get('start'), placeholder='DD.MM.YYYY').bind_value(request, 'start')
+                    place = ui.input(form.get('place'), validation={form.get('please_fill'): lambda v: len(v) > 0})
+                    place.bind_value(request, 'place').props('debounce=1000')
+                    """start = ui.date_input(form.get('start'), placeholder='DD.MM.YYYY').bind_value(request, 'start')
                     start.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
                     start.picker.props['mask'] = 'DD.MM.YYYY'
                     end = ui.date_input(form.get('end'), placeholder='DD.MM.YYYY').bind_value(request, 'end')
                     end.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
-                    end.picker.props['mask'] = 'DD.MM.YYYY'
-                    email = ui.input(form.get('email'), validation={form.get('email_invalid'): lambda v: True if re.match(EMAIL_REGEX, v) else False})
+                    end.picker.props['mask'] = 'DD.MM.YYYY'"""
+                    email = ui.input(form.get('email'),validation={form.get('email_invalid'): lambda v: True if re.match(EMAIL_REGEX, v) else False})
                     email.bind_value(request, 'email').props('debounce=1000')
-                    email.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
-                    dates = ui.date().classes('sm: w-[400px] mx-auto').props('range minimal flat color=secondary')
-                    dates.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    ui.label(form.get('dates').upper()).classes('w-full pt-2 text-center tracking-widest')
+                    dates = ui.date().classes('w-100 p-0 mx-auto').props('range minimal flat color=secondary')
                     dates.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
-                    message = ui.editor(placeholder='Deine Mail an uns...')
-                    donation = ui.input(form.get('donation')).bind_value(request, 'donation')
+                    dates.bind_value_to(request, 'start', forward=lambda v: parse_date(v, 'from'))
+                    dates.bind_value_to(request, 'end', forward=lambda v: parse_date(v, 'to'))
+                    message = ui.editor(placeholder=form.get('message'))
+                    donation = ui.input(form.get('donation'), validation={form.get('please_fill'): lambda v: len(v) > 0})
+                    donation.bind_value(request, 'donation').props('debounce=1000')
                     check = ui.checkbox(form.get('checkbox'))
-                    check.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
-                    submit = ui.button(form.get('submit'), icon='send')
+                    with ui.row().classes('pb-10'):
+                        back = ui.button('',icon='navigate_before').props('color=secondary rounded')
+                        back.on_click(lambda: ui.navigate.to(url_safe(config.get('cart')['label'])))
+                        with back.classes('p-3 pr-6 sm:w-40 text-lg'):
+                            ui.icon(config.get('cart')['icon'])
+                            badge = ui.badge('0', color='secondary').props(
+                                "rounded floating").classes('text-bold')
+                            badge.bind_text_from(app.storage.user, 'Total')
+                        ui.space()
+                        submit = ui.button(form.get('submit')).props('text-color=secondary rounded icon-right=send')
+                        submit.classes('p-3 sm:w-80 text-lg')
                     submit.disable()
                     submit.on_click(lambda: Mail.send_mail(request.html(message.value), request.subject, request.email))
                     submit.on_click(lambda: request.write_ods(warehouses))
+                    # Validation Handlers
+                    name.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    place.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    email.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    dates.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    donation.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    check.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
             with ui.tab_panel(terms.get('label')).classes('m-0 p-0'):
                 await render_markdown(request_conf.get('terms'))
     form_panels.set_value([t.props.get('label') for t in form_tabs.descendants()][0]) # First tab is open by default
