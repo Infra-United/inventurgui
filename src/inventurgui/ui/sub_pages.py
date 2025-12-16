@@ -93,7 +93,7 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
                     end.picker.props['mask'] = 'DD.MM.YYYY'"""
                     email = ui.input(form.get('email'),validation={form.get('email_invalid'): lambda v: True if re.match(EMAIL_REGEX, v) else False})
                     email.bind_value(request, 'email').props('debounce=1000')
-                    ui.label(form.get('dates').upper()).classes('w-full pt-2 text-center tracking-widest')
+                    ui.label(f"{form.get('start')} - {form.get('end')}".upper()).classes('w-full pt-2 text-center tracking-widest')
                     dates = ui.date().classes('w-100 p-0 mx-auto').props('range minimal flat color=secondary')
                     dates.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
                     dates.bind_value_to(request, 'start', forward=lambda v: parse_date(v, 'from'))
@@ -143,6 +143,7 @@ async def main_page(ld:LeftDrawer) -> None:
             with ui.tab_panel(label).classes('m-0 p-0'):
                 await render_markdown(values)
     main_panels.set_value([t.props.get('label') for t in main_tabs.descendants()][0]) # First tab is open by default
+    checkout_fab(next_icon=config['menu']['warehouse']['icon'], navigate_to=f"/{url_safe(config['menu']['warehouse']['label'])}")
 
 def category_page(category:str, warehouse: Warehouse) -> None:
     # Create One grid for each unique Category in the first Column
