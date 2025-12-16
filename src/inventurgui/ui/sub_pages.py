@@ -83,7 +83,7 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
             ui.notify('Please fill out the form correctly.')
             return
         request = Request.from_dict(bind)
-        Mail.send_mail(request.html(message.value), request.subject, request.email)
+        #Mail.send_mail(request.html(message.value), request.subject, request.email)
         request.write_ods(warehouses)
 
     today = datetime.date.today()
@@ -118,6 +118,8 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
                     with ui.row().classes('pb-10'):
                         ui.space()
                         submit = ui.button(form.get('submit')).props('text-color=secondary rounded icon-right=send')
+                        correct = validate_form()
+                        submit.bind_enabled_from(correct) #TODO FIX submit enabled
                         submit.classes('p-3 sm:w-80 text-lg')
                     submit.on_click(lambda: handle_submit())
             with ui.tab_panel(terms.get('label')).classes('m-0 p-0'):
