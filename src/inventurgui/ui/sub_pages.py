@@ -19,7 +19,7 @@ from inventurgui.io.mail import Mail
 from inventurgui.io.request import Request
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.grid import create_aggrid
-from inventurgui.ui.layout import checkout_fab
+from inventurgui.ui.layout import checkout_fab, back_fab
 
 
 def tabs():
@@ -30,6 +30,14 @@ def tab_panels(tabs:Tabs):
     return ui.tab_panels(tabs).classes('w-full h-dvh')
 
 async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
+    total = app.storage.user.get('Total', 0)
+    if total == 0:
+        ui.notify(config['cart']['select_tip'], position='center', color='primary', textColor='dark')
+        ui.navigate.to('/')
+        return
+    if not app.storage.user.get('notified')['selection'] and total != 0:
+        ui.notify(config['cart']['edit_tip'], position='center', color='primary', textColor='dark')
+        app.storage.user['notified']['selection'] = True
     ld.hide()
     truck_tabs = tabs()
     truck_panels = tab_panels(truck_tabs)
@@ -46,35 +54,46 @@ async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
             with ui.tab_panel(w.name.upper()).classes('m-0 p-0 w-full'):
                 grid: AgGrid = create_aggrid(w.name, selected, config, cart=True)
     truck_panels.set_value(warehouses[0].name.upper())
-    total = app.storage.user.get('Total')
-    if not app.storage.user.get('notified')['selection'] and total != 0:
-        ui.notify(config['cart']['edit_tip'], position='center', color='primary', textColor='dark')
-        app.storage.user['notified']['selection'] = True
-    elif total == 0:
-        ui.notify(config['cart']['select_tip'], position='center', color='primary', textColor='dark')
     LOGGER.info(f"Created cart page")
-    checkout_fab(next_icon=config['request']['icon'], navigate_to=f"/{url_safe(config['request']['label'])}")
+    checkout_fab(request_conf)
 
 async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
     ld.hide()
     def parse_date(v:dict, t:Literal['from', 'to']) -> datetime.date|None:
         with suppress(AttributeError):
-            return datetime.date.fromisoformat(v.get(t, None))
+            return v.get(t, None)
         return None
 
     def validate_form() -> bool:
+        checks = [name.validate(),
+                  place.validate(),
+                  email.validate(),
+                  dates.value,
+                  donation.validate(),
+                  check.value,
+                  app.storage.user.get('Total') == 0
+                  ]
         with suppress(NameError):
-            if check.value and dates.value and name.value and donation.value and email.validate():
-                return True
-        return False
+            if any(checks):
+                return False
+        return True
 
-    request = Request()
+    def handle_submit():
+        if not validate_form():
+            ui.notify('Please fill out the form correctly.')
+            return
+        request = Request.from_dict(bind)
+        Mail.send_mail(request.html(message.value), request.subject, request.email)
+        request.write_ods(warehouses)
+
     today = datetime.date.today()
     form = request_conf.get('form')
     terms = request_conf.get('terms')
+    bind = app.storage.user.get('form')
     form_tabs = tabs()
     form_panels = tab_panels(form_tabs)
-    with ((form_tabs)):
+    back_fab(config['cart'])
+    with form_tabs:
         with form_tabs:
             ui.tab(form.get('label'), icon=form.get('icon')).classes('px-7').props('inline-label')
             ui.tab(terms.get('label'), icon=terms.get('icon')).props('inline-label')
@@ -82,47 +101,25 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
             with ui.tab_panel(form.get('label')).classes('m-0'):
                 with ui.grid(columns=1).classes('xl:w-1/2 w-full bg-dark h-screen lg:w-1/2'):
                     name = ui.input(form.get('name'), validation={form.get('please_fill'): lambda v: len(v) > 0})
-                    name.bind_value(request, 'name').props('debounce=1000')
+                    name.bind_value(bind, 'name').props('debounce=1000')
                     place = ui.input(form.get('place'), validation={form.get('please_fill'): lambda v: len(v) > 0})
-                    place.bind_value(request, 'place').props('debounce=1000')
-                    """start = ui.date_input(form.get('start'), placeholder='DD.MM.YYYY').bind_value(request, 'start')
-                    start.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
-                    start.picker.props['mask'] = 'DD.MM.YYYY'
-                    end = ui.date_input(form.get('end'), placeholder='DD.MM.YYYY').bind_value(request, 'end')
-                    end.picker.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
-                    end.picker.props['mask'] = 'DD.MM.YYYY'"""
+                    place.bind_value(bind, 'place').props('debounce=1000')
                     email = ui.input(form.get('email'),validation={form.get('email_invalid'): lambda v: True if re.match(EMAIL_REGEX, v) else False})
-                    email.bind_value(request, 'email').props('debounce=1000')
+                    email.bind_value(bind, 'email').props('debounce=1000')
                     ui.label(f"{form.get('start')} - {form.get('end')}".upper()).classes('w-full pt-2 text-center tracking-widest')
-                    dates = ui.date().classes('w-100 p-0 mx-auto').props('range minimal flat color=secondary')
+                    dates = ui.date().classes('w-100 p-0 mx-auto').props('range minimal flat')
                     dates.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
-                    dates.bind_value_to(request, 'start', forward=lambda v: parse_date(v, 'from'))
-                    dates.bind_value_to(request, 'end', forward=lambda v: parse_date(v, 'to'))
+                    dates.bind_value_to(bind, 'start', forward=lambda v: parse_date(v, 'from'))
+                    dates.bind_value_to(bind, 'end', forward=lambda v: parse_date(v, 'to'))
                     message = ui.editor(placeholder=form.get('message'))
                     donation = ui.input(form.get('donation'), validation={form.get('please_fill'): lambda v: len(v) > 0})
-                    donation.bind_value(request, 'donation').props('debounce=1000')
+                    donation.bind_value(bind, 'donation').props('debounce=1000')
                     check = ui.checkbox(form.get('checkbox'))
                     with ui.row().classes('pb-10'):
-                        back = ui.button('',icon='navigate_before').props('color=secondary rounded')
-                        back.on_click(lambda: ui.navigate.to(url_safe(config.get('cart')['label'])))
-                        with back.classes('p-3 pr-6 sm:w-40 text-lg'):
-                            ui.icon(config.get('cart')['icon'])
-                            badge = ui.badge('0', color='secondary').props(
-                                "rounded floating").classes('text-bold')
-                            badge.bind_text_from(app.storage.user, 'Total')
                         ui.space()
                         submit = ui.button(form.get('submit')).props('text-color=secondary rounded icon-right=send')
                         submit.classes('p-3 sm:w-80 text-lg')
-                    submit.disable()
-                    submit.on_click(lambda: Mail.send_mail(request.html(message.value), request.subject, request.email))
-                    submit.on_click(lambda: request.write_ods(warehouses))
-                    # Validation Handlers
-                    name.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
-                    place.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
-                    email.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
-                    dates.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
-                    donation.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
-                    check.on_value_change(lambda: submit.enable() if validate_form() else submit.disable())
+                    submit.on_click(lambda: handle_submit())
             with ui.tab_panel(terms.get('label')).classes('m-0 p-0'):
                 await render_markdown(request_conf.get('terms'))
     form_panels.set_value([t.props.get('label') for t in form_tabs.descendants()][0]) # First tab is open by default
@@ -143,7 +140,6 @@ async def main_page(ld:LeftDrawer) -> None:
             with ui.tab_panel(label).classes('m-0 p-0'):
                 await render_markdown(values)
     main_panels.set_value([t.props.get('label') for t in main_tabs.descendants()][0]) # First tab is open by default
-    checkout_fab(next_icon=config['menu']['warehouse']['icon'], navigate_to=f"/{url_safe(config['menu']['warehouse']['label'])}")
 
 def category_page(category:str, warehouse: Warehouse) -> None:
     # Create One grid for each unique Category in the first Column
@@ -152,7 +148,7 @@ def category_page(category:str, warehouse: Warehouse) -> None:
     if category == config['everything']:
         category_data = warehouse.inventory
     grid:AgGrid = create_aggrid(warehouse.name, category_data, config)
-    checkout_fab(next_icon=config['cart']['icon'], navigate_to=f"/{url_safe(config['cart']['label'])}")
+    checkout_fab(config['cart'])
     LOGGER.info(f"Created grid for: {warehouse.name}/{category}")
 
 async def render_markdown(values:dict[str, str]) -> Markdown:

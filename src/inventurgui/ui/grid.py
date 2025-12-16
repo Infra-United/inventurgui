@@ -30,7 +30,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
     column_defs = [
         {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x', 'text-bold': 'x', 'tracking-wider':'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},
-        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 50, 'editable': cart, 'cellEditorParams': '', 'cellDataType': 'number', 'pinned': 'left' if cart else '', 'cellClassRules': {'bg-secondary': 'x > 1'} if cart else ''},
+        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 50, 'editable': cart, 'cellEditorParams': '', 'cellDataType': 'number', 'pinned': 'left' if cart else '', 'cellClassRules': {'bg-primary': 'x > 1', 'text-secondary': 'x > 1'} if cart else ''},
         {'field': config['data']['pack'], 'minWidth': 90, 'maxWidth': 100, 'pinned': 'left' if cart else ''}]
 
     if config['links']['display']:

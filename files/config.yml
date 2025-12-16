@@ -34,10 +34,10 @@ menu:
     label: 'Start'
     icon: 'home'
 cart:
-  label: 'Laderampe'
+  label: 'Beladen'
   icon: 'local_shipping'
   edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
-  select_tip: "Bitte wähle zunächst Dinge aus dem Lager aus und bringe sie an die Laderampe."
+  select_tip: "Bitte wähle zunächst Dinge aus dem Lager aus die du einladen kannst."
   invalid_edit: "So viele haben wir nicht!"
 request:
   label: 'Anfragen'

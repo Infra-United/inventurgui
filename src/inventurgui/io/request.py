@@ -12,14 +12,23 @@ from inventurgui.io.warehouse import Warehouse
 
 @dataclass
 class Request:
-    name: str = ''
-    place: str = ''
-    start: datetime.date = None
-    end: datetime.date = None
-    email: str = ''
-    donation: str = ''
+    name: str
+    place: str
+    start: datetime.date
+    end: datetime.date
+    email: str
+    donation: str
     conf = request_conf.get('form')
     path = get_path(config['cloud']['push']['requests'])
+
+    @classmethod
+    def from_dict(cls, bind: dict) -> Request:
+        print(type(bind.get('start')))
+        return Request(bind.get('name'), bind.get('place'),
+                datetime.date.fromisoformat(bind.get('start')),
+                datetime.date.fromisoformat(bind.get('start')),
+                bind.get('email'),
+                bind.get('donation'))
 
     @property
     def subject(self) -> str:
@@ -58,6 +67,8 @@ class Request:
             ods.sheets.insert(0, overview_sheet)
 
         # Write to overview
+        for row in overview_sheet.rows():
+            print(cell for cell in row)
         current_rows = overview_sheet.nrows()
         overview_sheet.append_rows(1)
         for col_idx, value in enumerate(self.__dict__.values()):

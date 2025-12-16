@@ -6,29 +6,28 @@ from inventurgui.helper.config import config, menu, get_path
 from inventurgui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
 
-menu_buttons:list[Button] = []
+menu_buttons:dict[str, Button] = {}
 
 def handle_path_change(warehouse:bool=False):
     def invert_button(btn:Button):
-        [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons]
+        [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons.values()]
         btn.classes(add='bg-accent').props.update({'text-color': 'white'})
+        btn.update()
     path = reverse_url(ui.context.client.sub_pages_router.current_path.split('/')[-1])
-    for btn in menu_buttons:
-        label = btn.props.get('label')
-        btn.classes(remove='bg-accent').props.update({'text-color': 'secondary'})
-        if warehouse and menu['warehouse']['label'] == label:
-            #invert_button(btn)
-            return True
-        if ui.context.client.sub_pages_router.current_path == "/" and label == 'Start':
-            invert_button(btn)
-            return True
-        elif path == label:
-            invert_button(btn)
-            return True
-    return [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons]
+    if warehouse:
+        invert_button(menu_buttons.get(url_safe(menu['warehouse']['label'])))
+        ui.notify(menu_buttons.get(url_safe(menu['warehouse']['label'])).classes)
+        return True
+    if ui.context.client.sub_pages_router.current_path == "/":
+        invert_button(menu_buttons.get(url_safe(menu['start']['label'])))
+        return True
+    for label, btn in menu_buttons.items():
+        invert_button(btn) if label == path else None
+        return True
+    return [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons.values()]
 
 
-def main_menu(ld:LeftDrawer, classes:str="stretch", props:str="unelevated no-wrap text-color=secondary square") -> list[Button]:
+def main_menu(ld:LeftDrawer, classes:str="stretch", props:str="unelevated no-wrap text-color=secondary square") -> dict[str, Button]:
     global menu_buttons
     for key, values in menu.items():
         btn:Button = ui.button(values.get('label'), icon=values.get('icon')).classes(classes).props(props)
@@ -37,14 +36,14 @@ def main_menu(ld:LeftDrawer, classes:str="stretch", props:str="unelevated no-wra
             ui.on('resize', lambda b=btn: b.move(target_index=1) if app.storage.user.get('screen')['width'] < 1024 else b.move(target_index=3) , throttle=0.8, trailing_events=True)
             ui.space().classes('max-sm:hidden')
         elif key == 'warehouse':
-            btn.classes(classes).on_click(lambda: ld.show())
+            btn.classes(classes).on_click(lambda: ld.toggle())
         else:
             btn.on_click(lambda l=url_safe(values['label']): ui.navigate.to(f"/{l}"))
         if not key == 'warehouse':
             btn.on_click(
-                lambda: [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons])
+                lambda: [(b.classes(remove='bg-accent'), b.props.update({'text-color': 'secondary'})) for b in menu_buttons.values()])
             btn.on_click((lambda b=btn: b.classes(add='bg-accent').props.update({'text-color': 'white'})))
-        menu_buttons.append(btn)
+        menu_buttons.update({url_safe(values['label']): btn})
     handle_path_change()
     return menu_buttons
 
@@ -89,7 +88,6 @@ def header(ld:LeftDrawer):
     with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
         ui.image(source=get_path(config.get('favicon'))).classes('h-full m-0 p-0 w-[56px]')
         ui.label(str(config.get('title')).upper()).classes('text-secondary w-[161px] max-lg:hidden text-bold text-xl')
-        ui.separator().props('vertical color=secondary size=1px').classes('max-lg:hidden')
         main_menu(ld, classes='stretch h-full')
 
 def footer(ld:LeftDrawer):
@@ -108,15 +106,44 @@ def left_drawer(warehouses:list[Warehouse]) -> LeftDrawer:
         warehouse_menu(warehouses, ld, classes, props)
     return ld
 
-def checkout_fab(next_icon:str, navigate_to:str):
+def checkout_fab(next_page:dict[str, str]):
     props: str = f"text-color=secondary"
-    with ui.page_sticky(position='bottom-right', x_offset=18, y_offset=18).classes('z-999'):
+    with (ui.page_sticky(position='bottom-right', x_offset=18, y_offset=18).classes('z-999')):
         #TODO Tooltip
         #ui.tooltip("Hier findest du ein paar Werkzeuge.").props('left')
-        fab = ui.fab(icon=next_icon, direction='up').props(props).on('click', lambda: ui.navigate.to(navigate_to))
+        fab = ui.fab(icon='navigate_next', direction='up').props(f"{props}")
+        fab.on('click', lambda: ui.navigate.to(url_safe(f"/{next_page.get('label')}")) if badge.visible else None)
         fab.on('click', lambda: handle_path_change(warehouse=False))
+        fab.bind_visibility_from(app.storage.user, 'Total', backward=lambda v: v>0)
+        fab.on('mouseenter', lambda: label.set_visibility(True), throttle=0.2)
+        fab.on('mouseleave', lambda: label.set_visibility(False), throttle=0.2)
         with fab.add_slot('label'):
-            ui.icon('navigate_next')
+            with ui.row():
+                icon = ui.icon(next_page.get('icon'))
+                label = ui.label(next_page.get('label')).classes('text-secondary text-base')
+                label.set_visibility(False)
             badge = ui.badge('0', color='primary', text_color='secondary').props(
                 "rounded floating").classes('text-bold')
             badge.bind_text_from(app.storage.user, 'Total')
+            badge.bind_visibility_from(app.storage.user, 'Total', backward=lambda v: v>0)
+
+def back_fab(last_page:dict[str, str]):
+    props: str = f"text-color=secondary"
+    with (ui.page_sticky(position='bottom-left', x_offset=18, y_offset=18).classes('z-999')):
+        # TODO Tooltip
+        # ui.tooltip("Hier findest du ein paar Werkzeuge.").props('left')
+        fab = ui.fab(icon='navigate_before', direction='up').props(f"{props}")
+        fab.on('click', lambda: ui.navigate.to(url_safe(f"/{last_page.get('label')}")) if badge.visible else None)
+        fab.on('click', lambda: handle_path_change(warehouse=False))
+        fab.bind_visibility_from(app.storage.user, 'Total', backward=lambda v: v > 0)
+        fab.on('mouseenter', lambda: label.set_visibility(True), throttle=0.2)
+        fab.on('mouseleave', lambda: label.set_visibility(False), throttle=0.2)
+        with fab.add_slot('label'):
+            with ui.row():
+                icon = ui.icon(last_page.get('icon'))
+                label = ui.label(last_page.get('label')).classes('text-secondary text-base')
+                label.set_visibility(False)
+            badge = ui.badge('0', color='primary', text_color='secondary').props(
+                "rounded floating").classes('text-bold')
+            badge.bind_text_from(app.storage.user, 'Total')
+            badge.bind_visibility_from(app.storage.user, 'Total', backward=lambda v: v > 0)
