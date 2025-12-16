@@ -1,22 +1,40 @@
-import asyncio
 import os
 
 import ezodf
 from nicegui import ui, app
+from nicegui.elements.drawer import LeftDrawer
 from pandas_ods_reader import read_ods
 
-from inventurgui.helper.config import config, get_path, menu, theme
+from inventurgui.helper.config import config, get_path, theme, start
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 # from ui.admin import admin
 # from ui.auth import try_login
 from inventurgui.io.nextcloud import Nextcloud
-from inventurgui.io.request import Request
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.layout import header, left_drawer, footer
-from inventurgui.ui.sub_pages import category_page, form_page, main_page, cart_page
+from inventurgui.ui.layout import header, left_drawer, footer, tabs, tab_panels
+from inventurgui.ui.markdown import render_markdown
+from inventurgui.ui.sub_pages.cart import cart_page
+from inventurgui.ui.sub_pages.category import category_page
+from inventurgui.ui.sub_pages.form import form_page
 from inventurgui.ui.theme import Theme
 
+
+async def main_page(ld:LeftDrawer) -> None:
+    # Create one Page for displaying help
+    ld.hide()
+    main_tabs = tabs()
+    main_panels = tab_panels(main_tabs)
+    for key, values in start.items():
+        if not values['display']:
+            continue
+        with main_tabs:
+            label = values.get('label')
+            ui.tab(label, icon=values.get('icon')).classes('px-7').props('inline-label')
+        with main_panels:
+            with ui.tab_panel(label).classes('m-0 p-0'):
+                await render_markdown(values)
+    main_panels.set_value([t.props.get('label') for t in main_tabs.descendants()][0]) # First tab is open by default
 
 def root():
     LOGGER.setLevel(10)  # DEBUG
@@ -56,7 +74,7 @@ def root():
     # init app storage
     app.storage.user.indent = True
     app.storage.user['screen'] = 0 if not app.storage.user.get('screen') else app.storage.user['screen']
-    app.storage.user['form'] = Request() if not app.storage.user.get('form') else app.storage.user['form']
+    app.storage.user['form'] = {} if not app.storage.user.get('form') else app.storage.user['form']
     app.storage.user['Total'] = 0 if not app.storage.user.get('Total') else app.storage.user['Total']
     app.storage.user['amounts'] = {} if not app.storage.user.get('amounts') else app.storage.user['amounts']
     app.storage.user['notified'] = {'selection': False} if not app.storage.user.get('notified') else app.storage.user[

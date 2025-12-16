@@ -43,19 +43,20 @@ request:
   label: 'Anfragen'
   icon: 'sym_o_delivery_truck_speed'
   form:
-    please_fill: 'Bitte fülle dieses Feld aus.'
     label: 'Daten'
     icon: 'article'
-    name: 'Camp/Organisation'
-    place: 'Ort'
+    email: 'E-Mail'
     start: 'Abholung'
     end: 'Rückgabe'
-    email: 'E-Mail'
+    input:
+      name: 'Camp/Organisation'
+      place: 'Ort'
+      donation: 'Geplante Spende'
+    please_fill: 'Bitte fülle dieses Feld aus.'
     email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
     message: 'Deine Mail an uns - mit Fragen, Anmerkungen und wichtigen Infos.'
-    donation: 'Spende'
-    checkbox: 'Ich habe die Leihbedingungen gelesen.'
-    back: 'Zurück'
+    checkbox:
+      terms: 'Ich habe die Leihbedingungen gelesen.'
     submit: 'Anfragen'
   terms:
     display: true

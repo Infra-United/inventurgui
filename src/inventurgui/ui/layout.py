@@ -1,6 +1,7 @@
 from nicegui import ui, app
 from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
+from nicegui.elements.tabs import Tabs
 
 from inventurgui.helper.config import config, menu, get_path
 from inventurgui.helper.safe_url import url_safe, reverse_url
@@ -147,3 +148,12 @@ def back_fab(last_page:dict[str, str]):
                 "rounded floating").classes('text-bold')
             badge.bind_text_from(app.storage.user, 'Total')
             badge.bind_visibility_from(app.storage.user, 'Total', backward=lambda v: v > 0)
+
+
+def tabs():
+    return ui.tabs().classes('bg-secondary h-[56px] w-full scroll font-bold subpixel-antialiased tracking-widest m-0 p-0').props(
+        'height=56px active-bg-color=accent inline-label mobile-arrows stretch')
+
+
+def tab_panels(tabs:Tabs):
+    return ui.tab_panels(tabs).classes('w-full h-dvh')
