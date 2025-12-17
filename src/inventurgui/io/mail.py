@@ -5,10 +5,13 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 
+from nicegui import app
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from inventurgui.helper.config import config, form
+from inventurgui.helper.config import config, form, menu
 from inventurgui.helper.logger import LOGGER
+from inventurgui.io.request import convert_dates
+from inventurgui.io.warehouse import Warehouse
 
 
 class MailSettings(BaseSettings):
@@ -19,7 +22,7 @@ class MailSettings(BaseSettings):
     user: str
     password: str
 
-def send_mail(request:dict[str,str], settings: MailSettings = MailSettings()) -> None:
+def send_mail(request:dict[str,str|dict[str, str]], warehouses:list[Warehouse], settings: MailSettings = MailSettings()) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
     email = request.get("email")
     with smtplib.SMTP_SSL(settings.domain, settings.port, context=ssl.create_default_context()) as smtp:
@@ -34,7 +37,7 @@ def send_mail(request:dict[str,str], settings: MailSettings = MailSettings()) ->
         mail.add_header("Message-ID", make_msgid())
         mail.add_header("Return-Path", settings.user)
         mail.add_header('reply-to', f"{email.split('@')[0].capitalize()} <{email}>")
-        mail.attach(MIMEText(to_html(request), "html"))
+        mail.attach(MIMEText(to_html(request, warehouses), "html"))
 
         receiver = config["mail"]["mail_to"]
         mail["to"] = receiver
@@ -44,24 +47,24 @@ def send_mail(request:dict[str,str], settings: MailSettings = MailSettings()) ->
         LOGGER.debug("Quitting Connection to SMTP Server...")
         smtp.quit()
 
-def create_subject(request:dict[str,str|dict[str,str]]) -> str:
-    return (f"{config["mail"]["subject"]} {request.get('name')} "
-            f"{datetime.date.fromisoformat(request['dates'].get('from')):%d.%m.%Y} - "
-            f"{datetime.date.fromisoformat(request['dates'].get('to')):%d.%m.%Y}")
+def create_subject(request:dict[str,str|dict[str, str]]) -> str:
+    start, end, month, year = convert_dates(request.get('dates'))
+    return f"{config["mail"]["subject"]} {request.get('name')} {month} {year}"
 
-def to_html(request: dict[str, str|dict[str, str]]) -> str:
+def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse]) -> str:
     html = ""
     for key, value in request.items():
         match key:
             case 'dates':
-                html += f"</br>{form.get('start')}: {datetime.date.fromisoformat(value.get('from')):%d.%m.%Y}"
-                html += f"</br>{form.get('end')}: {datetime.date.fromisoformat(value.get('to')):%d.%m.%Y}"
+                start, end, month, year = convert_dates(request.get('dates'))
+                html += f"</br>{form.get('start')}: {start}"
+                html += f"</br>{form.get('end')}: {end}"
                 continue
-            case 'email':
-                html += f"</br>{form.get('email')}: {value}"
             case 'message' | 'start' | 'end':
                 continue
             case _:
                 html += f"</br>{form['input'].get(key)}: {value}"
-    html += f"</br></br>Nachricht:</br>{request.get('message')}"
+    is_selected = [w.name for w in warehouses if app.storage.user.get(w.name) != []]
+    html += f"</br></br>{config['menu']['warehouse']['label']}: {", ".join(is_selected)}"
+    html += f"</br></br>{form.get('message')}:</br>{request.get('message')}"
     return html

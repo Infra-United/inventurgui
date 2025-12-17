@@ -1,6 +1,7 @@
 title: IU Inventur
 favicon: favicon.jpeg
 language: 'de'
+date_format: '%d.%m.%y' # https://strftime.org/
 theme:
   primary: '#e89769'
   secondary: '#37474f'
@@ -45,16 +46,17 @@ request:
   form:
     label: 'Daten'
     icon: 'article'
-    email: 'E-Mail'
+    month: 'Monat'
     start: 'Abholung'
     end: 'Rückgabe'
     input:
       name: 'Camp/Organisation'
       place: 'Ort'
       donation: 'Geplante Spende'
+      email: 'E-Mail'
     please_fill: 'Bitte fülle dieses Feld aus.'
     email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
-    message: 'Deine Mail an uns - mit Fragen, Anmerkungen und wichtigen Infos.'
+    message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
     checkbox:
       terms: 'Ich habe die Leihbedingungen gelesen.'
     submit: 'Anfragen'

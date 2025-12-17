@@ -33,10 +33,11 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse]) -> None:
 
 def create_form(warehouses:list[Warehouse]):
     def validate_form() -> bool:
-        checks = [email.validate(), dates.value]
-        [checks.append(i.value) for i in inputs]
+        rules = [dates.value]
+        [rules.append(i.validate()) for i in inputs]
         with suppress(NameError):
-            for check in checks:
+            [rules.append(c.value) for c in checks]
+            for check in rules:
                 if not check:
                     return False
         return True
@@ -47,13 +48,8 @@ def create_form(warehouses:list[Warehouse]):
             ui.space()
             submit = ui.button(form.get('submit')).props('text-color=secondary rounded icon-right=send')
             submit.classes('p-3 sm:w-80 text-lg')
-        submit.on_click(lambda: (send_mail(request)))
+        #submit.on_click(lambda: send_mail(request, warehouses))
         submit.on_click(lambda: write_ods(request, warehouses))
-
-        email = ui.input(form.get('email'),
-                         validation={form.get('email_invalid'): lambda v: True if re.match(EMAIL_REGEX, v) else False})
-        email.bind_value(request, 'email').props('debounce=1000')
-
 
         ui.label(f"{form.get('start')} - {form.get('end')}".upper()).classes(
             'w-full pt-2 text-center tracking-widest')
@@ -63,20 +59,22 @@ def create_form(warehouses:list[Warehouse]):
         dates.on_value_change(lambda: submit.enable() if value else submit.disable())
 
         inputs = []
+        email_validation = {form.get('email_invalid'): lambda v: True if re.match(EMAIL_REGEX, v) else False}
+        input_validation = {form.get('please_fill'): lambda v: len(v) > 0}
         for key, value in form.get('input').items():
-            i = ui.input(value, validation={form.get('please_fill'): lambda v: len(v) > 0})
+            i = ui.input(value, validation=email_validation if key == 'email' else input_validation)
             i.on_value_change(lambda s=submit: s.enable() if validate_form() else s.disable())
             i.bind_value(request, key).props('debounce=1000')
             inputs.append(i)
 
-        email.move(grid)
         dates.move(grid)
         ui.editor(placeholder=form.get('message')).bind_value(request, 'message')
 
+        checks = []
         for value in form.get('checkbox').values():
             c = ui.checkbox(value)
             c.on_value_change(lambda s=submit: s.enable() if validate_form() else s.disable())
-            inputs.append(c)
+            checks.append(c)
 
         row.move(grid)
         submit.disable()
