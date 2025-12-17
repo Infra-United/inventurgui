@@ -10,13 +10,13 @@ from inventurgui.helper.config import config
 
 def max_amount(name:str, event:GenericEventArguments):
     with suppress(TypeError):
-        amount = app.storage.user['amounts'][name].get(event.args['rowId'])[1]
+        amount = app.storage.user['amounts'].get(name).get(event.args['rowId'])[1]
         ui.notify(f"Maximum: {amount}", position='center', type='info', color='secondary')
 
 def handle_edit(grid:AgGrid, name:str, event:GenericEventArguments):
     row_id = event.args['rowId']
     new_value = event.args['newValue']
-    edited_rows:ObservableDict = app.storage.user['amounts'][name]
+    edited_rows:ObservableDict = app.storage.user['amounts'].get(name)
     if not row_id in edited_rows.keys():
         initial_value = event.args['oldValue']
         if new_value > initial_value:

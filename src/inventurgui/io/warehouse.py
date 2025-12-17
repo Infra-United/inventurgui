@@ -5,7 +5,7 @@ from nicegui import app, run
 from nicegui.elements.aggrid import AgGrid
 from pandas import DataFrame, Series
 
-from inventurgui.helper.config import config
+from inventurgui.helper.config import config, warehouse_conf
 
 
 class Warehouse:
@@ -14,12 +14,13 @@ class Warehouse:
         self.name = name
         self.inventory = inventory
         self.inventory.insert(0, 'perma_id', self.inventory.index.tolist()) # This ensures we can have selection across grids
-        self.inventory.insert(0, config['menu']['warehouse']['label'], self.name)
+        self.inventory.insert(0, config['warehouse']['label'], self.name)
 
     @property
     def categories(self) -> list[str]:
         c:list[str] = sorted(self.inventory[config['data']['category']].unique())
-        c.insert(0, config['everything'])
+        c.insert(0, warehouse_conf['selection'])
+        c.insert(1, warehouse_conf['everything'])
         return c
 
     async def selected(self) -> DataFrame | None:

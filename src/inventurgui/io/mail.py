@@ -8,7 +8,7 @@ from email.utils import formatdate, make_msgid
 from nicegui import app
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from inventurgui.helper.config import config, form, menu
+from inventurgui.helper.config import config, form
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.request import convert_dates
 from inventurgui.io.warehouse import Warehouse

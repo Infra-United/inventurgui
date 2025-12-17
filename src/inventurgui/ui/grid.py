@@ -28,9 +28,9 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
         'floatingFilter': not cart}
 
     column_defs = [
-        {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x', 'text-bold': 'x', 'tracking-wider':'x'}, 'cellStyle': {'padding-left':'10px'}},
+        {'field': config['data']['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x', 'text-bold': 'x', 'tracking-wider':'x'} if not cart else {'text-bold': 'x', 'tracking-wider':'x'}, 'cellStyle': {'padding-left':'10px'}},
         {'field': config['data']['desc'], 'minWidth': 250},
-        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 50, 'editable': cart, 'cellEditorParams': '', 'cellDataType': 'number', 'pinned': 'left' if cart else '', 'cellClassRules': {'bg-primary': 'x > 1', 'text-secondary': 'x > 1'} if cart else ''},
+        {'field': config['data']['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 50, 'editable': cart, 'cellEditorParams': '', 'cellDataType': 'number', 'pinned': 'left' if cart else '', 'cellClassRules': {'bg-primary': 'x > 1'} if cart else ''},
         {'field': config['data']['pack'], 'minWidth': 90, 'maxWidth': 100, 'pinned': 'left' if cart else ''}]
 
     if config['links']['display']:
@@ -49,7 +49,7 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
         column_defs.insert(0, link_column)
 
     # Styling
-    height = 'sm:h-[calc(100vh-56px)] h-[calc(100vh-52px)]' if not cart else 'sm:h-[calc(100vh-104px)] h-[calc(100vh-102px)]'
+    height = 'h-[calc(100vh-56px)]' if not cart else 'h-[calc(100vh-104px)]'
     theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'alpine'
     css = f'''{{background-color: {config['theme']['secondary']}}}'''
     ui.add_body_html(f'<style>.ag-row-hover .ag-cell  {css}</style>')
@@ -89,8 +89,8 @@ def create_aggrid(name:str, data: DataFrame, config:dict, cart:bool=False) -> Ag
         for row in app.storage.user[name]:
                 grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setSelected', True))
     else:
-        for row in app.storage.user['amounts'][name]:
-            grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setDataValue', config['data']['count'], app.storage.user['amounts'][name].get(r)[0]))
+        for row in app.storage.user['amounts'].get(name, name):
+            grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setDataValue', config['data']['count'], app.storage.user['amounts'].get(name, name).get(r)[0]))
     #if int(app.storage.user.get('screen').get('width')) < 640:
     grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns'))
     grid.on('cellEditingStarted', lambda event: max_amount(name, event))

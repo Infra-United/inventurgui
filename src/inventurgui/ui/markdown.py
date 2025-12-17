@@ -30,4 +30,4 @@ async def render_markdown(values:dict[str, str]) -> Markdown:
                     f"<br>Please review your config, read the logs and check /files."
                     f"<br>If you started the program for the first time i may have fetched the page by now."
                     f"<br>In that case a page reload might also fix the problem.")
-    return ui.markdown(text).classes('p-10 pt-5 mx-auto text-pretty text-base/8 text-gray-300 max-w-[740px]')
+    return ui.markdown(text).classes('p-10 pt-5 mx-auto text-justify text-base/6 antialiasing text-gray-300 max-w-180')
