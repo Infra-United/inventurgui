@@ -1,16 +1,17 @@
 import datetime
-import os
 import re
 from contextlib import suppress
 
-from nicegui import app, ui, PageArguments, json
+from nicegui import app, ui, PageArguments
 from nicegui.elements.drawer import LeftDrawer
+from nicegui.observables import ObservableDict
 
-from inventurgui.helper.config import request_conf, config, EMAIL_REGEX, form, get_path
+from inventurgui.helper.config import request_conf, config, EMAIL_REGEX, form
+from inventurgui.io.mail import send_mail
 from inventurgui.io.request import write_ods
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.layout import back_fab, tabs, tab_panels
-from inventurgui.ui.magic_link import load_data_from_magic_link
+from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.ui.markdown import render_markdown
 
 
@@ -62,17 +63,16 @@ def create_form(warehouses:list[Warehouse]):
                     return False
         return True
 
-    request = app.storage.user.get('form')
+    today:datetime.date = datetime.date.today()
+    request:ObservableDict = app.storage.user.get('form')
     with ui.grid(columns=1).classes('w-full bg-dark h-screen') as grid:
         with ui.row().classes('pb-10') as row:
             ui.space()
-            submit = ui.button(form.get('submit'), icon=form.get('submit_icon')).props('text-color=secondary rounded')
+            submit = ui.button(form.get('send'), icon=form.get('send_icon')).props('text-color=secondary rounded')
             submit.classes('p-3 sm:w-80 text-lg')
-        #submit.on_click(lambda: send_mail(request, warehouses))
-        submit.on_click(lambda: write_ods(request, warehouses))
 
         dates = ui.date().classes('w-100 p-0 mx-auto').props('range minimal flat')
-        dates.props[':options'] = f'date => date >= "{datetime.date.today():%Y/%m/%d}"'
+        dates.props[':options'] = f'date => date >= "{today:%Y/%m/%d}"'
         dates.bind_value(request, 'dates')
         dates.on_value_change(lambda: submit.enable() if value else submit.disable())
 
@@ -81,6 +81,8 @@ def create_form(warehouses:list[Warehouse]):
         input_validation = {form.get('please_fill'): lambda v: len(v) > 0}
         for key, value in form.get('input').items():
             i = ui.input(value, validation=email_validation if key == 'email' else input_validation)
+            if key == 'name' or key == 'email':
+                i.bind_enabled_from(request, 'sent', backward=lambda v: not v)
             i.on_value_change(lambda s=submit: s.enable() if validate_form() else s.disable())
             i.bind_value(request, key).props('debounce=1000')
             inputs.append(i)
@@ -98,3 +100,13 @@ def create_form(warehouses:list[Warehouse]):
 
         row.move(grid)
         submit.disable()
+        magic_link = f"https://{config['domain']}{ui.context.client.sub_pages_router.current_path}"
+        update = {'sent': today.strftime(config['date_format'])} if not request.get('sent') else {'updated': today.strftime(config['date_format'])}
+        submit.on_click(lambda: request.update(update))
+        #submit.on_click(lambda: send_mail(request, warehouses, magic_link))
+        submit.on_click(lambda: write_ods(request, warehouses))
+        submit.on_click(lambda: request.update({'message': ''}))
+        submit.bind_text_from(request, 'sent', backward=lambda v: form.get('update') if v else form.get('send'))
+        submit.bind_icon_from(request, 'sent',
+                              backward=lambda v: form.get('update_icon') if v else form.get('send_icon'))
+

@@ -1,5 +1,6 @@
 title: IU Inventur
 favicon: favicon.jpeg
+domain: 'inventur.infraunited.org'
 language: 'de' # The language to use on Quasar UI Components
 date_format: '%d.%m.%y' # The format for dates - see https://strftime.org/
 theme:
@@ -12,14 +13,15 @@ cloud:
   dir: "Infra United (Intern)/Inventur"
   pull:
     inventory: "IU_Inventur.ods"
-    start: 'start.md'
+    start: 'lager.md'
     help: 'help.md'
     terms: 'terms.md'
     about: 'about.md'
   push:
     requests: 'IU_Anfragen.ods'
 mail:
-  subject: '[Anfrage] '
+  subject_request: '[Anfrage]'
+  subject_update: '[Update]'
   mail_to: 'aberallesisgut@riseup.net'
 data:
   sheets: 3
@@ -41,7 +43,7 @@ start:
     display: true
     label: 'How To'
     icon: 'menu_book'
-    path: 'start.md'
+    path: 'lager.md'
   help:
     display: true
     label: 'Hilfe'
@@ -55,7 +57,7 @@ start:
 warehouse:
   label: 'Lager'
   icon: 'warehouse'
-  path: 'start.md'
+  path: 'lager.md'
   everything: 'Alles'
   selection: 'Meine Auswahl'
 cart:
@@ -72,7 +74,7 @@ request:
     label: 'Formular' # The label for the form tab on the page
     icon: 'article' # The icon for the form tab on the page
     input: # Will create input fields at the start of the form for any number of items
-      name: 'Camp/Organisation'
+      name: 'Camp/Organisation' # This key is required
       place: 'Ort'
       donation: 'Geplante Spende'
       email: 'E-Mail'
@@ -86,8 +88,14 @@ request:
     start: 'Abholung'
     end: 'Rückgabe'
     email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
-    submit: 'Anfragen'
-    submit_icon: 'outgoing_mail'
+    # Submit Button Settings
+    send: 'Anfragen'
+    update: 'Speichern'
+    send_icon: 'outgoing_mail'
+    update_icon: 'save'
+    sent: "Angefragt"
+    updated: "Bearbeitet"
+    update_link: "Bearbeitungslink"
   terms: # Show terms to the user in a tab next to the form
     display: true # Set this to false if you don't need this
     label: 'Leihbedingungen'
