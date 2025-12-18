@@ -2,13 +2,14 @@
 import asyncio
 import datetime
 from pathlib import Path
+from typing import Self
 
 from aiowebdav2.client import Client
 from aiowebdav2.exceptions import ConnectionExceptionError
 from dateutil.utils import today
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from inventurgui.helper.config import get_path
+from inventurgui.helper.config import get_path, config
 from inventurgui.helper.logger import LOGGER
 
 
@@ -24,12 +25,19 @@ class NextcloudSettings(BaseSettings):
     token: str
 
 class Nextcloud(Client):
+    instance = None
     def __init__(self, remote_dir:str, ncs: NextcloudSettings = NextcloudSettings()):
         self._domain = ncs.domain
         self._user = ncs.user
         self._webdav_url = f"https://{self._domain}/remote.php/dav/files/{self._user}"
         self.remote_dir = remote_dir
         super().__init__(self._webdav_url, self._user, ncs.token)
+
+    @classmethod
+    def singleton(cls) -> Self:
+        if not cls.instance:
+            cls.instance = Nextcloud(remote_dir=config['cloud']['dir'])
+        return cls.instance
 
     @staticmethod
     def get_mod_time(path: Path) -> datetime.datetime:

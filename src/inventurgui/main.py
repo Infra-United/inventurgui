@@ -1,8 +1,9 @@
 import os
 from os import mkdir
+from pathlib import Path
 
 import ezodf
-from nicegui import ui, app, PageArguments, json
+from nicegui import ui, app
 from pandas_ods_reader import read_ods
 
 from inventurgui.helper.config import config, get_path, theme
@@ -23,10 +24,7 @@ from inventurgui.ui.theme import Theme
 
 def root():
     # Everytime a user loads the page this is executed - creates the layout - content is created by sub_pages.
-    LOGGER.setLevel(10)  # DEBUG
-    nc = Nextcloud(remote_dir=config['cloud']['dir'])
-    for key, file in config['cloud']['pull'].items():
-        app.timer(7200, lambda f=file: nc.update_file(f))  # Update files every 2 hours
+
 
     ui.add_head_html('''
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -98,7 +96,13 @@ def root():
 
     LOGGER.debug('Finished. Starting UI...')
 
+def backend():
+    nc = Nextcloud.singleton()
+    for key, file in config['cloud']['pull'].items():
+       app.timer(7200, lambda f=file: nc.update_file(f)) # Update files every 2 hours
+
 def frontend():
+    LOGGER.setLevel(10)  # DEBUG
     storage_secret = os.environ['UI_STORAGE_SECRET']
     user_dir = get_path('users')
     if not user_dir.exists():
@@ -108,6 +112,7 @@ def frontend():
     LOGGER.debug('Successfully started UI.')
 
 if __name__ in {"__main__", "__mp_main__"}:
+    app.on_startup(backend)
     frontend()
 
 

@@ -1,5 +1,5 @@
 title: IU Inventur
-favicon: favicon.jpeg
+favicon: logo.jpeg
 domain: 'inventur.infraunited.org'
 language: 'de' # The language to use on Quasar UI Components
 date_format: '%d.%m.%y' # The format for dates - see https://strftime.org/
@@ -12,11 +12,12 @@ theme:
 cloud:
   dir: "Infra United (Intern)/Inventur"
   pull:
-    inventory: "IU_Inventur.ods"
+    logo: 'logo.jpeg'
     start: 'lager.md'
     help: 'help.md'
     terms: 'terms.md'
     about: 'about.md'
+    inventory: "IU_Inventur.ods"
   push:
     requests: 'IU_Anfragen.ods'
 mail:
