@@ -5,6 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 
+from dotenv.variables import Literal
 from nicegui import app
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -25,7 +26,7 @@ class MailSettings(BaseSettings):
 
 def send_mail(request:dict[str,str|dict[str, str]],
               warehouses:list[Warehouse],
-              update:bool,
+              type:Literal['request', 'update', 'delete', 'exception'],
               exception:Exception = None,
               settings: MailSettings = MailSettings()) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
@@ -36,7 +37,7 @@ def send_mail(request:dict[str,str|dict[str, str]],
         LOGGER.debug("Logging into SMTP Client with credentials...")
         smtp.login(settings.user, settings.password)
         mail = MIMEMultipart("mixed")
-        mail.add_header("subject", create_subject(request, update))
+        mail.add_header("subject", create_subject(request, type))
         mail.add_header("from", f"{email.split('@')[0].capitalize()} <{email}>")
         mail.add_header("date", formatdate(localtime=True))
         mail.add_header("Message-ID", make_msgid())
@@ -53,18 +54,22 @@ def send_mail(request:dict[str,str|dict[str, str]],
         LOGGER.debug("Quitting Connection to SMTP Server...")
         smtp.quit()
 
-def create_subject(request:dict[str,str|dict[str, str]], update:bool, exception:Exception) -> str:
+def create_subject(request:dict[str,str|dict[str, str]], type:Literal['request', 'update', 'delete', 'exception']) -> str:
     mail:dict[str, str] = load_config()["mail"]
     start, end, month, year = convert_dates(request.get('dates'))
-    if exception:
-        return f"{mail["subject_failure"]} {request.get('name')} {month} {year}"
-    elif update:
-        return f"{mail["subject_update"]} {request.get('name')} {month} {year}"
-    else:
-        return f"{mail["subject_request"]} {request.get('name')} {month} {year}"
+    match type:
+        case 'exception':
+            return f"{mail["subject_failure"]} {request.get('name')} {month} {year}"
+        case 'update':
+            return f"{mail["subject_update"]} {request.get('name')} {month} {year}"
+        case 'delete':
+            return f"{mail["subject_delete"]} {request.get('name')} {month} {year}"
+        case 'request':
+            return f"{mail["subject_request"]} {request.get('name')} {month} {year}"
+    return 'This is odd.'
 
 def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], exception:Exception) -> str:
-    form: dict[str, str | dict[str, str]] = load_config()["request"]['form']
+    form: dict[str, str | dict[str, str]] = load_config()['form']
     html = ""
     magic_link = get_magic_link()
     for key, value in request.items():
@@ -76,7 +81,7 @@ def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], 
                 continue
             case 'message' | 'start' | 'end':
                 continue
-            case 'sent' | 'updated':
+            case 'sent' | 'updated' | 'deleted':
                 html += f"</br>{form.get(key)}: {value}" if value else ''
             case _:
                 html += f"</br>{form['input'].get(key)}: {value}"

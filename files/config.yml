@@ -24,6 +24,7 @@ mail:
   subject_request: '[Anfrage]'
   subject_update: '[Update]'
   subject_failure: '[Fehler]'
+  subject_delete: '[Gelöscht]'
   mail_to: 'aberallesisgut@riseup.net'
   admin: 'aberallesisgut@riseup.net'
 data:
@@ -97,14 +98,17 @@ form:
   # Submit Button Settings
   send: 'Anfragen'
   update: 'Speichern'
+  delete: 'Löschen'
   send_icon: 'outgoing_mail'
   update_icon: 'save'
+  delete_icon: 'delete_sweep'
   sent: "Angefragt"
   updated: "Bearbeitet"
   update_link: "Bearbeitungslink"
   processing: "Wir verarbeiten deine Anfrage - bitte warte einen Moment..."
   success: "Deine Anfrage wurde erfolgreich an uns gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage mit diesem Link teilen und bearbeiten:"
   failure: "Etwas ist schiefgelaufen :/ Uns wurde eine Mail mit dem Fehler gesendet, wir melden uns zeitnah bei dir."
+  deleted: "Deine Anfrage wurde erfolgreich gelöscht. Bis Bald!"
   terms: # Show terms to the user in a tab next to the form
     display: true # Set this to false if you don't need this
     label: 'Leihbedingungen'

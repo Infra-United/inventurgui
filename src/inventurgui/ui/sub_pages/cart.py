@@ -14,7 +14,6 @@ from inventurgui.helper.magic_link import load_data_from_magic_link
 
 
 async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse], args:PageArguments) -> None:
-    warehouse_conf: dict = load_config()["warehouse"]
     cart:dict = load_config()["cart"]
     ui.query(".nicegui-sub-pages").classes(replace='bg-dark w-full no-scroll').style(replace='gap:0')
 
@@ -23,11 +22,11 @@ async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse], args:PageArgument
     if current_id != request_id:
         load_data_from_magic_link(current_id, request_id)
 
-    total = app.storage.user.get('total')
+    total = app.storage.user.get('Total')
     if total == 0:
         ui.notify(cart['select_tip'], type='warning', position='center', color='primary', textColor='dark')
         time.sleep(1)
-        ui.navigate.to(f'/{url_safe(warehouse_conf.get('label'))}')
+        ui.navigate.to(f'/{url_safe(load_config()["warehouse"].get('label'))}')
         return
     if not app.storage.user.get('notified')['selection'] and total != 0:
         ui.notify(cart['edit_tip'], position='center', color='primary', textColor='dark')

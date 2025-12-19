@@ -14,16 +14,18 @@ async def finish_page(warehouses:list[Warehouse]):
     finish: dict[str, str | dict[str, str]] = load_config()['finish']
     with (ui.tab_panel('finish').classes('w-full h-dvh m-0')):
         with ui.column(align_items='center').classes('mx-auto my-auto text-center'):
+            request = app.storage.user.get('form')
             md = ui.markdown('Test')
-            md.bind_content_from(app.storage.user.get('form'), 'finish')
+            md.bind_content_from(request, 'finish')
             md.classes('pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180')
+            if request.get('deleted'):
+                ui.timer(5, lambda: (app.storage.user.clear(), ui.navigate.to("/"), ui.navigate.reload()))
+                return
             magic_link = get_magic_link()
             ui.link(magic_link,target=magic_link)
             ui.button(finish.get('copy_link'), icon='content_copy', on_click=ui.clipboard.write(magic_link))
             ui.markdown(finish.get('download_data')).classes('pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180')
             btn = ui.button(finish.get('download'), icon='download')
-            filename = get_path(f"lists/{finish.get('filename')}-{app.storage.user['form'].get('name')}.ods")
-            await write_download_list(filename, warehouses)
-            btn.on_click(lambda: ui.download.file(filename))
-            back_fab(load_config()['request'])
+            btn.on_click(lambda: ui.download.file(request.get('download')))
+            back_fab(load_config()['form'])
             checkout_fab(load_config()['start'])

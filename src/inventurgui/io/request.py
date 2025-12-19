@@ -6,7 +6,6 @@ from typing import Tuple
 import pandas as pd
 from ezodf import opendoc, Sheet, newdoc, Cell
 from ezodf.document import FlatXMLDocument, PackagedDocument
-from nicegui import app
 from pandas import DataFrame, notna
 
 from inventurgui.helper.config import config, get_path, load_config
@@ -14,13 +13,14 @@ from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
 
 
-async def write_ods(request: dict[str, str|dict[str, str]], warehouses: list[Warehouse]) -> None:
+async def save_request(request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], update:bool=False) -> None:
     path = get_path(config['cloud']['push']['requests'])
 
     start, end, month, year = convert_dates(request.get('dates'))
     # Get or create doc and overview_sheet
     ods, overview_sheet, data_sheet = get_request_file(request, path, f"20{year}")
-    write_overview(overview_sheet, request)
+    row_number = find_row_by_name_or_start(overview_sheet, start, request.get('name'), name_only=update)
+    write_overview(overview_sheet, request, row_number)
 
     # Get Data and write to new sheet
     dfs = [await w.get_final() for w in warehouses]
@@ -39,6 +39,16 @@ async def write_ods(request: dict[str, str|dict[str, str]], warehouses: list[War
 
     ods.save()
     LOGGER.info(f"Successfully wrote to sheet {data_sheet.name} @ {path}")
+
+async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
+    path = get_path(config['cloud']['push']['requests'])
+    start, end, month, year = convert_dates(request.get('dates'))
+    ods, overview_sheet, data_sheet = get_request_file(request, path, f"20{year}")
+    row_number = find_row_by_name_or_start(overview_sheet, start, request.get('name'), name_only=True)
+    overview_sheet.delete_rows(row_number)
+    data_sheet.clear()
+    del ods.sheets[data_sheet.name]
+    ods.save()
 
 def get_request_file(request: dict[str, str], path:Path, year:str) -> Tuple[PackagedDocument, Sheet, Sheet|None]:
     overview_sheet = None
@@ -63,7 +73,7 @@ def get_request_file(request: dict[str, str], path:Path, year:str) -> Tuple[Pack
     return ods, overview_sheet, data_sheet
 
 def init_overview_sheet(request: dict[str, str|dict[str,str]], year:str):
-    form: dict[str, str | dict[str, str]] = load_config()["request"]['form']
+    form: dict[str, str | dict[str, str]] = load_config()['form']
     sheet = Sheet(str(year), size=(1, 20))
     # Write Column Headers
     count = 0
@@ -86,11 +96,10 @@ def init_overview_sheet(request: dict[str, str|dict[str,str]], year:str):
     LOGGER.info(f"Successfully created overview sheet for year {year}.")
     return sheet
 
-def write_overview(sheet:Sheet, request: dict[str, str|dict[str, str]]) -> None:
+def write_overview(sheet:Sheet, request: dict[str, str|dict[str, str]], row_number:int) -> None:
     # Write to overview
     LOGGER.debug(f"Writing request to overview sheet...")
     start, end, month, year = convert_dates(request.get('dates'))
-    row_number = find_row_by_name_or_start(sheet, start, request.get('name'))
     count = 0
     for key, value in request.items():
         match key:
@@ -149,7 +158,7 @@ def convert_dates(dates:str|dict[str,str]) -> Tuple[str,str, str, str]:
     end = end.strftime(config['date_format'])
     return start, end, month, year
 
-def find_row_by_name_or_start(sheet:Sheet, start:str, name:str) -> int:
+def find_row_by_name_or_start(sheet:Sheet, start:str, name:str, name_only) -> int:
     LOGGER.debug(f"Finding row number by name or start...")
     count = 0
     start = datetime.date.strptime(start, config['date_format'])
@@ -162,12 +171,12 @@ def find_row_by_name_or_start(sheet:Sheet, start:str, name:str) -> int:
             count += 1
             continue
         if name == row_name:
-            LOGGER.info(f"Found existing entry for this request @ row number {count}! Updating entry...")
+            LOGGER.info(f"Found existing entry for this request @ row number {count}!")
             return count
-        if start < row_start:
+        if start < row_start and not name_only:
             insert_count = count
         count += 1
-    LOGGER.info("Could not find entry for this request! Creating new entry...")
+    LOGGER.info("Could not find entry for this request!")
     if not insert_count:
         insert_count = sheet.nrows()
         sheet.append_rows()
@@ -176,18 +185,28 @@ def find_row_by_name_or_start(sheet:Sheet, start:str, name:str) -> int:
         sheet.insert_rows(insert_count)
         return insert_count
 
-async def write_download_list(filename:Path, warehouses:list[Warehouse]):
+async def write_download_list(path:Path, warehouses:list[Warehouse]):
     if not get_path('/lists/').is_dir():
         mkdir(get_path('/lists/'))
-    request = app.storage.user.get('form')
+    if path.is_file():
+        LOGGER.debug(f"Found existing list file @{path}.")
+        ods: PackagedDocument = opendoc(path)
+    else:
+        LOGGER.debug(f"Couldn't find list file @{path} - creating it.")
+        ods: PackagedDocument = newdoc("ods", str(path))
     LOGGER.debug(f"Writing list for download...")
-    ods: PackagedDocument = newdoc("ods", filename)
     for w in warehouses:
         df = await w.get_final()
         if df is None or df.empty:
             continue
         df.drop(columns=[config['warehouse']['label']], inplace=True)
-        data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
-        ods.sheets += write_data_sheet(df,data_sheet)
+        data_sheet = None
+        for idx, name in enumerate(ods.sheets.names()):
+            if name == w.name:
+                data_sheet = ods.sheets[idx]
+                data_sheet.clear()
+        if data_sheet is None:
+            data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
+            ods.sheets += write_data_sheet(df,data_sheet)
     ods.backup = False
-    ods.saveas(filename)
+    ods.save()

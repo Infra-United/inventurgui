@@ -18,6 +18,7 @@ async def category_page(category:str, warehouse: Warehouse) -> None:
         category_data = warehouse.inventory
     if category == warehouse_conf.get('selection'):
         category_data = await warehouse.selected()
-    grid:AgGrid = create_aggrid(warehouse.name, category_data)
+    grid:AgGrid = create_aggrid(warehouse.name, category_data, cart=False)
+    print(grid.props.values())
     checkout_fab(config['cart'])
     LOGGER.info(f"Created grid for: {warehouse.name}/{category}")
