@@ -17,10 +17,6 @@ dependencies = [
     "requests>=2.32.5",
 ]
 
-[tool.uv]
-concurrent-builds = 1
-concurrent-installs = 1
-
 [tool.hatch.build.targets.wheel]
 packages = ["src/inventurgui"]
 
