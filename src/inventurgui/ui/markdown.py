@@ -1,7 +1,6 @@
-import requests
+import httpx
 from nicegui import ui, run
 from nicegui.elements.markdown import Markdown
-from requests import ReadTimeout
 
 from inventurgui.helper.config import get_path
 from inventurgui.helper.logger import LOGGER
@@ -17,12 +16,12 @@ async def render_markdown(values:dict[str, str]) -> Markdown:
         if url := values.get('url'):
             LOGGER.debug(f"Getting {label} content from {url}...")
             try:
-                response = await run.io_bound(lambda: requests.get(url, timeout=2))
+                response = await run.io_bound(lambda: httpx.get(url, timeout=2))
                 print(response)
                 with open(path, 'w') as f:
                     f.write(response.text)
                 LOGGER.info(f"Successfully fetched {label} content from {url}!")
-            except ReadTimeout as e:
+            except httpx.ReadTimeout as e:
                 text = (f"<br>The URL: [{url}]({url}) for page: **{label}** could not be fetched."
                  f"<br><br>Please check your Internet Connection, the url and try opening it manually.")
         else:
