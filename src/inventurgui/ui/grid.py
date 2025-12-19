@@ -83,7 +83,7 @@ def create_aggrid(name:str, df: DataFrame, cart:bool=False) -> AgGrid:
         ':getRowId': '(params) => params.data.perma_id',
     },
         html_columns=[0],
-        theme=theme).classes('h-full')
+        theme=theme).classes('h-dvh w-full')
 
     # Handle events
     grid.on('rowSelected', lambda event: handle_select(name, event))
