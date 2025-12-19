@@ -6,7 +6,8 @@ from nicegui import app, ui, PageArguments
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.observables import ObservableDict
 
-from inventurgui.helper.config import request_conf, config, EMAIL_REGEX, form
+from inventurgui.helper.config import request_conf, config, EMAIL_REGEX, form, finish
+from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.mail import send_mail
 from inventurgui.io.request import write_ods
@@ -64,11 +65,28 @@ def create_form(warehouses:list[Warehouse]):
                     return False
         return True
 
+    async def handle_submit():
+        request.update({'finish': form.get('processing')})
+        ui.navigate.to(f"/{url_safe(config['finish']['label'])}")
+        request.update(
+            {'sent': today.strftime(config['date_format'])} if not request.get('sent') else {
+                'updated': today.strftime(config['date_format'])})
+        update = True if request.get('sent') else False
+        try:
+            send_mail(request, warehouses, update)
+            await write_ods(request, warehouses)
+            request.update({'message': None})
+            request.update({'finish': form.get('success')})
+        except Exception as exception:
+            request.update({'finish': form.get('failure')})
+            send_mail(request, warehouses, update, exception)
+
     today:datetime.date = datetime.date.today()
     request:ObservableDict = app.storage.user.get('form')
-    with (ui.grid(columns=2).classes('w-full bg-dark pb-10 h-screen flex-column') as grid):
+    with ui.grid(columns=2).classes('w-full bg-dark pb-10 h-screen flex-column') as grid:
         with ui.column().classes('ml-auto') as submit_column:
-            submit = ui.button(form.get('send'), icon=form.get('send_icon')).props('text-color=secondary rounded')
+            submit = ui.button(form.get('send'), icon=form.get('send_icon'), on_click=handle_submit)
+            submit.props('text-color=secondary rounded')
             submit.classes('p-3 sm:w-80 text-lg')
 
         with ui.column().classes('mx-auto max-sm:col-span-2'):
@@ -106,15 +124,6 @@ def create_form(warehouses:list[Warehouse]):
 
         submit_column.move(grid)
         submit.disable()
-        magic_link = f"https://{config['domain']}/{url_safe(config['cart']['label'])}?id={app.storage.browser['id']}"
-        update = True if request.get('sent') else False
-        submit.on_click(lambda: request.update({'sent': today.strftime(config['date_format'])} if not request.get('sent') else {'updated': today.strftime(config['date_format'])}))
-        submit.on_click(lambda: send_mail(request, warehouses, magic_link, update))
-        submit.on_click(lambda: write_ods(request, warehouses))
-        submit.on_click(lambda: request.update({'message': None}))
-        submit.on_click(lambda: request.update({'success': True}))
-        submit.on_click(lambda: ui.navigate.to(f"/{url_safe(config['finish']['label'])}"))
         submit.bind_text_from(request, 'sent', backward=lambda v: form.get('update') if v else form.get('send'))
         submit.bind_icon_from(request, 'sent',
                               backward=lambda v: form.get('update_icon') if v else form.get('send_icon'))
-

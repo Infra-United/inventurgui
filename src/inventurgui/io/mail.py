@@ -1,5 +1,6 @@
 import smtplib
 import ssl
+import traceback
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
@@ -9,6 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from inventurgui.helper.config import config, form, warehouse_conf
 from inventurgui.helper.logger import LOGGER
+from inventurgui.helper.magic_link import get_magic_link
 from inventurgui.io.request import convert_dates
 from inventurgui.io.warehouse import Warehouse
 
@@ -23,8 +25,8 @@ class MailSettings(BaseSettings):
 
 def send_mail(request:dict[str,str|dict[str, str]],
               warehouses:list[Warehouse],
-              magic_link:str,
               update:bool,
+              exception:Exception = None,
               settings: MailSettings = MailSettings()) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
     email = request.get("email")
@@ -40,9 +42,9 @@ def send_mail(request:dict[str,str|dict[str, str]],
         mail.add_header("Message-ID", make_msgid())
         mail.add_header("Return-Path", settings.user)
         mail.add_header('reply-to', f"{email.split('@')[0].capitalize()} <{email}>")
-        mail.attach(MIMEText(to_html(request, warehouses, magic_link), "html"))
+        mail.attach(MIMEText(to_html(request, warehouses, exception), "html"))
 
-        receiver = config["mail"]["mail_to"]
+        receiver = config["mail"]["mail_to"] if not exception else config["mail"]["admin"]
         mail["to"] = receiver
         LOGGER.debug(f"Sending E-Mail to {receiver}...")
         smtp.ehlo()
@@ -50,14 +52,18 @@ def send_mail(request:dict[str,str|dict[str, str]],
         LOGGER.debug("Quitting Connection to SMTP Server...")
         smtp.quit()
 
-def create_subject(request:dict[str,str|dict[str, str]], update:bool) -> str:
+def create_subject(request:dict[str,str|dict[str, str]], update:bool, exception:Exception) -> str:
     start, end, month, year = convert_dates(request.get('dates'))
-    if update:
+    if exception:
+        return f"{config["mail"]["subject_failure"]} {request.get('name')} {month} {year}"
+    elif update:
         return f"{config["mail"]["subject_update"]} {request.get('name')} {month} {year}"
-    return f"{config["mail"]["subject_request"]} {request.get('name')} {month} {year}"
+    else:
+        return f"{config["mail"]["subject_request"]} {request.get('name')} {month} {year}"
 
-def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], magic_link:str) -> str:
+def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], exception:Exception) -> str:
     html = ""
+    magic_link = get_magic_link()
     for key, value in request.items():
         match key:
             case 'dates':
@@ -75,4 +81,6 @@ def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], 
     html += f"</br></br>{warehouse_conf.get('label')}: {", ".join(is_selected)}"
     html += f"</br>{form.get('update_link')}: <a href={magic_link}>{magic_link}</a>"
     html += f"</br></br>{form.get('message')}:</br></br>{request.get('message')}"
+    if exception:
+        html += f"</br></br>{exception.args[0]}: <br><br>{traceback.print_exc(chain=False)}"
     return html

@@ -38,17 +38,17 @@ async def write_ods(request: dict[str, str|dict[str, str]], warehouses: list[War
     ods.save()
     LOGGER.info(f"Successfully wrote to sheet {data_sheet.name} @ {path}")
 
-def get_request_file(request: dict[str, str], path:Path, year:str) -> Tuple[PackagedDocument, Sheet, Sheet]:
+def get_request_file(request: dict[str, str], path:Path, year:str) -> Tuple[PackagedDocument, Sheet, Sheet|None]:
     overview_sheet = None
-    data_sheet = None
-    if path.exists():
+    data_sheet: Sheet|None = None
+    if path.is_file():
         LOGGER.debug(f"Found existing request file @{path}.")
         ods: FlatXMLDocument = opendoc(path)
         for idx, name in enumerate(ods.sheets.names()):
             if year == name:
                 overview_sheet = ods.sheets[idx]
             if name == request.get('name'):
-                data_sheet:Sheet = ods.sheets[idx]
+                data_sheet = ods.sheets[idx]
     else:
         LOGGER.debug(f"Couldn't find request file @{path} - creating it.")
         ods: PackagedDocument = newdoc("ods", path)

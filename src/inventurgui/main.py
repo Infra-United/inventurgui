@@ -16,6 +16,7 @@ from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.layout import header, left_drawer, footer
 from inventurgui.ui.sub_pages.cart import cart_page
 from inventurgui.ui.sub_pages.category import category_page
+from inventurgui.ui.sub_pages.finish import finish_page
 from inventurgui.ui.sub_pages.form import form_page
 from inventurgui.ui.sub_pages.start import start_page
 from inventurgui.ui.sub_pages.warehouse import warehouse_page
@@ -51,8 +52,8 @@ def root():
     # Set colors
     t = (Theme(theme).set_colors())
     ui.dark_mode(theme.get('dark_mode'), on_change=lambda e: t.toggle_dark(e.value))
-    ui.query(".nicegui-content").classes("p-0 min-h-full bg-dark w-full no-scroll sm:h-[calc(100vh-56px)]") # remove default padding from site
-    ui.query(".nicegui-sub-pages").classes(' bg-dark w-full scroll').style(replace='gap:0')
+    ui.query(".nicegui-content").classes("p-0 min-h-full bg-dark w-full no-scroll h-[calc(100vh-56px)]") # remove default padding from site
+    ui.query(".nicegui-sub-pages").classes('bg-dark w-full h-[calc(100vh-56px)] no-scroll').style(replace='gap:0')
     ui.on('resize', lambda e: app.storage.user.update({'screen': e.args}), throttle=0.4, trailing_events=True)
 
     # init app storage
@@ -74,6 +75,7 @@ def root():
     pages.add(f"/{url_safe(config['warehouse']['label'])}", warehouse_page)
     pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
     pages.add(f"/{url_safe(config['request']['label'])}", form_page)
+    pages.add(f"/{url_safe(config['finish']['label'])}", finish_page)
 
     # Register categories
     amounts = app.storage.user['amounts']

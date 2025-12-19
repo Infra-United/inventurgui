@@ -23,7 +23,9 @@ cloud:
 mail:
   subject_request: '[Anfrage]'
   subject_update: '[Update]'
+  subject_failure: '[Fehler]'
   mail_to: 'aberallesisgut@riseup.net'
+  admin: 'aberallesisgut@riseup.net'
 data:
   sheets: 3
   category: Kategorie
@@ -79,17 +81,17 @@ request:
       place: 'Ort'
       donation: 'Geplante Spende'
       email: 'E-Mail'
+      message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
     please_fill: 'Bitte fülle dieses Feld aus.' # All above input fields have to be filled
     checkbox: # Will create checkboxes at the end of the form for any number of items
       terms: 'Ich habe die Leihbedingungen gelesen.'
     # Comment this out if you don't want users to be able to include a message to the mails
-    message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
-    update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
     # Just String Settings
     month: 'Monat'
     start: 'Abholung'
     end: 'Rückgabe'
     email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
+    update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
     # Submit Button Settings
     send: 'Anfragen'
     update: 'Speichern'
@@ -98,11 +100,17 @@ request:
     sent: "Angefragt"
     updated: "Bearbeitet"
     update_link: "Bearbeitungslink"
+    processing: "Wir verarbeiten deine Anfrage - bitte warte einen Moment..."
+    success: "Deine Anfrage wurde erfolgreich an uns gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage jederzeit unter diesem Link bearbeiten:"
+    failure: "Etwas ist schiefgelaufen :/ Uns wurde eine Mail mit dem Fehler gesendet, wir melden uns zeitnah bei dir."
   terms: # Show terms to the user in a tab next to the form
     display: true # Set this to false if you don't need this
     label: 'Leihbedingungen'
     icon: 'policy'
     path: 'terms.md'
+finish:
+  label: 'Abfahrt'
+  copy_link: 'Link kopieren'
 links:
   display: false
   column: "Link"
