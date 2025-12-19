@@ -13,7 +13,7 @@ def load_data_from_magic_link(old_id:str, new_id:str) -> None:
         with open(get_path(f'/users/storage-user-{new_id}.json'), 'r') as f:
             app.storage.user.update(json.loads(f.read()))
             app.storage.browser.update({'id': new_id})
-            app.storage.user.initialize()
+            ui.navigate.reload()
     except FileNotFoundError:
         ui.notify(f"Sorry, couldn't find data for =id?{new_id}.", type='negative', position='center', text='secondary')
         ui.timer(5, lambda: ui.navigate.to("/"), once=True)
