@@ -7,6 +7,7 @@ from nicegui.elements.drawer import LeftDrawer
 from nicegui.observables import ObservableDict
 
 from inventurgui.helper.config import request_conf, config, EMAIL_REGEX, form
+from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.mail import send_mail
 from inventurgui.io.request import write_ods
 from inventurgui.io.warehouse import Warehouse
@@ -65,7 +66,7 @@ def create_form(warehouses:list[Warehouse]):
 
     today:datetime.date = datetime.date.today()
     request:ObservableDict = app.storage.user.get('form')
-    with ui.grid(columns=1).classes('w-full bg-dark h-screen') as grid:
+    with (ui.grid(columns=1).classes('w-full bg-dark h-screen') as grid):
         with ui.row().classes('pb-10') as row:
             ui.space()
             submit = ui.button(form.get('send'), icon=form.get('send_icon')).props('text-color=secondary rounded')
@@ -91,7 +92,9 @@ def create_form(warehouses:list[Warehouse]):
             'w-full pt-2 text-center tracking-widest')
         dates.move(grid)
 
-        ui.editor(placeholder=form.get('message')).bind_value(request, 'message')
+        message = ui.editor(placeholder=form.get('message') if not request.get('sent') else form.get('update_message'))
+        message.bind_value(request, 'message')
+        inputs.append(message)
 
         for value in form.get('checkbox').values():
             c = ui.checkbox(value)
@@ -100,10 +103,10 @@ def create_form(warehouses:list[Warehouse]):
 
         row.move(grid)
         submit.disable()
-        magic_link = f"https://{config['domain']}{ui.context.client.sub_pages_router.current_path}"
-        update = {'sent': today.strftime(config['date_format'])} if not request.get('sent') else {'updated': today.strftime(config['date_format'])}
-        submit.on_click(lambda: request.update(update))
-        #submit.on_click(lambda: send_mail(request, warehouses, magic_link))
+        magic_link = f"https://{config['domain']}/{url_safe(config['cart']['label'])}?id={app.storage.browser['id']}"
+        update = True if request.get('sent') else False
+        submit.on_click(lambda: request.update({'sent': today.strftime(config['date_format'])} if not request.get('sent') else {'updated': today.strftime(config['date_format'])}))
+        submit.on_click(lambda: send_mail(request, warehouses, magic_link, update))
         submit.on_click(lambda: write_ods(request, warehouses))
         submit.on_click(lambda: request.update({'message': ''}))
         submit.bind_text_from(request, 'sent', backward=lambda v: form.get('update') if v else form.get('send'))

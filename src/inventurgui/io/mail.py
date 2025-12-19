@@ -24,6 +24,7 @@ class MailSettings(BaseSettings):
 def send_mail(request:dict[str,str|dict[str, str]],
               warehouses:list[Warehouse],
               magic_link:str,
+              update:bool,
               settings: MailSettings = MailSettings()) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
     email = request.get("email")
@@ -33,7 +34,7 @@ def send_mail(request:dict[str,str|dict[str, str]],
         LOGGER.debug("Logging into SMTP Client with credentials...")
         smtp.login(settings.user, settings.password)
         mail = MIMEMultipart("mixed")
-        mail.add_header("subject", create_subject(request))
+        mail.add_header("subject", create_subject(request, update))
         mail.add_header("from", f"{email.split('@')[0].capitalize()} <{email}>")
         mail.add_header("date", formatdate(localtime=True))
         mail.add_header("Message-ID", make_msgid())
@@ -49,9 +50,9 @@ def send_mail(request:dict[str,str|dict[str, str]],
         LOGGER.debug("Quitting Connection to SMTP Server...")
         smtp.quit()
 
-def create_subject(request:dict[str,str|dict[str, str]]) -> str:
+def create_subject(request:dict[str,str|dict[str, str]], update:bool) -> str:
     start, end, month, year = convert_dates(request.get('dates'))
-    if request.get('sent'):
+    if update:
         return f"{config["mail"]["subject_update"]} {request.get('name')} {month} {year}"
     return f"{config["mail"]["subject_request"]} {request.get('name')} {month} {year}"
 

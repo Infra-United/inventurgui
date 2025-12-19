@@ -84,6 +84,7 @@ request:
       terms: 'Ich habe die Leihbedingungen gelesen.'
     # Comment this out if you don't want users to be able to include a message to the mails
     message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
+    update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
     # Just String Settings
     month: 'Monat'
     start: 'Abholung'
