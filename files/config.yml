@@ -111,6 +111,9 @@ request:
 finish:
   label: 'Abfahrt'
   copy_link: 'Link kopieren'
+  download: 'Liste Herunterladen'
+  filename: 'IU'
+  download_data: 'Du kannst eine Liste deiner Ladung hier herunterladen:'
 links:
   display: false
   column: "Link"

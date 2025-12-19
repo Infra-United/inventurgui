@@ -1,11 +1,13 @@
 import datetime
 from math import nan
+from os import mkdir
 from pathlib import Path
 from typing import Tuple
 
 import pandas as pd
 from ezodf import opendoc, Sheet, newdoc, Cell
 from ezodf.document import FlatXMLDocument, PackagedDocument
+from nicegui import app
 from pandas import DataFrame, isna, notna
 
 from inventurgui.helper.config import config, get_path, form
@@ -172,3 +174,19 @@ def find_row_by_name_or_start(sheet:Sheet, start:str, name:str) -> int:
     else:
         sheet.insert_rows(insert_count)
         return insert_count
+
+async def write_download_list(filename:Path, warehouses:list[Warehouse]):
+    if not get_path('/lists/').is_dir():
+        mkdir(get_path('/lists/'))
+    request = app.storage.user.get('form')
+    LOGGER.debug(f"Writing list for download...")
+    ods: PackagedDocument = newdoc("ods", filename)
+    for w in warehouses:
+        df = await w.get_final()
+        if df is None or df.empty:
+            continue
+        df.drop(columns=[config['warehouse']['label']], inplace=True)
+        data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
+        ods.sheets += write_data_sheet(df,data_sheet)
+    ods.backup = False
+    ods.saveas(filename)
