@@ -34,6 +34,9 @@ data:
   object: Objekt
   pack: Packung
   path: "IU_Inventur.ods"
+  links:
+    display: false
+    column: "Link"
 start:
   label: 'Start'
   icon: 'home'
@@ -70,39 +73,38 @@ cart:
   edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
   select_tip: "Bitte wähle erst etwas aus."
   invalid_edit: "So viele haben wir nicht!"
-request:
+form:
   label: 'Beladen' # The url path of the requests page
   icon: 'sym_o_forklift' # The menu icon for the requests page
-  form:
-    label: 'Formular' # The label for the form tab on the page
-    icon: 'article' # The icon for the form tab on the page
-    input: # Will create input fields at the start of the form for any number of items
-      name: 'Camp/Organisation' # This key is required
-      place: 'Ort'
-      donation: 'Geplante Spende'
-      email: 'E-Mail'
-      message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
-    please_fill: 'Bitte fülle dieses Feld aus.' # All above input fields have to be filled
-    checkbox: # Will create checkboxes at the end of the form for any number of items
-      terms: 'Ich habe die Leihbedingungen gelesen.'
-    # Comment this out if you don't want users to be able to include a message to the mails
-    # Just String Settings
-    month: 'Monat'
-    start: 'Abholung'
-    end: 'Rückgabe'
-    email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
-    update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
-    # Submit Button Settings
-    send: 'Anfragen'
-    update: 'Speichern'
-    send_icon: 'outgoing_mail'
-    update_icon: 'save'
-    sent: "Angefragt"
-    updated: "Bearbeitet"
-    update_link: "Bearbeitungslink"
-    processing: "Wir verarbeiten deine Anfrage - bitte warte einen Moment..."
-    success: "Deine Anfrage wurde erfolgreich an uns gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage jederzeit unter diesem Link bearbeiten:"
-    failure: "Etwas ist schiefgelaufen :/ Uns wurde eine Mail mit dem Fehler gesendet, wir melden uns zeitnah bei dir."
+  tab_label: 'Formular' # The label for the form tab on the page
+  tab_icon: 'article' # The icon for the form tab on the page
+  input: # Will create input fields at the start of the form for any number of items
+    name: 'Camp/Organisation' # This key is required
+    place: 'Ort'
+    donation: 'Geplante Spende'
+    email: 'E-Mail'
+    message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
+  please_fill: 'Bitte fülle dieses Feld aus.' # All above input fields have to be filled
+  checkbox: # Will create checkboxes at the end of the form for any number of items
+    terms: 'Ich habe die Leihbedingungen gelesen.'
+  # Comment this out if you don't want users to be able to include a message to the mails
+  # Just String Settings
+  month: 'Monat'
+  start: 'Abholung'
+  end: 'Rückgabe'
+  email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
+  update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
+  # Submit Button Settings
+  send: 'Anfragen'
+  update: 'Speichern'
+  send_icon: 'outgoing_mail'
+  update_icon: 'save'
+  sent: "Angefragt"
+  updated: "Bearbeitet"
+  update_link: "Bearbeitungslink"
+  processing: "Wir verarbeiten deine Anfrage - bitte warte einen Moment..."
+  success: "Deine Anfrage wurde erfolgreich an uns gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage mit diesem Link teilen und bearbeiten:"
+  failure: "Etwas ist schiefgelaufen :/ Uns wurde eine Mail mit dem Fehler gesendet, wir melden uns zeitnah bei dir."
   terms: # Show terms to the user in a tab next to the form
     display: true # Set this to false if you don't need this
     label: 'Leihbedingungen'
@@ -114,7 +116,4 @@ finish:
   download: 'Liste Herunterladen'
   filename: 'IU'
   download_data: 'Du kannst eine Liste deiner Ladung hier herunterladen:'
-links:
-  display: false
-  column: "Link"
 

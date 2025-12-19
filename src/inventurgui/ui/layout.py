@@ -3,7 +3,7 @@ from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.tabs import Tabs
 
-from inventurgui.helper.config import config, get_path, start, warehouse_conf
+from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
 
@@ -66,6 +66,7 @@ def back_fab(last_page:dict[str, str], ):
             badge.bind_visibility_from(app.storage.user, 'Total', backward=lambda v: v > 0)
 
 def main_menu(ld:LeftDrawer, classes:str="stretch", props:str="unelevated no-wrap text-color=secondary square") -> None:
+    start: dict[str, str | dict[str, str]] = load_config()["start"]
     ui.button(icon='menu', on_click=lambda: ld.show()).classes(classes).props(props)
     btn:Button = ui.button(start.get('label'), icon=start.get('icon')).classes(classes).props(props)
     btn.on_click(lambda l=url_safe(start['label']): ui.navigate.to(f"/"))
@@ -83,6 +84,7 @@ def warehouse_menu(warehouses:list[Warehouse], ld:LeftDrawer, classes:str, props
     """
     See https://github.com/zauberzeug/nicegui/discussions/5566 for some documentation.
     """
+    warehouse_conf: dict = load_config()["warehouse"]
     path_category = reverse_url(ui.context.client.sub_pages_router.current_path.split('/')[-1])
     path_warehouse = reverse_url(ui.context.client.sub_pages_router.current_path.split('/')[-2])
 

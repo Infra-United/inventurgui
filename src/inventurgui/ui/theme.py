@@ -12,6 +12,7 @@ class Theme:
         self.accent = config.get('accent')
         self.dark_page = config.get('dark_page')
         self.dark_mode = config.get('dark_mode')
+        ui.dark_mode(config.get('dark_mode'), on_change=lambda e: self.toggle_dark(e.value))
 
     def set_colors(self):
         ui.colors(primary=self.primary,

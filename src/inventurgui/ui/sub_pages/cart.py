@@ -4,7 +4,7 @@ from nicegui import app, ui, PageArguments
 from nicegui.elements.aggrid import AgGrid
 from nicegui.elements.drawer import LeftDrawer
 
-from inventurgui.helper.config import config, request_conf, warehouse_conf
+from inventurgui.helper.config import load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.warehouse import Warehouse
@@ -14,6 +14,8 @@ from inventurgui.helper.magic_link import load_data_from_magic_link
 
 
 async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse], args:PageArguments) -> None:
+    warehouse_conf: dict = load_config()["warehouse"]
+    cart:dict = load_config()["cart"]
     ui.query(".nicegui-sub-pages").classes(replace='bg-dark w-full no-scroll').style(replace='gap:0')
 
     current_id = app.storage.browser['id']
@@ -23,12 +25,12 @@ async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse], args:PageArgument
 
     total = app.storage.user.get('total')
     if total == 0:
-        ui.notify(config['cart']['select_tip'], type='warning', position='center', color='primary', textColor='dark')
+        ui.notify(cart['select_tip'], type='warning', position='center', color='primary', textColor='dark')
         time.sleep(1)
         ui.navigate.to(f'/{url_safe(warehouse_conf.get('label'))}')
         return
     if not app.storage.user.get('notified')['selection'] and total != 0:
-        ui.notify(config['cart']['edit_tip'], position='center', color='primary', textColor='dark')
+        ui.notify(cart['edit_tip'], position='center', color='primary', textColor='dark')
         app.storage.user['notified']['selection'] = True
 
     ld.hide()
@@ -40,12 +42,12 @@ async def cart_page(ld:LeftDrawer, warehouses:list[Warehouse], args:PageArgument
         if selected is None or selected.empty:
             continue
         with truck_tabs:
-            with ui.tab(w.name.upper(), icon=config['cart']['tab_icon']).classes('px-7').props('inline-label'):
+            with ui.tab(w.name.upper(), icon=cart['tab_icon']).classes('px-7').props('inline-label'):
                 badge = ui.badge('0', color='accent').props("floating").classes('text-bold')
                 badge.bind_text_from(app.storage.user, w.name, lambda e: len(e))
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes('m-0 p-0 w-full'):
-                grid: AgGrid = create_aggrid(w.name, selected, config, cart=True)
+                grid: AgGrid = create_aggrid(w.name, selected, cart=True)
     truck_panels.set_value(warehouses[0].name.upper())
     LOGGER.info(f"Created cart page")
-    checkout_fab(request_conf)
+    checkout_fab(load_config()['form'])

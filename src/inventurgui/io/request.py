@@ -1,5 +1,4 @@
 import datetime
-from math import nan
 from os import mkdir
 from pathlib import Path
 from typing import Tuple
@@ -8,11 +7,12 @@ import pandas as pd
 from ezodf import opendoc, Sheet, newdoc, Cell
 from ezodf.document import FlatXMLDocument, PackagedDocument
 from nicegui import app
-from pandas import DataFrame, isna, notna
+from pandas import DataFrame, notna
 
-from inventurgui.helper.config import config, get_path, form
+from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
+
 
 async def write_ods(request: dict[str, str|dict[str, str]], warehouses: list[Warehouse]) -> None:
     path = get_path(config['cloud']['push']['requests'])
@@ -63,6 +63,7 @@ def get_request_file(request: dict[str, str], path:Path, year:str) -> Tuple[Pack
     return ods, overview_sheet, data_sheet
 
 def init_overview_sheet(request: dict[str, str|dict[str,str]], year:str):
+    form: dict[str, str | dict[str, str]] = load_config()["request"]['form']
     sheet = Sheet(str(year), size=(1, 20))
     # Write Column Headers
     count = 0

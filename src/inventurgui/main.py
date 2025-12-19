@@ -1,12 +1,11 @@
 import os
 from os import mkdir
-from pathlib import Path
 
 import ezodf
 from nicegui import ui, app
 from pandas_ods_reader import read_ods
 
-from inventurgui.helper.config import config, get_path, theme
+from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 # from ui.admin import admin
@@ -50,8 +49,8 @@ def root():
             warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
 
     # Set colors
-    t = (Theme(theme).set_colors())
-    ui.dark_mode(theme.get('dark_mode'), on_change=lambda e: t.toggle_dark(e.value))
+    t = (Theme(load_config()['theme']).set_colors())
+
     ui.query(".nicegui-content").classes("p-0 min-h-full bg-dark w-full no-scroll h-[calc(100vh-56px)]") # remove default padding from site
     ui.query(".nicegui-sub-pages").classes('bg-dark w-full h-[calc(100vh-56px)] no-scroll').style(replace='gap:0')
     ui.on('resize', lambda e: app.storage.user.update({'screen': e.args}), throttle=0.4, trailing_events=True)
@@ -74,7 +73,7 @@ def root():
     pages.add(f"/", start_page)
     pages.add(f"/{url_safe(config['warehouse']['label'])}", warehouse_page)
     pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
-    pages.add(f"/{url_safe(config['request']['label'])}", form_page)
+    pages.add(f"/{url_safe(config['form']['label'])}", form_page)
     pages.add(f"/{url_safe(config['finish']['label'])}", finish_page)
 
     # Register categories

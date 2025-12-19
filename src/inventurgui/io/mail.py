@@ -8,7 +8,7 @@ from email.utils import formatdate, make_msgid
 from nicegui import app
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from inventurgui.helper.config import config, form, warehouse_conf
+from inventurgui.helper.config import load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.magic_link import get_magic_link
 from inventurgui.io.request import convert_dates
@@ -44,7 +44,8 @@ def send_mail(request:dict[str,str|dict[str, str]],
         mail.add_header('reply-to', f"{email.split('@')[0].capitalize()} <{email}>")
         mail.attach(MIMEText(to_html(request, warehouses, exception), "html"))
 
-        receiver = config["mail"]["mail_to"] if not exception else config["mail"]["admin"]
+        mail_conf:dict[str, str] = load_config()["mail"]
+        receiver = mail_conf["mail_to"] if not exception else mail_conf["admin"]
         mail["to"] = receiver
         LOGGER.debug(f"Sending E-Mail to {receiver}...")
         smtp.ehlo()
@@ -53,15 +54,17 @@ def send_mail(request:dict[str,str|dict[str, str]],
         smtp.quit()
 
 def create_subject(request:dict[str,str|dict[str, str]], update:bool, exception:Exception) -> str:
+    mail:dict[str, str] = load_config()["mail"]
     start, end, month, year = convert_dates(request.get('dates'))
     if exception:
-        return f"{config["mail"]["subject_failure"]} {request.get('name')} {month} {year}"
+        return f"{mail["subject_failure"]} {request.get('name')} {month} {year}"
     elif update:
-        return f"{config["mail"]["subject_update"]} {request.get('name')} {month} {year}"
+        return f"{mail["subject_update"]} {request.get('name')} {month} {year}"
     else:
-        return f"{config["mail"]["subject_request"]} {request.get('name')} {month} {year}"
+        return f"{mail["subject_request"]} {request.get('name')} {month} {year}"
 
 def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], exception:Exception) -> str:
+    form: dict[str, str | dict[str, str]] = load_config()["request"]['form']
     html = ""
     magic_link = get_magic_link()
     for key, value in request.items():
@@ -78,7 +81,7 @@ def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], 
             case _:
                 html += f"</br>{form['input'].get(key)}: {value}"
     is_selected = [w.name for w in warehouses if app.storage.user.get(w.name) != []]
-    html += f"</br></br>{warehouse_conf.get('label')}: {", ".join(is_selected)}"
+    html += f"</br></br>{load_config()['warehouse'].get('label')}: {", ".join(is_selected)}"
     html += f"</br>{form.get('update_link')}: <a href={magic_link}>{magic_link}</a>"
     html += f"</br></br>{form.get('message')}:</br></br>{request.get('message')}"
     if exception:

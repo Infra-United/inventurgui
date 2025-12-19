@@ -50,9 +50,3 @@ def dump_config(config:dict) -> None:
         exception('File not Found:', config_file); exit()
 
 config = load_config()
-start:dict[str, str|dict[str, str]] = config["start"]
-warehouse_conf: dict = config["warehouse"]
-theme:dict[str, str] = config["theme"]
-request_conf:dict[str, str|dict[str, str]] = config["request"]
-form: dict[str, str|dict[str, str]]= config["request"]['form']
-finish: dict[str, str|dict[str, str]] = config['finish']

@@ -1,11 +1,12 @@
 from nicegui import ui, app
 from nicegui.elements.drawer import LeftDrawer
 
-from inventurgui.helper.config import warehouse_conf
+from inventurgui.helper.config import load_config
 from inventurgui.ui.markdown import render_markdown
 
 
 async def warehouse_page(ld:LeftDrawer):
+    warehouse_conf: dict = load_config()["warehouse"]
     ui.page_title(warehouse_conf.get('label'))
     ld.show()
     await render_markdown(warehouse_conf)

@@ -1,12 +1,13 @@
 from nicegui import ui
 from nicegui.elements.drawer import LeftDrawer
 
-from inventurgui.helper.config import start, config
-from inventurgui.ui.layout import tabs, tab_panels, checkout_fab
+from inventurgui.helper.config import load_config
+from inventurgui.ui.layout import tabs, tab_panels
 from inventurgui.ui.markdown import render_markdown
 
 
 async def start_page(ld:LeftDrawer) -> None:
+    start: dict[str, str | dict[str, str]] = load_config()["start"]
     ld.hide()
     main_tabs = tabs()
     main_panels = tab_panels(main_tabs)

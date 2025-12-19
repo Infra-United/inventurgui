@@ -6,18 +6,18 @@ from nicegui import app, ui, PageArguments
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.observables import ObservableDict
 
-from inventurgui.helper.config import request_conf, config, EMAIL_REGEX, form, finish
-from inventurgui.helper.logger import LOGGER
+from inventurgui.helper.config import config, EMAIL_REGEX, load_config
+from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.mail import send_mail
 from inventurgui.io.request import write_ods
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.layout import back_fab, tabs, tab_panels
-from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.ui.markdown import render_markdown
 
 
 async def form_page(ld:LeftDrawer, warehouses:list[Warehouse], args:PageArguments) -> None:
+    form: dict[str, str | dict[str, str]] = load_config()["request"]['form']
     def set_panel():
         if app.storage.user['screen'].get('width') < 1280:
             form_panels.set_value(
@@ -31,13 +31,13 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse], args:PageArgument
         load_data_from_magic_link(current_id, request_id)
 
     ld.hide()
-    terms = request_conf.get('terms')
+    terms = form.get('terms')
     form_tabs = tabs()
     form_panels = tab_panels(form_tabs)
     back_fab(config['cart'])
     with form_tabs.classes('xl:hidden'):
         with form_tabs:
-            ui.tab(form.get('label'), icon=form.get('icon')).classes('px-7').props('inline-label')
+            ui.tab(form.get('tab_label'), icon=form.get('tab_icon')).classes('px-7').props('inline-label')
             if terms.get('display'):
                 ui.tab(terms.get('label'), icon=terms.get('icon')).props('inline-label')
     with form_panels:
@@ -45,17 +45,18 @@ async def form_page(ld:LeftDrawer, warehouses:list[Warehouse], args:PageArgument
             with ui.grid(columns=2) as grid:
                 create_form(warehouses)
                 if terms.get('display'):
-                    await render_markdown(request_conf.get('terms'))
-        with ui.tab_panel(form.get('label')).classes('m-0'):
+                    await render_markdown(form.get('terms'))
+        with ui.tab_panel(form.get('tab_label')).classes('m-0'):
                 create_form(warehouses)
         if terms.get('display'):
             with ui.tab_panel(terms.get('label')).classes('m-0 p-0'):
-                await render_markdown(request_conf.get('terms'))
+                await render_markdown(form.get('terms'))
     set_panel()
     ui.on('resize', lambda: set_panel(), throttle=0.8, trailing_events=True)
 
 
 def create_form(warehouses:list[Warehouse]):
+    form: dict[str, str | dict[str, str]] = load_config()["request"]['form']
     def validate_form() -> bool:
         rules = [dates.value]
         [rules.append(i.value) for i in inputs]
