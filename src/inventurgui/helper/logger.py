@@ -10,7 +10,7 @@ class RelativeSeconds(logging.Formatter):
         return super().format(record)
 
 
-formatter = RelativeSeconds(f"%(relativeCreated)ds %(levelname)s %(name)s.%(module)s.%(funcName)s: %(message)s")
+formatter = RelativeSeconds("%(relativeCreated)ds %(levelname)s %(name)s.%(module)s.%(funcName)s: %(message)s")
 
 # Get Logger and set log level
 logging.basicConfig()

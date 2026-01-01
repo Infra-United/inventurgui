@@ -9,7 +9,8 @@ from inventurgui.helper.grid_handlers import handle_edit, max_amount, handle_sel
 
 """This module implements functions to create AG Grids which display the data."""
 
-def create_aggrid(name:str, df: DataFrame, cart:bool=False) -> AgGrid:
+
+def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
 
     Args:
@@ -22,88 +23,117 @@ def create_aggrid(name:str, df: DataFrame, cart:bool=False) -> AgGrid:
         aggrid: The AG Grid that results from the given Arguments.
     """
     # Define Columns for AG Grids
-    data = load_config()['data']
-    default_col_def: dict = {
-        'sortable': True,
-        'resizable': True,
-        'filter': not cart,
-        'floatingFilter': not cart}
+    data = load_config()["data"]
+    default_col_def: dict = {"sortable": True, "resizable": True, "filter": not cart, "floatingFilter": not cart}
 
     column_defs = [
-        {'field': data['object'], 'minWidth': 140, 'maxWidth':200, 'resizable': True, 'sort': 'asc', 'cellClassRules': {'text-primary': 'x', 'text-bold': 'x', 'tracking-wider':'x'} if not cart else {'text-bold': 'x', 'tracking-wider':'x'}, 'cellStyle': {'padding-left':'10px'}},
-        {'field': data['desc'], 'minWidth': 250},
-        {'field': data['count'], 'headerName': '', 'filter': False, 'minWidth': 35, 'maxWidth': 50, 'editable': cart, 'cellEditorParams': '', 'cellDataType': 'number', 'pinned': 'left' if cart else '', 'cellClassRules': {'bg-primary': 'x > 1'} if cart else ''},
-        {'field': data['pack'], 'minWidth': 90, 'maxWidth': 100, 'pinned': 'left' if cart else ''}]
+        {
+            "field": data["object"],
+            "minWidth": 140,
+            "maxWidth": 200,
+            "resizable": True,
+            "sort": "asc",
+            "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"}
+            if not cart
+            else {"text-bold": "x", "tracking-wider": "x"},
+            "cellStyle": {"padding-left": "10px"},
+        },
+        {"field": data["desc"], "minWidth": 250},
+        {
+            "field": data["count"],
+            "headerName": "",
+            "filter": False,
+            "minWidth": 35,
+            "maxWidth": 50,
+            "editable": cart,
+            "cellEditorParams": "",
+            "cellDataType": "number",
+            "pinned": "left" if cart else "",
+            "cellClassRules": {"bg-primary": "x > 1"} if cart else "",
+        },
+        {"field": data["pack"], "minWidth": 90, "maxWidth": 100, "pinned": "left" if cart else ""},
+    ]
 
-    if data['links']['display']:
+    if data["links"]["display"]:
         # Function to replace https links with HTML string
         def replace_https_with_html(link):
             if pandas.isna(link):
                 return link  # Return NaN as is
-            if link.startswith('http'):
-                return f'<span style="font-size: 24px;">ℹ️</span>'
+            if link.startswith("http"):
+                return '<span style="font-size: 24px;">ℹ️</span>'
             return link  # Return the link as is if it doesn't start with https://
 
         # Apply the function to the 'links' column
         pandas.options.mode.copy_on_write = True
-        data['has_link'] = df[data['links']['column']].apply(replace_https_with_html)
-        link_column = {'headerName': '', 'field': 'has_link', 'filter': False, 'minWidth': 50, 'maxWidth': 50}
+        data["has_link"] = df[data["links"]["column"]].apply(replace_https_with_html)
+        link_column = {"headerName": "", "field": "has_link", "filter": False, "minWidth": 50, "maxWidth": 50}
         column_defs.insert(0, link_column)
 
     # Styling
-    #height = 'h-[calc(100vh-56px)]' if not cart else 'h-[calc(100vh-104px)]'
-    theme = app.storage.user['grid_theme'] if app.storage.user.get('grid_theme') else 'alpine'
-    css = f'''{{background-color: {load_config()['theme']['secondary']}}}'''
-    ui.add_body_html(f'<style>.ag-row-hover .ag-cell  {css}</style>')
-    ui.add_body_html(f'<style>.ag-row-selected .ag-cell  {css}</style>')
+    # height = 'h-[calc(100vh-56px)]' if not cart else 'h-[calc(100vh-104px)]'
+    theme = app.storage.user["grid_theme"] if app.storage.user.get("grid_theme") else "alpine"
+    css = f"""{{background-color: {load_config()["theme"]["secondary"]}}}"""
+    ui.add_body_html(f"<style>.ag-row-hover .ag-cell  {css}</style>")
+    ui.add_body_html(f"<style>.ag-row-selected .ag-cell  {css}</style>")
 
     # Create Grid with given Data
-    grid =aggrid({
-        'selectionColumnDef': {'hide': cart, 'maxWidth': 35, 'sortable': True},
-        'columnDefs': column_defs,
-        'defaultColDef': default_col_def,
-        'rowData': df.to_dict('records'),
-        'theme': theme,
-        'rowSelection':  {'mode': 'multiRow',
-                          'selectAll': 'filtered',
-                          'ctrlASelectsRows': True,
-                          'enableClickSelection': True,
-                          'checkboxes': True,
-                          'headerCheckbox': True,
-                          'enableSelectionWithoutKeys': True,
-                          } if not cart else '',
-        'suppressRowHoverHighlight': cart,
-        'enterNavigatesVertically': True,
-        'readOnlyEdit': True,
-        'invalidEditValueMode': 'block',
-        'stopEditingWhenCellsLoseFocus': True,
-        'suppressCellFocus': True,
-        'enterNavigatesVerticallyAfterEdit': True,
-        'singleClickEdit': True,
-        ':getRowId': '(params) => params.data.perma_id',
-    },
+    grid = aggrid(
+        {
+            "selectionColumnDef": {"hide": cart, "maxWidth": 35, "sortable": True},
+            "columnDefs": column_defs,
+            "defaultColDef": default_col_def,
+            "rowData": df.to_dict("records"),
+            "theme": theme,
+            "rowSelection": {
+                "mode": "multiRow",
+                "selectAll": "filtered",
+                "ctrlASelectsRows": True,
+                "enableClickSelection": True,
+                "checkboxes": True,
+                "headerCheckbox": True,
+                "enableSelectionWithoutKeys": True,
+            }
+            if not cart
+            else "",
+            "suppressRowHoverHighlight": cart,
+            "enterNavigatesVertically": True,
+            "readOnlyEdit": True,
+            "invalidEditValueMode": "block",
+            "stopEditingWhenCellsLoseFocus": True,
+            "suppressCellFocus": True,
+            "enterNavigatesVerticallyAfterEdit": True,
+            "singleClickEdit": True,
+            ":getRowId": "(params) => params.data.perma_id",
+        },
         html_columns=[0],
-        theme=theme).classes('h-dvh w-full')
+        theme=theme,
+    ).classes("h-dvh w-full")
 
     # Handle events
-    grid.on('rowSelected', lambda event: handle_select(name, event))
+    grid.on("rowSelected", lambda event: handle_select(name, event))
     if not cart:
         for row in app.storage.user[name]:
-                grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setSelected', True))
+            grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     else:
-        for row in app.storage.user['amounts'].get(name, name):
-            grid.on('firstDataRendered', lambda r=row: grid.run_row_method(r, 'setDataValue', data['count'], app.storage.user['amounts'].get(name, name).get(r)[0]))
-    #if int(app.storage.user.get('screen').get('width')) < 640:
-    grid.on('firstDataRendered', lambda: grid.run_grid_method('autoSizeColumns'))
-    grid.on('cellEditingStarted', lambda event: max_amount(name, event))
-    grid.on('cellEditRequest', lambda event: handle_edit(grid, name, event))
-    #grid.on('cellValueChanged', lambda event: handle_edit(name, event))
-    ui.on('resize', lambda: grid.update(), throttle=0.8, trailing_events=True)
+        for row in app.storage.user["amounts"].get(name, name):
+            grid.on(
+                "firstDataRendered",
+                lambda r=row: grid.run_row_method(
+                    r, "setDataValue", data["count"], app.storage.user["amounts"].get(name, name).get(r)[0]
+                ),
+            )
+    # if int(app.storage.user.get('screen').get('width')) < 640:
+    grid.on("firstDataRendered", lambda: grid.run_grid_method("autoSizeColumns"))
+    grid.on("cellEditingStarted", lambda event: max_amount(name, event))
+    grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
+    # grid.on('cellValueChanged', lambda event: handle_edit(name, event))
+    ui.on("resize", lambda: grid.update(), throttle=0.8, trailing_events=True)
     return grid
 
-def dialog(event_args:dict):
+
+def dialog(event_args: dict):
     with ui.dialog() as dia:
         with ui.card():
             ui.label(text=f"{event_args['data']['Objekt']} ({event_args['data']['Art']})")
-            ui.image(event_args['data']['Link'])
+            ui.image(event_args["data"]["Link"])
     return dia

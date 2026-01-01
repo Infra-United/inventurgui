@@ -6,16 +6,18 @@ import yaml
 
 import inventurgui
 from inventurgui.cli import ARGS
-from nicegui import ui, binding
 
 # Methods to handle helper from and to yaml file
 
-EMAIL_REGEX = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+EMAIL_REGEX = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
 
-def get_path(filename:str) -> Path:
+
+def get_path(filename: str) -> Path:
     return Path(inventurgui.__file__).parent.parent.parent.joinpath(f"files/{filename}")
 
+
 config_file: Path = get_path(ARGS.config_file)
+
 
 def load_yaml(stream: TextIOWrapper) -> dict:
     try:
@@ -33,20 +35,25 @@ def dump_yaml(data: dict, stream: TextIOWrapper) -> None:
     except yaml.YAMLError as exc:
         exception("Error in helper file: \n" + exc), exit(1)
 
+
 def load_config() -> dict:
     debug(f"Loading helper from {config_file}...")
     try:
-        with open(config_file, 'r') as file:
-            return load_yaml(file)      
+        with open(config_file, "r") as file:
+            return load_yaml(file)
     except FileNotFoundError:
-        exception('File not Found:', config_file); exit()
-    
-def dump_config(config:dict) -> None:
+        exception("File not Found:", config_file)
+        exit()
+
+
+def dump_config(config: dict) -> None:
     debug(f"Dumping helper to {config_file}...")
     try:
-        with open(config_file, 'w') as file:
+        with open(config_file, "w") as file:
             dump_yaml(config.__dict__, file)
     except FileNotFoundError:
-        exception('File not Found:', config_file); exit()
+        exception("File not Found:", config_file)
+        exit()
+
 
 config = load_config()

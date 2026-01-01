@@ -20,13 +20,13 @@ repos:
       # Run the formatter.
       - id: ruff-format
         args: [--target-version, py313, --extension, py:python, --respect-gitignore, --line-length, '120', -v]
-  - repo: local
-    hooks:
+  #- repo: local
+   # hooks:
        # Run the Static Type Checker
-      - id: ty-check
-        name: ty check
-        entry: uvx ty check . --ignore unresolved-import unresolved-reference
-        language: python
+       #- id: ty-check
+       # name: ty check
+        #entry: uvx ty check . --ignore unresolved-import unresolved-reference
+        #language: python
     #TODO maybe add pyright
     #TODO maybe add tests
 

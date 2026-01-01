@@ -8,17 +8,17 @@ from inventurgui.ui.grid import create_aggrid
 from inventurgui.ui.layout import checkout_fab
 
 
-async def category_page(category:str, warehouse: Warehouse) -> None:
+async def category_page(category: str, warehouse: Warehouse) -> None:
     warehouse_conf: dict = load_config()["warehouse"]
     # Create One grid for each unique Category in the first Column
     ui.page_title(f"{warehouse.name}/{category}")
-    LOGGER.debug(f'Creating Grid for {warehouse.name}/{category}...')
-    category_data = warehouse.inventory[warehouse.inventory[config['data']['category']] == category]
-    if category == warehouse_conf.get('everything'):
+    LOGGER.debug(f"Creating Grid for {warehouse.name}/{category}...")
+    category_data = warehouse.inventory[warehouse.inventory[config["data"]["category"]] == category]
+    if category == warehouse_conf.get("everything"):
         category_data = warehouse.inventory
-    if category == warehouse_conf.get('selection'):
+    if category == warehouse_conf.get("selection"):
         category_data = await warehouse.selected()
-    grid:AgGrid = create_aggrid(warehouse.name, category_data, cart=False)
+    grid: AgGrid = create_aggrid(warehouse.name, category_data, cart=False)
     print(grid.props.values())
-    checkout_fab(config['cart'])
+    checkout_fab(config["cart"])
     LOGGER.info(f"Created grid for: {warehouse.name}/{category}")

@@ -24,9 +24,11 @@ class NextcloudSettings(BaseSettings):
     user: str
     token: str
 
+
 class Nextcloud(Client):
     instance = None
-    def __init__(self, remote_dir:str, ncs: NextcloudSettings = NextcloudSettings()):
+
+    def __init__(self, remote_dir: str, ncs: NextcloudSettings = NextcloudSettings()):
         self._domain = ncs.domain
         self._user = ncs.user
         self._webdav_url = f"https://{self._domain}/remote.php/dav/files/{self._user}"
@@ -36,20 +38,20 @@ class Nextcloud(Client):
     @classmethod
     def singleton(cls) -> Self:
         if not cls.instance:
-            cls.instance = Nextcloud(remote_dir=config['cloud']['dir'])
+            cls.instance = Nextcloud(remote_dir=config["cloud"]["dir"])
         return cls.instance
 
     @staticmethod
     def get_mod_time(path: Path) -> datetime.datetime:
         return datetime.datetime.fromtimestamp(path.stat().st_mtime)
 
-    async def shut_down_if_missing_file(self, path:Path) -> None:
+    async def shut_down_if_missing_file(self, path: Path) -> None:
         if not path.is_file():
             LOGGER.exception(f"\nFile: >>>{path}<<< does not exist.\n Shutting down.")
             await self.close()
             exit(1)
 
-    async def update_file(self, file:str) -> None:
+    async def update_file(self, file: str) -> None:
         local = get_path(Path(file).name)
         remote = "/".join((self.remote_dir, file))
         try:
@@ -60,9 +62,11 @@ class Nextcloud(Client):
                 LOGGER.debug(f"Getting Data from {remote}...")
                 await self.download_file(remote, local)
             else:
-                LOGGER.exception(f"\nFile: >>>{remote}<<< does not exist in remote location.\n"
-                                 f"Checked in {self._webdav_url}.\nPlease review config.")
+                LOGGER.exception(
+                    f"\nFile: >>>{remote}<<< does not exist in remote location.\n"
+                    f"Checked in {self._webdav_url}.\nPlease review config."
+                )
                 await self.shut_down_if_missing_file(local)
-        except asyncio.TimeoutError, ConnectionExceptionError:
+        except (asyncio.TimeoutError, ConnectionExceptionError):
             LOGGER.warning(f"Cannot connect to {self._domain}.\nPlease check your Internet Connection.")
             await self.shut_down_if_missing_file(local)

@@ -1,25 +1,27 @@
 from nicegui import binding, ui
 
+
 # Methods to handle Theme
 class Theme:
     primary: binding.BindableProperty
     secondary: binding.BindableProperty
     dark: binding.BindableProperty
 
-    def __init__(self, config:dict[str, str]) -> None:
-        self.primary = config.get('primary')
-        self.secondary = config.get('secondary')
-        self.accent = config.get('accent')
-        self.dark_page = config.get('dark_page')
-        self.dark_mode = config.get('dark_mode')
-        ui.dark_mode(config.get('dark_mode'), on_change=lambda e: self.toggle_dark(e.value))
+    def __init__(self, config: dict[str, str]) -> None:
+        self.primary = config.get("primary")
+        self.secondary = config.get("secondary")
+        self.accent = config.get("accent")
+        self.dark_page = config.get("dark_page")
+        self.dark_mode = config.get("dark_mode")
+        ui.dark_mode(config.get("dark_mode"), on_change=lambda e: self.toggle_dark(e.value))
 
     def set_colors(self):
-        ui.colors(primary=self.primary,
-                  secondary=self.secondary,
-                  accent=self.accent,
-                  dark_page=self.dark_page,
-                  ).update()
+        ui.colors(
+            primary=self.primary,
+            secondary=self.secondary,
+            accent=self.accent,
+            dark_page=self.dark_page,
+        ).update()
 
     def set_primary_color(self, primary):
         self.primary = primary

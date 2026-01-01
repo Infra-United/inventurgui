@@ -24,11 +24,14 @@ class MailSettings(BaseSettings):
     user: str
     password: str
 
-def send_mail(request:dict[str,str|dict[str, str]],
-              warehouses:list[Warehouse],
-              type:Literal['request', 'update', 'delete', 'exception'],
-              exception:Exception = None,
-              settings: MailSettings = MailSettings()) -> None:
+
+def send_mail(
+    request: dict[str, str | dict[str, str]],
+    warehouses: list[Warehouse],
+    type: Literal["request", "update", "delete", "exception"],
+    exception: Exception = None,
+    settings: MailSettings = MailSettings(),
+) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
     email = request.get("email")
     print(settings)
@@ -43,10 +46,10 @@ def send_mail(request:dict[str,str|dict[str, str]],
         mail.add_header("date", formatdate(localtime=True))
         mail.add_header("Message-ID", make_msgid())
         mail.add_header("Return-Path", settings.user)
-        mail.add_header('reply-to', f"{email.split('@')[0].capitalize()} <{email}>")
+        mail.add_header("reply-to", f"{email.split('@')[0].capitalize()} <{email}>")
         mail.attach(MIMEText(to_html(request, warehouses, exception), "html"))
 
-        mail_conf:dict[str, str] = load_config()["mail"]
+        mail_conf: dict[str, str] = load_config()["mail"]
         receiver = mail_conf["mail_to"] if not exception else mail_conf["admin"]
         mail["to"] = receiver
         LOGGER.debug(f"Sending E-Mail to {receiver}...")
@@ -55,40 +58,44 @@ def send_mail(request:dict[str,str|dict[str, str]],
         LOGGER.debug("Quitting Connection to SMTP Server...")
         smtp.quit()
 
-def create_subject(request:dict[str,str|dict[str, str]], type:Literal['request', 'update', 'delete', 'exception']) -> str:
-    mail:dict[str, str] = load_config()["mail"]
-    start, end, month, year = convert_dates(request.get('dates'))
-    match type:
-        case 'exception':
-            return f"{mail["subject_failure"]} {request.get('name')} {month} {year}"
-        case 'update':
-            return f"{mail["subject_update"]} {request.get('name')} {month} {year}"
-        case 'delete':
-            return f"{mail["subject_delete"]} {request.get('name')} {month} {year}"
-        case 'request':
-            return f"{mail["subject_request"]} {request.get('name')} {month} {year}"
-    return 'This is odd.'
 
-def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], exception:Exception) -> str:
-    form: dict[str, str | dict[str, str]] = load_config()['form']
+def create_subject(
+    request: dict[str, str | dict[str, str]], type: Literal["request", "update", "delete", "exception"]
+) -> str:
+    mail: dict[str, str] = load_config()["mail"]
+    start, end, month, year = convert_dates(request.get("dates"))
+    match type:
+        case "exception":
+            return f"{mail['subject_failure']} {request.get('name')} {month} {year}"
+        case "update":
+            return f"{mail['subject_update']} {request.get('name')} {month} {year}"
+        case "delete":
+            return f"{mail['subject_delete']} {request.get('name')} {month} {year}"
+        case "request":
+            return f"{mail['subject_request']} {request.get('name')} {month} {year}"
+    return "This is odd."
+
+
+def to_html(request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], exception: Exception) -> str:
+    form: dict[str, str | dict[str, str]] = load_config()["form"]
     html = ""
     magic_link = get_magic_link()
     for key, value in request.items():
         match key:
-            case 'dates':
-                start, end, month, year = convert_dates(request.get('dates'))
+            case "dates":
+                start, end, month, year = convert_dates(request.get("dates"))
                 html += f"</br>{form.get('start')}: {start}"
                 html += f"</br>{form.get('end')}: {end}"
                 continue
-            case 'message' | 'start' | 'end':
+            case "message" | "start" | "end":
                 continue
-            case 'sent' | 'updated' | 'deleted':
-                html += f"</br>{form.get(key)}: {value}" if value else ''
+            case "sent" | "updated" | "deleted":
+                html += f"</br>{form.get(key)}: {value}" if value else ""
             case _:
-	            if key in form['input'].keys():
-                        html += f"</br>{form['input'].get(key)}: {value}"
+                if key in form["input"].keys():
+                    html += f"</br>{form['input'].get(key)}: {value}"
     is_selected = [w.name for w in warehouses if app.storage.user.get(w.name) != []]
-    html += f"</br></br>{load_config()['warehouse'].get('label')}: {", ".join(is_selected)}"
+    html += f"</br></br>{load_config()['warehouse'].get('label')}: {', '.join(is_selected)}"
     html += f"</br>{form.get('update_link')}: <a href={magic_link}>{magic_link}</a>"
     html += f"</br></br>{form['input'].get('message')}:</br></br>{request.get('message')}"
     if exception:
