@@ -10,6 +10,7 @@ from pandas import DataFrame, notna
 
 from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.logger import LOGGER
+from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 
 
@@ -41,6 +42,7 @@ async def save_request(
 
     ods.save()
     LOGGER.info(f"Successfully wrote to sheet {data_sheet.name} @ {path}")
+    await Nextcloud.singleton().push_file(path)
 
 
 async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
@@ -52,6 +54,7 @@ async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
     data_sheet.clear()
     del ods.sheets[data_sheet.name]
     ods.save()
+    await Nextcloud.singleton().push_file(path)
 
 
 def get_request_file(request: dict[str, str], path: Path, year: str) -> Tuple[PackagedDocument, Sheet, Sheet | None]:

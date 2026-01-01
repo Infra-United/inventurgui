@@ -105,7 +105,7 @@ def root():
 def backend():
     nc = Nextcloud.singleton()
     for key, file in config["cloud"]["pull"].items():
-        app.timer(7200, lambda f=file: nc.update_file(f))  # Update files every 2 hours
+        app.timer(7200, lambda f=file: nc.pull_file(f))  # Update files every 2 hours
 
 
 def frontend():
