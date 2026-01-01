@@ -5,6 +5,7 @@ import ezodf
 from nicegui import ui, app
 from pandas_ods_reader import read_ods
 
+from inventurgui.cli import ARGS
 from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
@@ -103,13 +104,12 @@ def backend():
        app.timer(7200, lambda f=file: nc.update_file(f)) # Update files every 2 hours
 
 def frontend():
-    LOGGER.setLevel(10)  # DEBUG
     storage_secret = os.environ['UI_STORAGE_SECRET']
     user_dir = get_path('users')
     if not user_dir.exists():
         mkdir(user_dir)
     os.environ.setdefault('NICEGUI_STORAGE_PATH', str(user_dir))
-    ui.run(root=root, language=config['language'], uvicorn_logging_level='debug', show=False, reload=True, title=config['title'], favicon=get_path(config['favicon']), port=8080, storage_secret=storage_secret if storage_secret else 12341232312)
+    ui.run(root=root, language=config['language'], uvicorn_logging_level='debug' if ARGS.debug else 'info', show=False, reload=ARGS.debug, title=config['title'], favicon=get_path(config['favicon']), port=8080, storage_secret=storage_secret if storage_secret else 12341232312)
     LOGGER.debug('Successfully started UI.')
 
 if __name__ in {"__main__", "__mp_main__"}:
