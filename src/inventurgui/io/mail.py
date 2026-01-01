@@ -31,6 +31,7 @@ def send_mail(request:dict[str,str|dict[str, str]],
               settings: MailSettings = MailSettings()) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
     email = request.get("email")
+    print(settings)
     with smtplib.SMTP_SSL(settings.domain, settings.port, context=ssl.create_default_context()) as smtp:
         smtp.ehlo()
         smtp.set_debuglevel(1)
@@ -84,11 +85,12 @@ def to_html(request: dict[str, str|dict[str, str]], warehouses:list[Warehouse], 
             case 'sent' | 'updated' | 'deleted':
                 html += f"</br>{form.get(key)}: {value}" if value else ''
             case _:
-                html += f"</br>{form['input'].get(key)}: {value}"
+	            if key in form['input'].keys():
+                        html += f"</br>{form['input'].get(key)}: {value}"
     is_selected = [w.name for w in warehouses if app.storage.user.get(w.name) != []]
     html += f"</br></br>{load_config()['warehouse'].get('label')}: {", ".join(is_selected)}"
     html += f"</br>{form.get('update_link')}: <a href={magic_link}>{magic_link}</a>"
-    html += f"</br></br>{form.get('message')}:</br></br>{request.get('message')}"
+    html += f"</br></br>{form['input'].get('message')}:</br></br>{request.get('message')}"
     if exception:
         html += f"</br></br>{exception.args[0]}: <br><br>{traceback.print_exc(chain=False)}"
     return html

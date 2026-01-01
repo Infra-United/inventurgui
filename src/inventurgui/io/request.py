@@ -85,12 +85,13 @@ def init_overview_sheet(request: dict[str, str|dict[str,str]], year:str):
                     cell.set_value(str(form.get(val)))
                 count += 3
                 continue
-            case 'message' | 'sent' | 'updated':
-                continue
+            case 'message':
+	            continue
             case _:
-                c:Cell = sheet[0, count]
-                c.set_value(f"{form['input'].get(key)}")
-                count += 1
+	            if key in form['input'].keys():
+	                c:Cell = sheet[0, count]
+	                c.set_value(f"{form['input'].get(key)}")
+	                count += 1
     sheet[0, count].set_value(str(form.get('sent')))
     sheet[0, count+1].set_value(str(form.get('updated')))
     LOGGER.info(f"Successfully created overview sheet for year {year}.")
@@ -109,7 +110,7 @@ def write_overview(sheet:Sheet, request: dict[str, str|dict[str, str]], row_numb
                     cell.set_value(str(val))
                 count += 3
                 continue
-            case 'message':
+            case 'message' | 'finish' | 'download':
                 continue
             case _:
                 cell:Cell = sheet.get_cell((row_number, count))
