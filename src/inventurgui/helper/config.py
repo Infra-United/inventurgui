@@ -22,7 +22,7 @@ config_file: Path = get_path(ARGS.config_file)
 def load_yaml(stream: TextIOWrapper) -> dict:
     try:
         data: dict = yaml.load(stream, yaml.SafeLoader)
-        debug(f"Successfully loaded the following data from yml: \n {data}")
+        #debug(f"Successfully loaded the following data from yml: \n {data}")
         return data
     except yaml.YAMLError as exc:
         exception("Error in helper file: \n" + exc), exit(1)
@@ -37,7 +37,7 @@ def dump_yaml(data: dict, stream: TextIOWrapper) -> None:
 
 
 def load_config() -> dict:
-    debug(f"Loading helper from {config_file}...")
+    debug(f"Loading config from {config_file}...")
     try:
         with open(config_file, "r") as file:
             return load_yaml(file)
