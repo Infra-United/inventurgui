@@ -1,4 +1,4 @@
-from nicegui import ui
+from nicegui import ui, app
 from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import load_config
@@ -8,7 +8,7 @@ from inventurgui.ui.markdown import render_markdown
 
 async def start_page(ld: LeftDrawer) -> None:
     start: dict[str, str | dict[str, str]] = load_config()["start"]
-    ld.hide()
+    ld.show() if app.storage.user['screen'].get('width') >= 1024 else ld.hide()
     main_tabs = tabs()
     main_panels = tab_panels(main_tabs)
     for key, values in start.items():
