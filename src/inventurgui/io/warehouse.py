@@ -21,12 +21,17 @@ class Warehouse:
     @property
     def categories(self) -> list[str]:
         warehouse_conf: dict = load_config()["warehouse"]
-        c: list[str] = sorted(self.inventory[load_config()["data"]["category"]].unique())
+        try:
+            c: list[str] = sorted(self.inventory[load_config()["data"]["category"]].unique())
+        except (AttributeError, TypeError):
+	        raise AttributeError("It seems like you have used a category that is not sortable."
+	                         "\nPlease review the categories used in the category column of the inventory file."
+	                         "\nCheck for empty cells, and stuff like numbers, non-ascii-characters, etc.")
         c.insert(0, warehouse_conf["selection"])
         c.insert(1, warehouse_conf["everything"])
         return c
 
-    async def selected(self) -> DataFrame | None:
+    async def selected(self) -> DataFrame:
         row_ids: list = list(app.storage.user.get(self.name))
         return await run.cpu_bound(_get_selected, self.inventory.iterrows, row_ids)
 
