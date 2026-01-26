@@ -56,11 +56,6 @@ start:
     label: 'Hilfe'
     icon: 'help_outline'
     path: 'help.md'
-  terms:
-    display: true
-    label: 'Leihbedingungen'
-    icon: 'policy'
-    path: 'terms.md'
 warehouse:
   label: 'Lager'
   icon: 'warehouse'
