@@ -9,6 +9,10 @@ from inventurgui.io.warehouse import Warehouse
 
 
 def header(ld: LeftDrawer):
+    """
+	Creates the header bar on top of the screen using the logo, the title and the main menu. NOTE: Only used on Screens wider than 640px.
+    :param ld:  The left drawer that holds the warehouse menu.
+    """
     with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
         ui.image(source=get_path(config.get("favicon"))).classes("h-full m-0 p-0 w-[56px]")
         ui.label(str(config.get("title")).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
@@ -16,6 +20,10 @@ def header(ld: LeftDrawer):
 
 
 def footer(ld: LeftDrawer):
+    """
+	Creates the footer bar on bottoms of the screen using the main menu. NOTE: Only used on Screens smaller than 640px.
+	:param ld: The left drawer that holds the warehouse menu.
+    """
     # Footer is only shown on small screens
     with ui.footer(fixed=True).classes("sm:hidden p-0 gap-0 h-[56px]"):
         main_menu(
@@ -54,35 +62,15 @@ def checkout_fab(next_page: dict[str, str]):
             badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
 
 
-def back_fab(
-    last_page: dict[str, str],
-):
-    props: str = "text-color=primary"
-    with ui.page_sticky(position="bottom-left", x_offset=30, y_offset=18).classes("z-999"):
-        fab = ui.fab(icon="navigate_before", direction="up", color="secondary").props(f"{props}")
-        fab.on("click", lambda: ui.navigate.to(url_safe(f"/{last_page.get('label')}?id={app.storage.browser['id']}")))
-        fab.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
-        fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
-        fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
-        with fab.add_slot("label"):
-            with ui.row():
-                icon = ui.icon(last_page.get("icon"))
-                label = ui.label(last_page.get("label")).classes("text-base")
-                label.set_visibility(False)
-            badge = (
-                ui.badge("0", color="secondary", text_color="primary").props("rounded floating").classes("text-bold")
-            )
-            badge.bind_text_from(app.storage.user, "Total")
-            badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
-
-
 def main_menu(
     ld: LeftDrawer, classes: str = "stretch", props: str = "unelevated no-wrap text-color=secondary square"
 ) -> None:
     start: dict[str, str | dict[str, str]] = load_config()["start"]
-    ui.button(icon="menu", on_click=lambda: ld.show()).classes(classes).props(props)
-    btn: Button = ui.button(start.get("label"), icon=start.get("icon")).classes(classes).props(props)
-    btn.on_click(lambda l=url_safe(start["label"]): ui.navigate.to("/"))
+    btn = ui.button(config['warehouse'].get('label'), icon="menu", on_click=lambda: ld.show())
+    btn.classes(classes).props(f'{props} :visible=Quasar.Screen.lt.md')
+    #ui.on('resize', lambda: btn.set_visibility(640 >= app.storage.user['screen'].get('width') >= 1024))
+    start_btn: Button = ui.button(start.get("label"), icon=start.get("icon")).classes(classes).props(props)
+    start_btn.on_click(lambda: ui.navigate.to("/"))
     ui.space().classes("max-sm:hidden")
 
 
@@ -106,9 +94,12 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
     path_category = reverse_url(ui.context.client.sub_pages_router.current_path.split("/")[-1])
     path_warehouse = reverse_url(ui.context.client.sub_pages_router.current_path.split("/")[-2])
 
+    #t = ui.tree([{'id': w.name, 'label': w.name.upper(), 'children': [{'id': c, 'label': c.upper()} for c in w.categories]} for w in warehouses])
+    #t.props(f'{props} accordion no-connectors "selected-color=accent"').classes(classes)
     with ui.row().classes("flex bg-primary row w-full px-20 py-3 mb-1"):
         ui.icon(warehouse_conf.get("icon"), size="20px", color="secondary").classes(classes)
         ui.label(warehouse_conf.get("label").upper()).classes(classes).classes("text-secondary")
+
     for warehouse in warehouses:
         name = warehouse.name
         with ui.expansion(group="menu").classes(classes) as expansion:
@@ -119,14 +110,10 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
                 )
             )
             expansion.set_value(True if name == path_warehouse else True if name == warehouses[0].name else False)
-            expansion.on(
-                "click", lambda l=url_safe(name): ui.navigate.to(f"/{l}/{url_safe(warehouse_conf['everything'])}")
-            )
-            expansion.on("click", lambda e=expansion: e.open())
             with expansion.add_slot("header"):
                 with ui.label(name.upper()).classes("py-3 w-full"):
                     badge = (
-                        ui.badge("0", color="primary", text_color="secondary").props("floating").classes("text-bold")
+                        ui.badge("0", color="primary", text_color="secondary").props().classes("text-bold ml-2")
                     )
                     badge.bind_text_from(app.storage.user, warehouse.name, backward=lambda v: str(len(v)), strict=False)
             if len(warehouse.categories) == 2:
@@ -134,6 +121,33 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
                 continue
             toggle = ui.toggle(warehouse.categories)
             toggle.set_value(path_category)
+            expansion.on("click", lambda t=toggle: t.set_value(path_category))
+            expansion.on(
+                "click", lambda l=url_safe(name): ui.navigate.to(f"/{l}/{url_safe(warehouse_conf['everything'])}")
+            )
+            expansion.on("click", lambda e=expansion: e.open())
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
             toggle.on_value_change(lambda v, w=warehouse: ui.navigate.to(f"/{url_safe(w.name)}/{url_safe(v.value)}"))
             toggle.on_value_change(lambda: ld.hide() if app.storage.user.get("screen")["width"] < 1024 else None)
+
+
+def back_fab(
+    last_page: dict[str, str],
+):
+    props: str = "text-color=primary"
+    with ui.page_sticky(position="bottom-left", x_offset=30, y_offset=18).classes("z-999"):
+        fab = ui.fab(icon="navigate_before", direction="up", color="secondary").props(f"{props}")
+        fab.on("click", lambda: ui.navigate.to(url_safe(f"/{last_page.get('label')}?id={app.storage.browser['id']}")))
+        fab.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
+        fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
+        fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
+        with fab.add_slot("label"):
+            with ui.row():
+                icon = ui.icon(last_page.get("icon"))
+                label = ui.label(last_page.get("label")).classes("text-base")
+                label.set_visibility(False)
+            badge = (
+                ui.badge("0", color="secondary", text_color="primary").props("rounded floating").classes("text-bold")
+            )
+            badge.bind_text_from(app.storage.user, "Total")
+            badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
