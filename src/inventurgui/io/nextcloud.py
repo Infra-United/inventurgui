@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Self
 
 from aiowebdav2.client import Client
-from aiowebdav2.exceptions import ConnectionExceptionError
+from aiowebdav2.exceptions import ConnectionExceptionError, NoConnectionError
 from dateutil.utils import today
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -67,11 +67,11 @@ class Nextcloud(Client):
                     f"Checked in {self._webdav_url}.\nPlease review config."
                 )
                 await self.shut_down_if_missing_file(local)
-        except (asyncio.TimeoutError, ConnectionExceptionError):
+        except (asyncio.TimeoutError, ConnectionExceptionError, NoConnectionError):
             LOGGER.warning(f"Cannot connect to {self._domain}.\nPlease check your Internet Connection.")
             await self.shut_down_if_missing_file(local)
 
     async def push_file(self, file: Path) -> None:
-	    await self.upload_file("/".join((self.remote_dir, file.name)), get_path(file.name))
-	    print(await self.info("/".join((self.remote_dir, file.name))))
-	    LOGGER.info(f"Successfully pushed {file.name} to remote directory.")
+        await self.upload("/".join((self.remote_dir, file.name)), get_path(file.name))
+        print(await self.info("/".join((self.remote_dir, file.name))))
+        LOGGER.info(f"Successfully pushed {file.name} to remote directory.")
