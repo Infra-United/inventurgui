@@ -37,7 +37,7 @@ class Warehouse:
 
     async def selected(self) -> DataFrame:
         row_ids: list = list(app.storage.user.get(self.name))
-        return await run.cpu_bound(_get_selected, self.inventory.iterrows, row_ids)
+        return _get_selected(self.inventory.iterrows, row_ids)
 
     async def get_final(self) -> DataFrame | None:
         df = await self.selected()
