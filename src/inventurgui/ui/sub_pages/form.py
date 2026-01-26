@@ -115,7 +115,7 @@ class Form:
 				delete.on_click(lambda: self.delete_request(warehouses))
 
 		with ui.grid(columns=2).classes("w-full bg-dark pb-10 h-screen flex-column") as grid:
-			with ui.column().classes("ml-auto pb-20") as submit_column:
+			with ui.column(align_items='end').classes("max-sm:col-span-2 ml-auto pb-10") as submit_column:
 				submit = ui.button(self.config.get("send"), icon=self.config.get("send_icon"))
 				submit.on_click(lambda: self.submit(warehouses))
 				submit.props("text-color=secondary rounded")
@@ -156,7 +156,7 @@ class Form:
 					i.bind_value(self.request, key)
 					self.inputs.append(i)
 
-			with ui.column().classes("pb-20"):
+			with ui.column().classes("max-sm:col-span-2"):
 				for value in self.config.get("checkbox").values():
 					c = ui.checkbox(value)
 					c.on_value_change(lambda: self.validate())
