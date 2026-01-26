@@ -14,7 +14,7 @@ def header(ld: LeftDrawer):
     :param ld:  The left drawer that holds the warehouse menu.
     """
     with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
-        ui.image(source=get_path(config.get("favicon"))).classes("h-full m-0 p-0 w-[56px]")
+        ui.image(source=get_path(config.get("favicon"))).classes("h-full m-0 p-0 w-[56px]").on('click', lambda: ui.navigate.to("/"))
         ui.label(str(config.get("title")).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
         main_menu(ld, classes="stretch h-full")
 
