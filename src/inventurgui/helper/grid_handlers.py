@@ -1,5 +1,6 @@
 from contextlib import suppress
 
+import numpy as np
 from nicegui import app, ui
 from nicegui.elements.aggrid import AgGrid
 from nicegui.events import GenericEventArguments
@@ -16,7 +17,10 @@ def max_amount(name: str, event: GenericEventArguments):
 
 def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments):
     row_id = event.args["rowId"]
-    new_value = event.args["newValue"]
+    new_value = event.args.get("newValue")
+    if new_value is None:
+        #TODO fix
+        return
     edited_rows: ObservableDict = app.storage.user["amounts"].get(name)
     if row_id not in edited_rows.keys():
         initial_value = event.args["oldValue"]
