@@ -33,6 +33,7 @@ data:
   count: Zahl
   of_total: "von" # String used in cart to format count as: "{value} {of_total} {total}"
   weight: Gewicht
+  total_weight: Gesamtgewicht
   desc: Art
   object: Objekt
   pack: Packung

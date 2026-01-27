@@ -22,12 +22,10 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
         aggrid: The AG Grid that results from the given Arguments.
     """
     # Define Columns for AG Grids
-    data = load_config()["data"]
-    default_col_def: dict = {"sortable": True, 'lockPinned': True, "lockVisible":True, "suppressMovable": True, "resizable": False, "filter": False, "floatingFilter": False}
-
+    config = load_config()["data"]
     column_defs = [
         {
-            "field": data["object"],
+            "field": config["object"],
             "filter": not cart,
             "floatingFilter": not cart,
             "sort": "asc" if not cart else '',
@@ -36,19 +34,19 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             if not cart
             else {"text-bold": "x", "tracking-wider": "x"},
         },
-        {"field": data["desc"]},
+        {"field": config["desc"]},
         {
-            "field": data["weight"],
-            ":valueFormatter": f"(p) => p.value != null ? p.value + ' kg' : null",
-            # ":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
+            ":valueGetter": f"(p) => p.data.{config['weight']} ? p.data.{config['weight']} * p.data.{config['count']} : null"
+            if cart else f"(p) => p.data.{config['weight']}",
+            ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
             # ":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
-            "headerName": "[kg/Packung]",
+            "headerName": config["total_weight"] + f"" if cart else f"[kg/{config["pack"]}]",
             "cellDataType": "number",
             "suppressSizeToFit": True,
         },
         {
-            "field": data["count"],
-            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' {data.get('of_total')} ' + p.data.total : p.value" if cart else "",
+            "field": config["count"],
+            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' {config.get('of_total')} ' + p.data.total : p.value" if cart else "",
             #":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
             #":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             "headerName": "",
@@ -59,9 +57,11 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "sort": "desc" if cart else "",
             "cellClassRules": {"bg-accent": "data.total > 1", "text-bold": "data.total > 1"} if cart else "",
         },
-        {"field": data["pack"], "lockPosition": "left" if cart else "", "suppressSizeToFit":True,},
+        {"field": config["pack"], "lockPosition": "left" if cart else "", "suppressSizeToFit":True,},
     ]
-    if data["links"]["display"]:
+    default_col_def: dict = {"sortable": True, 'lockPinned': True, "lockVisible":True, "suppressMovable": True, "resizable": False, "filter": False, "floatingFilter": False}
+
+    if config["links"]["display"]:
         # Function to replace https links with HTML string
         def replace_https_with_html(link):
             if pandas.isna(link):
@@ -72,7 +72,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
 
         # Apply the function to the 'links' column
         pandas.options.mode.copy_on_write = True
-        data["has_link"] = df[data["links"]["column"]].apply(replace_https_with_html)
+        config["has_link"] = df[config["links"]["column"]].apply(replace_https_with_html)
         link_column = {"headerName": "", "field": "has_link", "filter": False, "minWidth": 50, "maxWidth": 50}
         column_defs.insert(0, link_column)
 
@@ -90,7 +90,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "selectionColumnDef": {"hide": cart, "maxWidth": 35, "sortable": True},
             "columnDefs": column_defs,
             "defaultColDef": default_col_def,
-            "rowData": df.to_dict("records"),
+            "rowData": (df.to_dict("records")),
             "theme": theme,
             "alwaysMultiSort": True,
             "rowSelection": {
@@ -134,9 +134,10 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             grid.on(
                 "firstDataRendered",
                 lambda r=row: grid.run_row_method(
-                    r, "setDataValue", data["count"], app.storage.user["amounts"].get(name, name).get(r)[0]
+                    r, "setDataValue", config["count"], app.storage.user["amounts"].get(name, name).get(r)[0]
                 ),
             )
+    grid.on('firstDataRendered', lambda: grid.run_grid_method("setPinnedBottomRowData", {}, 0))
     grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if int(app.storage.user['screen'].get('width')) > 640 else 'None'), leading_events=True)
