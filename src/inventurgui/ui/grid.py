@@ -9,7 +9,6 @@ from inventurgui.helper.grid_handlers import handle_edit, handle_select
 
 """This module implements functions to create AG Grids which display the data."""
 
-
 def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
 
@@ -23,23 +22,28 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     """
     # Define Columns for AG Grids
     config = load_config()["data"]
+
     column_defs = [
         {
             "field": config["object"],
             "filter": not cart,
+            "wrapText": True,
+            "autoHeight": True,
             "floatingFilter": not cart,
             "sort": "asc" if not cart else '',
-            "suppressSizeToFit": True,
+            "suppressSizeToFit": False,
             "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"}
             if not cart
             else {"text-bold": "x", "tracking-wider": "x"},
         },
-        {"field": config["desc"]},
+        {"field": config["desc"], "wrapText": True, "autoHeight": True},
         {
             ":valueGetter": f"(p) => p.data.{config['weight']} ? p.data.{config['weight']} * p.data.{config['count']} : null"
             if cart else f"(p) => p.data.{config['weight']}",
             ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
             # ":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
+            #":colId": f"(p) => p.data.{config['weight']}.reduce((acc, x) => acc + (x || 0), 0);",
+            #":headerValueGetter": f"(p) => p.location === 'header' ? p.column.colId : null;",
             "headerName": config["total_weight"] + f"" if cart else f"[kg/{config["pack"]}]",
             "cellDataType": "number",
             "suppressSizeToFit": True,
