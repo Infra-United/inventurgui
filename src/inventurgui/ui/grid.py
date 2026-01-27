@@ -36,7 +36,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             if not cart
             else {"text-bold": "x", "tracking-wider": "x"},
         },
-        {"field": config["desc"], "wrapText": True, "autoHeight": True},
+        {"field": config["desc"], "wrapText": True, "autoHeight": True, 'sortable': False},
         {
             ":valueGetter": f"(p) => p.data.{config['weight']} ? p.data.{config['weight']} * p.data.{config['count']} : null"
             if cart else f"(p) => p.data.{config['weight']}",
@@ -62,9 +62,9 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "sort": "desc" if cart else "",
             "cellClassRules": {"bg-accent": "data.total > 1", "text-bold": "data.total > 1"} if cart else "",
         },
-        {"field": config["pack"], "lockPosition": "left" if cart else "", "suppressSizeToFit":True,},
+        {"field": config["pack"], "lockPosition": "left" if cart else "", "suppressSizeToFit":True, 'sortable': False},
     ]
-    default_col_def: dict = {"sortable": not cart, 'lockPinned': True, "lockVisible":True, "suppressMovable": True, "resizable": False, "filter": False, "floatingFilter": False}
+    default_col_def: dict = {"sortable": True, 'lockPinned': True, "lockVisible":True, "suppressMovable": True, "resizable": False, "filter": False, "floatingFilter": False}
 
     if config["links"]["display"]:
         # Function to replace https links with HTML string

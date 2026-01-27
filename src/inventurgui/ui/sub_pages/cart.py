@@ -43,7 +43,7 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
         with truck_tabs:
             with ui.tab(w.name.upper(), icon=cart["tab_icon"]).classes("px-4").props("inline-label"):
                 badge = ui.badge("0", color="white", text_color='secondary').props("").classes("text-bold ml-2 p-1")
-                badge.bind_text_from(app.storage.user, w.name, lambda e: f"{len(e)} kg")
+                badge.bind_text_from(app.storage.user, w.name, lambda e: len(e))
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
                 create_aggrid(w.name, selected, cart=True)
