@@ -8,13 +8,6 @@ from nicegui.observables import ObservableDict
 
 from inventurgui.helper.config import config
 
-
-def max_amount(name: str, event: GenericEventArguments):
-    with suppress(TypeError):
-        amount = app.storage.user["amounts"].get(name).get(event.args["rowId"])[1]
-        ui.notify(f"Maximum: {amount}", position="center", type="info", color="secondary")
-
-
 def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments):
     row_id = event.args["rowId"]
     new_value = event.args.get("newValue")

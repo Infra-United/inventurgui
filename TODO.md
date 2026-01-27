@@ -2,7 +2,11 @@
 ## Grid
 - [x] Auto-Sizing to fit Width for cart
 - [x] Fix cart not loading properly bug
+- [x] Make cart show max amount by value formatting
 - [x] Display weights
+
+# Cart
+- [ ] Calculate weights
 
 ## Menu
 - [x] Add Lager-Label to Menu Button

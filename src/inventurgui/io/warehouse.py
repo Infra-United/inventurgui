@@ -17,10 +17,10 @@ class Warehouse:
         inventory[data["count"]] = pd.to_numeric(inventory[data["count"]], 'coerce', downcast='integer')
         inventory[data["weight"]] = pd.to_numeric(inventory[data["weight"]], 'coerce', downcast='integer')
         self.inventory = inventory
-        self.inventory = inventory
         self.inventory.insert(
             0, "perma_id", self.inventory.index.tolist()
         )  # This ensures we can have selection across grids
+        self.inventory.insert(0, "total", inventory[data["count"]])
         self.inventory.insert(0, load_config()["warehouse"]["label"], self.name)
 
     @property

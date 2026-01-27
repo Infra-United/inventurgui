@@ -5,7 +5,7 @@ from nicegui.ui import aggrid
 from pandas import DataFrame
 
 from inventurgui.helper.config import load_config
-from inventurgui.helper.grid_handlers import handle_edit, max_amount, handle_select
+from inventurgui.helper.grid_handlers import handle_edit, handle_select
 
 """This module implements functions to create AG Grids which display the data."""
 
@@ -24,7 +24,6 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     # Define Columns for AG Grids
     data = load_config()["data"]
     default_col_def: dict = {"sortable": True, 'lockPinned': True, "lockVisible":True, "suppressMovable": True, "resizable": False, "filter": False, "floatingFilter": False}
-
 
     column_defs = [
         {
@@ -49,6 +48,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
         },
         {
             "field": data["count"],
+            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' von ' + p.data.total : p.value" if cart else "",
             #":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
             #":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             "headerName": "",
@@ -57,7 +57,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "suppressSizeToFit": True,
             "lockPosition": "left" if cart else "",
             "sort": "desc" if cart else "",
-            "cellClassRules": {"bg-accent": "x > 1", "text-bold": "x > 1"} if cart else "",
+            "cellClassRules": {"bg-accent": "data.total > 1", "text-bold": "data.total > 1"} if cart else "",
         },
         {"field": data["pack"], "lockPosition": "left" if cart else "", "suppressSizeToFit":True,},
     ]
@@ -137,7 +137,6 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
                     r, "setDataValue", data["count"], app.storage.user["amounts"].get(name, name).get(r)[0]
                 ),
             )
-    grid.on("cellEditingStarted", lambda event: max_amount(name, event))
     grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
     ui.on("resize", lambda: grid.run_grid_method("autoSizeAllColumns"), throttle=0.8, trailing_events=True)
     ui.on("resize", lambda: grid.run_grid_method("sizeColumnsToFit" if int(app.storage.user['screen'].get('width')) > 640 else 'None'), throttle=1.0, trailing_events=True)
