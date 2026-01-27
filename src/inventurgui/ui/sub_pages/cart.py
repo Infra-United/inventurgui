@@ -13,7 +13,7 @@ from inventurgui.ui.layout import checkout_fab, tabs, tab_panels
 from inventurgui.helper.magic_link import load_data_from_magic_link
 
 
-async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
+def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
     cart: dict = load_config()["cart"]
     ui.query(".nicegui-sub-pages").classes(replace="bg-dark w-full no-scroll").style(replace="gap:0")
 
@@ -37,7 +37,7 @@ async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
     truck_panels = tab_panels(truck_tabs)
     LOGGER.debug("Creating Cart page...")
     for w in warehouses:
-        selected = await w.selected()
+        selected = w.selected()
         if selected is None or selected.empty:
             continue
         with truck_tabs:

@@ -15,6 +15,7 @@ class Warehouse:
         self.name = name
         data = load_config()['data']
         inventory[data["count"]] = pd.to_numeric(inventory[data["count"]], 'coerce', downcast='integer')
+        inventory[data["weight"]] = pd.to_numeric(inventory[data["weight"]], 'coerce', downcast='integer')
         self.inventory = inventory
         self.inventory = inventory
         self.inventory.insert(
@@ -35,12 +36,18 @@ class Warehouse:
         c.insert(1, warehouse_conf["everything"])
         return c
 
-    async def selected(self) -> DataFrame:
+    def selected(self) -> DataFrame:
         row_ids: list = list(app.storage.user.get(self.name))
-        return _get_selected(self.inventory.iterrows, row_ids)
+        def _match_selected() -> Generator[Series, None, None]:
+            for row_id in row_ids:
+                for df_id, row_data in self.inventory.iterrows():
+                    if str(df_id) == row_id:
+                        yield row_data
 
-    async def get_final(self) -> DataFrame | None:
-        df = await self.selected()
+        return DataFrame.from_records([r for r in _match_selected()])
+
+    def get_final(self) -> DataFrame | None:
+        df = self.selected()
         if df is None or df.empty:
             return None
         user_amounts = app.storage.user["amounts"].get(self.name, {})
@@ -52,13 +59,3 @@ class Warehouse:
             df.loc[mask, load_config()["data"]["count"]] = int(values[0])
         df.drop("perma_id", axis=1, inplace=True)
         return df
-
-
-def _get_selected(iterator: Any, row_ids: list[str]) -> DataFrame:
-    def _match_selected() -> Generator[Series, None, None]:
-        for row_id in row_ids:
-            for df_id, row_data in iterator():
-                if str(df_id) == row_id:
-                    yield row_data
-
-    return DataFrame.from_records([r for r in _match_selected()])

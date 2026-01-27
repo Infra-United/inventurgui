@@ -39,6 +39,15 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
         },
         {"field": data["desc"]},
         {
+            "field": data["weight"],
+            ":valueFormatter": f"(p) => p.value != null ? p.value + ' kg' : null",
+            # ":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
+            # ":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
+            "headerName": "[kg/Packung]",
+            "cellDataType": "number",
+            "suppressSizeToFit": True,
+        },
+        {
             "field": data["count"],
             #":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
             #":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',

@@ -2,10 +2,7 @@
 ## Grid
 - [x] Auto-Sizing to fit Width for cart
 - [x] Fix cart not loading properly bug
-- [ ] Make invalid values something useful (viele)
-  - by using valuegetter
-- [ ]
-
+- [x] Display weights
 
 ## Menu
 - [x] Add Lager-Label to Menu Button
