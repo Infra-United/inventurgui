@@ -48,7 +48,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
         },
         {
             "field": data["count"],
-            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' von ' + p.data.total : p.value" if cart else "",
+            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' {data.get('of_total')} ' + p.data.total : p.value" if cart else "",
             #":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
             #":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             "headerName": "",

@@ -31,6 +31,7 @@ data:
   sheets: 3
   category: Kategorie
   count: Zahl
+  of_total: "von" # String used in cart to format count as: "{value} {of_total} {total}"
   weight: Gewicht
   desc: Art
   object: Objekt
