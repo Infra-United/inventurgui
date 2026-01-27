@@ -138,9 +138,8 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
                 ),
             )
     grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
-    ui.on("resize", lambda: grid.run_grid_method("autoSizeAllColumns"), throttle=0.8, trailing_events=True)
-    ui.on("resize", lambda: grid.run_grid_method("sizeColumnsToFit" if int(app.storage.user['screen'].get('width')) > 640 else 'None'), throttle=1.0, trailing_events=True)
-    grid.on("firstDataRendered", lambda: grid.run_grid_method("sizeColumnsToFit" if int(app.storage.user['screen'].get('width')) > 640 else 'None'))
+    grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
+    grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if int(app.storage.user['screen'].get('width')) > 640 else 'None'), leading_events=True)
     return grid
 
 
