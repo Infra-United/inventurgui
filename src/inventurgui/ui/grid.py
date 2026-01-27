@@ -53,13 +53,14 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "editable": cart,
             "cellDataType": "number",
             "suppressSizeToFit": True,
+            "maxWidth": 50 if not cart else None,
             "lockPosition": "left" if cart else "",
             "sort": "desc" if cart else "",
             "cellClassRules": {"bg-accent": "data.total > 1", "text-bold": "data.total > 1"} if cart else "",
         },
         {"field": config["pack"], "lockPosition": "left" if cart else "", "suppressSizeToFit":True,},
     ]
-    default_col_def: dict = {"sortable": True, 'lockPinned': True, "lockVisible":True, "suppressMovable": True, "resizable": False, "filter": False, "floatingFilter": False}
+    default_col_def: dict = {"sortable": not cart, 'lockPinned': True, "lockVisible":True, "suppressMovable": True, "resizable": False, "filter": False, "floatingFilter": False}
 
     if config["links"]["display"]:
         # Function to replace https links with HTML string
@@ -137,7 +138,6 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
                     r, "setDataValue", config["count"], app.storage.user["amounts"].get(name, name).get(r)[0]
                 ),
             )
-    grid.on('firstDataRendered', lambda: grid.run_grid_method("setPinnedBottomRowData", {}, 0))
     grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if int(app.storage.user['screen'].get('width')) > 640 else 'None'), leading_events=True)
