@@ -56,11 +56,11 @@ def root():
         "p-0 min-h-full bg-dark w-full no-scroll h-[calc(100vh-56px)]"
     )  # remove default padding from site
     ui.query(".nicegui-sub-pages").classes("bg-dark w-full h-[calc(100vh-56px)] no-scroll").style(replace="gap:0")
-    ui.on("resize", lambda e: app.storage.user.update({"screen": e.args}), throttle=0.4, trailing_events=True)
 
     # init app storage
     app.storage.user.indent = True
     app.storage.user.setdefault("screen", {})
+    ui.on("resize", lambda e: app.storage.user.update({"screen": e.args}), throttle=0.4, trailing_events=True)
     app.storage.user.setdefault("notified", {"selection": False})
     app.storage.user.setdefault("Total", 0)
     app.storage.user.setdefault(

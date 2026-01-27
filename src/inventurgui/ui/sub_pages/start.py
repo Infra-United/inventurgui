@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 from nicegui import ui, app
 from nicegui.elements.drawer import LeftDrawer
 
@@ -8,7 +10,6 @@ from inventurgui.ui.markdown import render_markdown
 
 async def start_page(ld: LeftDrawer) -> None:
     start: dict[str, str | dict[str, str]] = load_config()["start"]
-    ld.show() if app.storage.user['screen'].get('width') >= 1024 else ld.hide()
     main_tabs = tabs()
     main_panels = tab_panels(main_tabs)
     for key, values in start.items():
@@ -21,3 +22,5 @@ async def start_page(ld: LeftDrawer) -> None:
             with ui.tab_panel(label).classes("m-0 p-0"):
                 await render_markdown(values)
     main_panels.set_value([t.props.get("label") for t in main_tabs.descendants()][0])  # First tab is open by default
+    with suppress(TypeError):
+        ld.show() if app.storage.user['screen'].get('width') >= 1024 else ld.hide()
