@@ -3,7 +3,7 @@ from contextlib import suppress
 from nicegui import ui, app
 from nicegui.elements.drawer import LeftDrawer
 
-from inventurgui.helper.config import load_config
+from inventurgui.helper.config import load_config, config
 from inventurgui.ui.layout import tabs, tab_panels
 from inventurgui.ui.markdown import render_markdown
 
@@ -12,6 +12,8 @@ async def start_page(ld: LeftDrawer) -> None:
     start: dict[str, str | dict[str, str]] = load_config()["start"]
     main_tabs = tabs()
     main_panels = tab_panels(main_tabs)
+
+    ui.page_title(f"{config['title']}")
     for key, values in start.items():
         if isinstance(values, str) or not values.get("display"):
             continue

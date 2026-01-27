@@ -8,6 +8,8 @@ from inventurgui.ui.layout import checkout_fab, back_fab
 
 async def finish_page(warehouses: list[Warehouse]):
     finish: dict[str, str | dict[str, str]] = load_config()["finish"]
+
+    ui.page_title(f"{finish['label']}")
     with ui.tab_panel("finish").classes("w-full h-dvh m-0"):
         with ui.column(align_items="center").classes("mx-auto my-auto text-center"):
             request = app.storage.user.get("form")

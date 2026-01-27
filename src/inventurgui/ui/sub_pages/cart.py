@@ -1,7 +1,6 @@
 import time
 
 from nicegui import app, ui, PageArguments
-from nicegui.elements.aggrid import AgGrid
 from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import load_config
@@ -32,6 +31,7 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
         ui.notify(cart["edit_tip"], position="center", color="primary", textColor="dark")
         app.storage.user["notified"]["selection"] = True
 
+    ui.page_title(f"{cart['label']}")
     ld.hide()
     truck_tabs = tabs()
     truck_panels = tab_panels(truck_tabs)
@@ -41,12 +41,12 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
         if selected is None or selected.empty:
             continue
         with truck_tabs:
-            with ui.tab(w.name.upper(), icon=cart["tab_icon"]).classes("px-7").props("inline-label"):
-                badge = ui.badge("0", color="accent").props("floating").classes("text-bold")
-                badge.bind_text_from(app.storage.user, w.name, lambda e: len(e))
+            with ui.tab(w.name.upper(), icon=cart["tab_icon"]).classes("px-4").props("inline-label"):
+                badge = ui.badge("0", color="white", text_color='secondary').props("").classes("text-bold ml-2 p-1")
+                badge.bind_text_from(app.storage.user, w.name, lambda e: f"{len(e)} kg")
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
-                grid: AgGrid = create_aggrid(w.name, selected, cart=True)
+                create_aggrid(w.name, selected, cart=True)
     truck_panels.set_value(warehouses[0].name.upper())
     LOGGER.info("Created cart page")
     checkout_fab(load_config()["form"])
