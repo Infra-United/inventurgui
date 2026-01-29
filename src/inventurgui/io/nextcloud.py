@@ -55,9 +55,6 @@ class Nextcloud(Client):
         local = get_path(Path(file).name)
         remote = "/".join((self.remote_dir, file))
         try:
-            if local.is_file() and self.get_mod_time(local).date() == today().date():
-                LOGGER.info(f"{file} is up to date. Using cached data.")
-                return
             if await self.check(remote):
                 LOGGER.debug(f"Getting Data from {remote}...")
                 await self.download_file(remote, local)
