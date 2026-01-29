@@ -35,5 +35,5 @@ async def render_markdown(values: dict[str, str]) -> Markdown:
                 f"<br>In that case a page reload might also fix the problem."
             )
     return ui.markdown(text).classes(
-        "p-10 pt-5 mx-auto text-justify hyphens-none text-base/6 antialiasing text-gray-300 max-w-180"
+        "p-10 pt-5 mx-auto text-justify hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
     )
