@@ -6,6 +6,7 @@ from pandas import DataFrame
 
 from inventurgui.helper.config import load_config
 from inventurgui.helper.grid_handlers import handle_edit, handle_select
+from inventurgui.ui.auth import authenticate_user
 
 """This module implements functions to create AG Grids which display the data."""
 

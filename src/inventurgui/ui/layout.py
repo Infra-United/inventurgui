@@ -7,8 +7,10 @@ from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
 
+from inventurgui.ui.auth import authenticate_user, authenticated
 
-def header(ld: LeftDrawer):
+
+def header(ld: LeftDrawer|None = None):
     """
 	Creates the header bar on top of the screen using the logo, the title and the main menu. NOTE: Only used on Screens wider than 640px.
     :param ld:  The left drawer that holds the warehouse menu.
@@ -61,7 +63,7 @@ def checkout_fab(next_page: dict[str, str]):
             badge.bind_text_from(app.storage.user, "Total")
             badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
 
-
+@ui.refreshable
 def main_menu(
     ld: LeftDrawer, classes: str = "stretch", props: str = "unelevated no-wrap text-color=secondary square"
 ) -> None:
@@ -71,7 +73,14 @@ def main_menu(
     #ui.on('resize', lambda: btn.set_visibility(640 >= app.storage.user['screen'].get('width') >= 1024))
     start_btn: Button = ui.button(start.get("label"), icon=start.get("icon")).classes(classes).props(props)
     start_btn.on_click(lambda: ui.navigate.to("/"))
+    if authenticate_user():
+        requests: dict[str, str | dict[str, str]] = load_config()["requests"]
+        requests_btn: Button = ui.button(requests.get('label'), icon=requests.get('icon')).classes(classes).props(props)
+        requests_btn.on_click(lambda: ui.navigate.to(f"/{requests.get('label')}"))
     ui.space().classes("max-sm:hidden")
+    if authenticate_user():
+        settings_btn: Button = ui.button(icon='settings').classes(classes).props(props)
+        settings_btn.on_click(lambda: ui.navigate.to(f"/settings"))
 
 
 def tabs():

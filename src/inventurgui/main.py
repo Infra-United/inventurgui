@@ -9,9 +9,6 @@ from inventurgui.cli import ARGS
 from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
-
-# from ui.admin import admin
-# from ui.auth import try_login
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.layout import header, left_drawer, footer
@@ -19,6 +16,7 @@ from inventurgui.ui.sub_pages.cart import cart_page
 from inventurgui.ui.sub_pages.category import category_page
 from inventurgui.ui.sub_pages.finish import finish_page
 from inventurgui.ui.sub_pages.form import form_page
+from inventurgui.ui.sub_pages.login import login_page
 from inventurgui.ui.sub_pages.start import start_page
 from inventurgui.ui.sub_pages.warehouse import warehouse_page
 from inventurgui.ui.theme import Theme
@@ -75,6 +73,7 @@ def root():
     user_id = app.storage.browser["id"]
     pages = ui.sub_pages(data={"warehouses": warehouses, "ld": ld, "user_id": user_id})
     pages.add("/", start_page)
+    pages.add("/login", login_page)
     pages.add(f"/{url_safe(config['warehouse']['label'])}", warehouse_page)
     pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
     pages.add(f"/{url_safe(config['form']['label'])}", form_page)
@@ -92,12 +91,6 @@ def root():
 
     header(ld)
     footer(ld)
-
-    #  with ui.card().classes('m-0 h-dvh content-center bg-black text-base anitaliased font-light text-secondary decoration-primary'):
-    #      with ui.card().classes(''):
-    #            username = ui.input('Username').value
-    #           password = ui.input('Password', password=True, password_toggle_button=True).value
-    #  ui.button('Log in/Register', on_click=try_login(username, hash_password(password)))
 
     LOGGER.debug("Finished. Starting UI...")
 
