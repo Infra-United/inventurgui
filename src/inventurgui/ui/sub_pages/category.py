@@ -4,6 +4,7 @@ from nicegui.elements.aggrid import AgGrid
 from inventurgui.helper.config import config, load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
+from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.grid import create_aggrid
 from inventurgui.ui.layout import checkout_fab
 
@@ -17,6 +18,8 @@ def category_page(category: str, warehouse: Warehouse) -> None:
     if category == warehouse_conf.get("everything"):
         category_data = warehouse.inventory
     if category == warehouse_conf.get("selection"):
+        category_data = warehouse.selected()
+    if category == config['admin']['edits'] and authenticate_user():
         category_data = warehouse.selected()
     grid: AgGrid = create_aggrid(warehouse.name, category_data, cart=False)
     checkout_fab(config["cart"])

@@ -1,5 +1,6 @@
 import os
 from os import mkdir
+from time import sleep
 
 import ezodf
 from nicegui import ui, app
@@ -11,6 +12,7 @@ from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
+from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.layout import header, left_drawer, footer
 from inventurgui.ui.sub_pages.cart import cart_page
 from inventurgui.ui.sub_pages.category import category_page
@@ -74,6 +76,7 @@ def root():
     pages = ui.sub_pages(data={"warehouses": warehouses, "ld": ld, "user_id": user_id})
     pages.add("/", start_page)
     pages.add("/login", login_page)
+    pages.add("/logout", login_page)
     pages.add(f"/{url_safe(config['warehouse']['label'])}", warehouse_page)
     pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
     pages.add(f"/{url_safe(config['form']['label'])}", form_page)
@@ -88,6 +91,8 @@ def root():
         name = url_safe(warehouse.name)
         for category in warehouse.categories:
             pages.add(f"/{name}/{url_safe(category)}", lambda w=warehouse, c=category: category_page(c, w))
+        if authenticate_user():
+            pages.add(f"/{name}/{url_safe(config['admin']['edits'])}", lambda w=warehouse, c=config['admin']['edits']: category_page(c, w))
 
     header(ld)
     footer(ld)
@@ -122,5 +127,5 @@ def frontend():
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    app.on_startup(backend)
+    #app.on_startup(backend)
     frontend()

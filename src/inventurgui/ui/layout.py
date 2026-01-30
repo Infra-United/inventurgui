@@ -7,8 +7,7 @@ from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.safe_url import url_safe, reverse_url
 from inventurgui.helper.storage import width
 from inventurgui.io.warehouse import Warehouse
-
-from inventurgui.ui.auth import authenticate_user, authenticated
+from inventurgui.ui.auth import authenticate_user
 
 
 def header(ld: LeftDrawer|None = None):
@@ -80,9 +79,11 @@ def main_menu(
         requests_btn.on_click(lambda: ui.navigate.to(f"/{requests.get('label')}"))
     ui.space().classes("max-sm:hidden")
     if authenticate_user():
-        settings_btn: Button = ui.button(icon='settings').classes(classes).props(props)
-        settings_btn.on_click(lambda: ui.navigate.to(f"/settings"))
-
+        for label in ["settings", "logout"]:
+            btn: Button = ui.button(icon=label).classes(classes).props(props)
+            btn.on_click(lambda l=label: ui.navigate.to(f"/{l}"))
+            btn.on('mouseenter', lambda l=label, b=btn: b.set_text(f"{l}"))
+            btn.on('mouseleave', lambda b=btn: b.set_text(""))
 
 def tabs():
     return (
@@ -95,7 +96,7 @@ def tabs():
 def tab_panels(tabs: Tabs):
     return ui.tab_panels(tabs).classes("w-full h-dvh")
 
-
+@ui.refreshable
 def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, props: str):
     """
     See https://github.com/zauberzeug/nicegui/discussions/5566 for some documentation.
@@ -129,7 +130,9 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
             if len(warehouse.categories) == 2:
                 expansion.on("click", lambda: (ld.hide()) if width() < 1024 else None)
                 continue
-            toggle = ui.toggle(warehouse.categories)
+            categories = warehouse.categories
+            categories[0] = config['admin']['edits'] if authenticate_user() else categories[0]
+            toggle = ui.toggle(categories)
             toggle.set_value(path_category)
             expansion.on("click", lambda t=toggle: t.set_value(path_category))
             expansion.on(
