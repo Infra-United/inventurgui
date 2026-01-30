@@ -24,8 +24,26 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     """
     # Define Columns for AG Grids
     config = load_config()["data"]
+    admin = authenticate_user()
+
+    default_col_def: dict = {
+        "editable": authenticate_user(),
+        "suppressSizeToFit": True,
+        "sortable": True,
+        'lockPinned': True,
+        "lockVisible": True,
+        "suppressMovable": True,
+        "resizable": False,
+        "filter": False,
+        "floatingFilter": False
+    }
 
     column_defs = [
+        {
+            "colId": config['image'],
+            ":valueGetter": f'(p) => <img src="p.data.{config['image']}" alt="{config["object"]}" width="64" height="64">',
+            "editable": False,
+        },
         {
             "field": config["object"],
             "filter": not cart,
@@ -33,13 +51,13 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "autoHeight": True,
             "floatingFilter": not cart,
             "sort": "asc" if not cart else '',
-            "suppressSizeToFit": False,
             "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"}
             if not cart
             else {"text-bold": "x", "tracking-wider": "x"},
         },
-        {"field": config["desc"], "wrapText": True, "autoHeight": True, 'sortable': False},
+        {"field": config["desc"], "suppressSizeToFit": False, "wrapText": True, "autoHeight": True, 'sortable': False},
         {
+            "colId": config["weight"],
             ":valueGetter": f"(p) => p.data.{config['weight']} ? p.data.{config['weight']} * p.data.{config['count']} : null"
             if cart else f"(p) => p.data.{config['weight']}",
             ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
@@ -48,7 +66,6 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             #":headerValueGetter": f"(p) => p.location === 'header' ? p.column.colId : null;",
             "headerName": config["total_weight"] + f"" if cart else f"[kg/{config["pack"]}]",
             "cellDataType": "number",
-            "suppressSizeToFit": True,
         },
         {
             "field": config["count"],
@@ -56,17 +73,15 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             #":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
             #":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             "headerName": "",
-            "editable": cart,
+            "editable": cart or admin,
             "cellDataType": "number",
-            "suppressSizeToFit": True,
             "maxWidth": 50 if not cart else None,
             "lockPosition": "left" if cart else "",
             "sort": "desc" if cart else "",
             "cellClassRules": {"bg-accent": "data.total > 1", "text-bold": "data.total > 1"} if cart else "",
         },
-        {"field": config["pack"], "lockPosition": "left" if cart else "", "suppressSizeToFit":True, 'sortable': False},
+        {"field": config["pack"], "lockPosition": "left" if cart else "", 'sortable': False},
     ]
-    default_col_def: dict = {"sortable": True, 'lockPinned': True, "lockVisible":True, "suppressMovable": True, "resizable": False, "filter": False, "floatingFilter": False}
 
     if config["links"]["display"]:
         # Function to replace https links with HTML string
@@ -109,7 +124,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
                 "headerCheckbox": True,
                 "enableSelectionWithoutKeys": True,
             }
-            if not cart
+            if not cart and not admin
             else "",
             "autoSizeStrategy": {
                 'type': 'fitCellContents',
@@ -118,11 +133,14 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
                 'scaleUpToFitGridWidth': True,
             },
             "suppressRowHoverHighlight": cart,
+            "undoRedoCellEditing": True,
+            "undoRedoCellEditingLimit": 20,
             "enterNavigatesVertically": True,
-            "readOnlyEdit": True,
-            "invalidEditValueMode": "block",
-            "stopEditingWhenCellsLoseFocus": True,
-            "suppressCellFocus": True,
+            "editType": 'fullRow' if admin else "",
+            "readOnlyEdit": not admin,
+            "invalidEditValueMode": "block" if not admin else "",
+            "stopEditingWhenCellsLoseFocus": not admin,
+            "suppressCellFocus": not admin,
             "enterNavigatesVerticallyAfterEdit": True,
             "singleClickEdit": True if width() > 640 else False,
             ":getRowId": "(params) => params.data.perma_id.toString()",
@@ -133,6 +151,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
 
     # Handle events
     grid.on("rowSelected", lambda event: handle_select(name, event))
+    grid.on("cellClicked", lambda event: dialog(event.args) if event.args['colId'] == config['image'] else None)
     if not cart:
         for row in app.storage.user[name]:
             grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
@@ -144,7 +163,10 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
                     r, "setDataValue", config["count"], app.storage.user["amounts"].get(name, name).get(r)[0]
                 ),
             )
-    grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
+    if not admin:
+        grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
+    #else:
+       # grid.on("rowValueChanged", lambda event: app.storage.user['edited'].update({}))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if int(app.storage.user['screen'].get('width')) > 640 else 'None'), leading_events=True)
     return grid
@@ -154,5 +176,12 @@ def dialog(event_args: dict):
     with ui.dialog() as dia:
         with ui.card():
             ui.label(text=f"{event_args['data']['Objekt']} ({event_args['data']['Art']})")
-            ui.image(event_args["data"]["Link"])
+            source = event_args["data"]["Link"]
+            if source:
+                ui.image()
+            if authenticate_user():
+                if not source:
+                    ui.upload().props('accept="image/*" capture=environment')
+                else:
+                    ui.button(icon='delete')
     return dia
