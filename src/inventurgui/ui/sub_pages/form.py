@@ -13,6 +13,7 @@ from nicegui.observables import ObservableDict
 from inventurgui.helper.config import config, EMAIL_REGEX, load_config, get_path
 from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.helper.safe_url import url_safe
+from inventurgui.helper.storage import width
 from inventurgui.io.mail import send_mail
 from inventurgui.io.request import save_request, delete_request, write_download_list
 from inventurgui.io.warehouse import Warehouse
@@ -25,7 +26,7 @@ async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
 
     ui.page_title(f"{form['label']}")
     def set_panel():
-        if app.storage.user["screen"].get("width") < 1280:
+        if width() < 1280:
             form_panels.set_value(
                 [t.props.get("label") for t in form_tabs.descendants()][0]
             )  # First tab is open by default

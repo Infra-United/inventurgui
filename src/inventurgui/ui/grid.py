@@ -6,6 +6,7 @@ from pandas import DataFrame
 
 from inventurgui.helper.config import load_config
 from inventurgui.helper.grid_handlers import handle_edit, handle_select
+from inventurgui.helper.storage import width
 from inventurgui.ui.auth import authenticate_user
 
 """This module implements functions to create AG Grids which display the data."""
@@ -123,7 +124,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "stopEditingWhenCellsLoseFocus": True,
             "suppressCellFocus": True,
             "enterNavigatesVerticallyAfterEdit": True,
-            "singleClickEdit": True,
+            "singleClickEdit": True if width() > 640 else False,
             ":getRowId": "(params) => params.data.perma_id.toString()",
         },
         html_columns=[0],

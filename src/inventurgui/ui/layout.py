@@ -5,6 +5,7 @@ from nicegui.elements.tabs import Tabs
 
 from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.safe_url import url_safe, reverse_url
+from inventurgui.helper.storage import width
 from inventurgui.io.warehouse import Warehouse
 
 from inventurgui.ui.auth import authenticate_user, authenticated
@@ -126,7 +127,7 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
                     )
                     badge.bind_text_from(app.storage.user, warehouse.name, backward=lambda v: str(len(v)), strict=False)
             if len(warehouse.categories) == 2:
-                expansion.on("click", lambda: (ld.hide()) if app.storage.user.get("screen")["width"] < 1024 else None)
+                expansion.on("click", lambda: (ld.hide()) if width() < 1024 else None)
                 continue
             toggle = ui.toggle(warehouse.categories)
             toggle.set_value(path_category)
@@ -137,7 +138,7 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
             expansion.on("click", lambda e=expansion: e.open())
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
             toggle.on_value_change(lambda v, w=warehouse: ui.navigate.to(f"/{url_safe(w.name)}/{url_safe(v.value)}"))
-            toggle.on_value_change(lambda: ld.hide() if app.storage.user.get("screen")["width"] < 1024 else None)
+            toggle.on_value_change(lambda: ld.hide() if width() else None)
 
 
 def back_fab(
