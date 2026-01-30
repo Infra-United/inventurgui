@@ -41,7 +41,7 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
         if selected is None or selected.empty:
             continue
         with truck_tabs:
-            with ui.tab(w.name.upper(), icon=cart["tab_icon"]).classes("px-4").props("inline-label"):
+            with ui.tab(w.name.upper(), icon=cart["tab_icon"]):
                 badge = ui.badge("0", color="white", text_color='secondary').props("").classes("text-bold ml-2 p-1")
                 badge.bind_text_from(app.storage.user, w.name, lambda e: len(e))
         with truck_panels:

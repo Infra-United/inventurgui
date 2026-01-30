@@ -19,7 +19,7 @@ async def start_page(ld: LeftDrawer) -> None:
             continue
         with main_tabs:
             label = values.get("label")
-            ui.tab(label, icon=values.get("icon")).classes("px-7").props("inline-label")
+            ui.tab(label, icon=values.get("icon"))
         with main_panels:
             with ui.tab_panel(label).classes("m-0 p-0"):
                 await render_markdown(values)
