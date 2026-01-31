@@ -1,7 +1,6 @@
 import os
 from contextlib import suppress
 from os import mkdir
-from time import sleep
 
 import ezodf
 from nicegui import ui, app
@@ -22,7 +21,6 @@ from inventurgui.ui.sub_pages.finish import finish_page
 from inventurgui.ui.sub_pages.form import form_page
 from inventurgui.ui.sub_pages.login import login_page
 from inventurgui.ui.sub_pages.start import start_page
-from inventurgui.ui.sub_pages.warehouse import warehouse_page
 from inventurgui.ui.theme import Theme
 
 
@@ -55,7 +53,7 @@ def root():
                 warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
 
     # Set colors
-    t = Theme(load_config()["theme"]).set_colors()
+    Theme(load_config()["theme"]).set_colors()
 
     # Set default styles
     ui.query(".nicegui-content").classes("p-0 min-h-full bg-dark w-full no-scroll h-[calc(100vh-56px)]")
@@ -75,7 +73,6 @@ def root():
     pages.add("/", start_page)
     pages.add("/login", login_page)
     pages.add("/logout", login_page)
-    pages.add(f"/{url_safe(config['warehouse']['label'])}", warehouse_page)
     pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
     pages.add(f"/{url_safe(config['form']['label'])}", form_page)
     pages.add(f"/{url_safe(config['finish']['label'])}", finish_page)
