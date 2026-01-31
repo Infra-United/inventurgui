@@ -26,7 +26,7 @@ async def save_request(
     write_overview(overview_sheet, request, row_number)
 
     # Get Data and write to new sheet
-    dfs = [await w.get_final() for w in warehouses]
+    dfs = [w.get_final() for w in warehouses]
     df = pd.concat(df for df in dfs if df is not None)
     if not data_sheet:
         data_sheet = Sheet(request.get("name"), size=(len(df) + 1, len(df.columns)))
@@ -210,7 +210,7 @@ async def write_download_list(path: Path, warehouses: list[Warehouse]):
         ods: PackagedDocument = newdoc("ods", str(path))
     LOGGER.debug("Writing list for download...")
     for w in warehouses:
-        df = await w.get_final()
+        df = w.get_final()
         if df is None or df.empty:
             continue
         df.drop(columns=[config["warehouse"]["label"]], inplace=True)
