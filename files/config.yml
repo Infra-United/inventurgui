@@ -33,7 +33,7 @@ data:
   image: Bild
   count: Zahl
   of_total: "von" # String used in cart to format count as: "{value} {of_total} {total}"
-  weight: Kilogramm
+  weight: "kg"
   total_weight: Gesamtgewicht
   desc: Art
   object: Objekt
