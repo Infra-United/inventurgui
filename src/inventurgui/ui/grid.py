@@ -5,8 +5,8 @@ from nicegui.ui import aggrid
 from pandas import DataFrame
 
 from inventurgui.helper.config import load_config
-from inventurgui.helper.grid_handlers import handle_edit, handle_select
-from inventurgui.helper.storage import width
+from inventurgui.helper.grid_handlers import handle_edit, handle_select, handle_click
+from inventurgui.helper.storage import Storage
 from inventurgui.ui.auth import authenticate_user
 
 """This module implements functions to create AG Grids which display the data."""
@@ -41,8 +41,9 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     column_defs = [
         {
             "colId": config['image'],
-            ":valueGetter": f'(p) => <img src="p.data.{config['image']}" alt="{config["object"]}" width="64" height="64">',
+            #":valueGetter": f'(p) => <img src="p.data.{config['image']}" alt="{config["object"]}" width="64" height="64">',
             "editable": False,
+            "hide": cart,
         },
         {
             "field": config["object"],
@@ -99,8 +100,6 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
         column_defs.insert(0, link_column)
 
     # Styling
-    # height = 'h-[calc(100vh-56px)]' if not cart else 'h-[calc(100vh-104px)]'
-    theme = app.storage.user["grid_theme"] if app.storage.user.get("grid_theme") else "alpine"
     def background(color:str):
         return f"""{{background-color: {load_config()["theme"][color]}}}"""
     ui.add_body_html(f"<style>.ag-row-selected .ag-cell  {background('secondary')}</style>")
@@ -113,7 +112,6 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "columnDefs": column_defs,
             "defaultColDef": default_col_def,
             "rowData": (df.to_dict("records")),
-            "theme": theme,
             "alwaysMultiSort": True,
             "rowSelection": {
                 "mode": "multiRow",
@@ -128,7 +126,6 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             else "",
             "autoSizeStrategy": {
                 'type': 'fitCellContents',
-                'animateColumnResizing': True,
                 'skipHeaderOnAutoSize': True,
                 'scaleUpToFitGridWidth': True,
             },
@@ -142,46 +139,33 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "stopEditingWhenCellsLoseFocus": not admin,
             "suppressCellFocus": not admin,
             "enterNavigatesVerticallyAfterEdit": True,
-            "singleClickEdit": True if width() > 640 else False,
+            "singleClickEdit": True if Storage.width() > 640 else False,
             ":getRowId": "(params) => params.data.perma_id.toString()",
         },
         html_columns=[0],
-        theme=theme,
+        theme='alpine',
+        modules="community"
     ).classes("h-dvh w-full")
 
     # Handle events
     grid.on("rowSelected", lambda event: handle_select(name, event))
-    grid.on("cellClicked", lambda event: dialog(event.args) if event.args['colId'] == config['image'] else None)
     if not cart:
-        for row in app.storage.user[name]:
+        #grid.on("cellClicked", lambda event: handle_click(name, grid, event))
+        for row in Storage.selected(name):
             grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     else:
-        for row in app.storage.user["amounts"].get(name, name):
+        for row in Storage.amounts().get(name):
             grid.on(
                 "firstDataRendered",
                 lambda r=row: grid.run_row_method(
-                    r, "setDataValue", config["count"], app.storage.user["amounts"].get(name, name).get(r)[0]
+                    r, "setDataValue", config["count"], Storage.amounts().get(name).get(r)[0]
                 ),
             )
     if not admin:
         grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
     #else:
-       # grid.on("rowValueChanged", lambda event: app.storage.user['edited'].update({}))
+    # grid.on("rowValueChanged", lambda event: app.storage.user['edited'].update({}))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
-    grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if int(app.storage.user['screen'].get('width')) > 640 else 'None'), leading_events=True)
+    grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if Storage.width() > 640 else 'None'), leading_events=True)
     return grid
 
-
-def dialog(event_args: dict):
-    with ui.dialog() as dia:
-        with ui.card():
-            ui.label(text=f"{event_args['data']['Objekt']} ({event_args['data']['Art']})")
-            source = event_args["data"]["Link"]
-            if source:
-                ui.image()
-            if authenticate_user():
-                if not source:
-                    ui.upload().props('accept="image/*" capture=environment')
-                else:
-                    ui.button(icon='delete')
-    return dia

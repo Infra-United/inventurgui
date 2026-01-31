@@ -2,6 +2,7 @@ from nicegui import ui, app
 
 from inventurgui.helper.config import load_config
 from inventurgui.helper.magic_link import get_magic_link
+from inventurgui.helper.storage import Storage
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.layout import checkout_fab, back_fab
 
@@ -12,11 +13,10 @@ async def finish_page(warehouses: list[Warehouse]):
     ui.page_title(f"{finish['label']}")
     with ui.tab_panel("finish").classes("w-full h-dvh m-0"):
         with ui.column(align_items="center").classes("mx-auto my-auto text-center"):
-            request = app.storage.user.get("form")
             md = ui.markdown("Test")
-            md.bind_content_from(request, "finish")
+            md.bind_content_from(Storage.form(), "finish")
             md.classes("pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180")
-            if request.get("deleted"):
+            if Storage.form().get("deleted"):
                 ui.timer(5, lambda: (app.storage.user.clear(), ui.navigate.to("/"), ui.navigate.reload()))
                 return
             magic_link = get_magic_link()
@@ -26,6 +26,6 @@ async def finish_page(warehouses: list[Warehouse]):
                 "pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180"
             )
             btn = ui.button(finish.get("download"), icon="download")
-            btn.on_click(lambda: ui.download.file(request.get("download")))
+            btn.on_click(lambda: ui.download.file(Storage.form().get("download")))
             back_fab(load_config()["form"])
             checkout_fab(load_config()["start"])

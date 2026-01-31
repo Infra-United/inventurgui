@@ -1,4 +1,5 @@
 import os
+from contextlib import suppress
 from os import mkdir
 from time import sleep
 
@@ -10,6 +11,7 @@ from inventurgui.cli import ARGS
 from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
+from inventurgui.helper.storage import Storage
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
@@ -40,40 +42,36 @@ def root():
         window.onresize = emitSize;
         </script>
     """)
+    ui.on("resize", lambda e: app.storage.user.update({"screen": e.args}), throttle=0.4, trailing_events=True)
 
+    # Read Inventory File
     warehouses = []
     inventory = get_path(config["data"]["path"])
     LOGGER.debug(f"Reading Data from {inventory}...")
-    for sheet_num, sheet in enumerate(ezodf.opendoc(inventory).sheets):
-        if sheet_num < config["data"]["sheets"]:
-            LOGGER.debug(f"Reading sheet {sheet.name}...")
-            warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
+    with suppress(KeyError):
+        for sheet_num, sheet in enumerate(ezodf.opendoc(inventory).sheets):
+            if sheet_num < config["data"]["sheets"]:
+                LOGGER.debug(f"Reading sheet {sheet.name}...")
+                warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
 
     # Set colors
     t = Theme(load_config()["theme"]).set_colors()
 
-    ui.query(".nicegui-content").classes(
-        "p-0 min-h-full bg-dark w-full no-scroll h-[calc(100vh-56px)]"
-    )  # remove default padding from site
+    # Set default styles
+    ui.query(".nicegui-content").classes("p-0 min-h-full bg-dark w-full no-scroll h-[calc(100vh-56px)]")
     ui.query(".nicegui-sub-pages").classes("bg-dark w-full h-[calc(100vh-56px)] no-scroll").style(replace="gap:0")
 
     # init app storage
-    app.storage.user.indent = True
-    app.storage.user.setdefault("screen", {})
-    ui.on("resize", lambda e: app.storage.user.update({"screen": e.args}), throttle=0.4, trailing_events=True)
-    app.storage.user.setdefault("notified", {"selection": False})
-    app.storage.user.setdefault("Total", 0)
-    app.storage.user.setdefault(
-        "form", {"dates": None, "name": "", "place": "", "donation": "", "email": "", "message": "", "sent": None}
-    )
-    app.storage.user.setdefault("amounts", {})
+    storage = Storage(warehouses)
 
-    # Create Left Drawer
+    # Create Main Layout
     ld = left_drawer(warehouses)
+    header(ld)
+    footer(ld)
 
     # Register Pages
     user_id = app.storage.browser["id"]
-    pages = ui.sub_pages(data={"warehouses": warehouses, "ld": ld, "user_id": user_id})
+    pages = ui.sub_pages(data={"warehouses": warehouses, "ld": ld, "user_id": user_id, "storage": storage})
     pages.add("/", start_page)
     pages.add("/login", login_page)
     pages.add("/logout", login_page)
@@ -82,20 +80,14 @@ def root():
     pages.add(f"/{url_safe(config['form']['label'])}", form_page)
     pages.add(f"/{url_safe(config['finish']['label'])}", finish_page)
 
-    # Register categories
-    amounts = app.storage.user["amounts"]
+    # Register category sub_pages
     for warehouse in warehouses:
-        app.storage.user.setdefault(warehouse.name, [])
-        amounts.update({warehouse.name: {}}) if not amounts.get(warehouse.name) else None
         warehouse = warehouse
         name = url_safe(warehouse.name)
         for category in warehouse.categories:
             pages.add(f"/{name}/{url_safe(category)}", lambda w=warehouse, c=category: category_page(c, w))
         if authenticate_user():
             pages.add(f"/{name}/{url_safe(config['admin']['edits'])}", lambda w=warehouse, c=config['admin']['edits']: category_page(c, w))
-
-    header(ld)
-    footer(ld)
 
     LOGGER.debug("Finished. Starting UI...")
 

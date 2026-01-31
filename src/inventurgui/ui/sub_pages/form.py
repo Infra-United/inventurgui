@@ -13,7 +13,7 @@ from nicegui.observables import ObservableDict
 from inventurgui.helper.config import config, EMAIL_REGEX, load_config, get_path
 from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.helper.safe_url import url_safe
-from inventurgui.helper.storage import width
+from inventurgui.helper.storage import Storage
 from inventurgui.io.mail import send_mail
 from inventurgui.io.request import save_request, delete_request, write_download_list
 from inventurgui.io.warehouse import Warehouse
@@ -26,7 +26,7 @@ async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
 
     ui.page_title(f"{form['label']}")
     def set_panel():
-        if width() < 1280:
+        if Storage.width() < 1280:
             form_panels.set_value(
                 [t.props.get("label") for t in form_tabs.descendants()][0]
             )  # First tab is open by default
@@ -68,7 +68,7 @@ class Form:
         self.inputs: list[Input|Editor|Checkbox] = []
         self.config: dict[str, str | dict[str, str]] = load_config()["form"]
         self.dates: Date = ui.date()
-        self.request: ObservableDict = app.storage.user.get("form")
+        self.request: ObservableDict = Storage.form()
 
     def validate(self) -> None:
         self.valid = False
@@ -91,7 +91,7 @@ class Form:
             send_mail(self.request, warehouses, type="update" if is_update else "request")
             await save_request(self.request, warehouses)
             filename = get_path(f"lists/{config['finish'].get('filename')}-{self.request.get('name')}.ods")
-            await write_download_list(filename, warehouses)
+            write_download_list(filename, warehouses)
             self.request.update({"download": str(filename)})
             self.request.update({"message": None})
             self.request.update({"finish": self.config.get("success")})
@@ -107,7 +107,6 @@ class Form:
         await delete_request(self.request)
         ui.notify("Deleted")
         self.request.update({"deleted": True, "finish": self.config.get("deleted")})
-        #TODO maybe reset app.storage.user
 
     def create(self, warehouses:list[Warehouse]):
         with ui.dialog() as delete_dialog:

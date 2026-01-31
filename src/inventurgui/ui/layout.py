@@ -5,7 +5,7 @@ from nicegui.elements.tabs import Tabs
 
 from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.safe_url import url_safe, reverse_url
-from inventurgui.helper.storage import width
+from inventurgui.helper.storage import Storage
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 
@@ -47,14 +47,13 @@ def left_drawer(warehouses: list[Warehouse]) -> LeftDrawer:
 def checkout_fab(next_page: dict[str, str]):
     props: str = "text-color=secondary"
     with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
-        # ui.tooltip("Hier findest du ein paar Werkzeuge.").props('left')
         fab = ui.fab(icon="navigate_next", direction="up").props(f"{props} active-icon='hourglass_top'")
         fab.on("click", lambda: ui.navigate.to(url_safe(f"/{next_page.get('label')}?id={app.storage.browser['id']}")))
         fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
         with fab.add_slot("label"):
             with ui.row():
-                icon = ui.icon(next_page.get("icon"))
+                ui.icon(next_page.get("icon"))
                 label = ui.label(next_page.get("label")).classes("text-secondary text-base")
                 label.set_visibility(False)
             badge = (
@@ -128,7 +127,7 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
                     )
                     badge.bind_text_from(app.storage.user, warehouse.name, backward=lambda v: str(len(v)), strict=False)
             if len(warehouse.categories) == 2:
-                expansion.on("click", lambda: (ld.hide()) if width() < 1024 else None)
+                expansion.on("click", lambda: (ld.hide()) if Storage.width() < 1024 else None)
                 continue
             categories = warehouse.categories
             categories[0] = config['admin']['edits'] if authenticate_user() else categories[0]
@@ -141,7 +140,7 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
             expansion.on("click", lambda e=expansion: e.open())
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
             toggle.on_value_change(lambda v, w=warehouse: ui.navigate.to(f"/{url_safe(w.name)}/{url_safe(v.value)}"))
-            toggle.on_value_change(lambda: ld.hide() if width() else None)
+            toggle.on_value_change(lambda: ld.hide() if Storage.width() < 1024 else None)
 
 
 def back_fab(
@@ -156,7 +155,7 @@ def back_fab(
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
         with fab.add_slot("label"):
             with ui.row():
-                icon = ui.icon(last_page.get("icon"))
+                ui.icon(last_page.get("icon"))
                 label = ui.label(last_page.get("label")).classes("text-base")
                 label.set_visibility(False)
             badge = (

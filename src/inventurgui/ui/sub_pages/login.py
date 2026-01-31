@@ -7,7 +7,6 @@ from inventurgui.ui.layout import main_menu, warehouse_menu
 
 
 def login_page():
-    app.storage.user.update({"auth_token": None})
     main_menu.refresh()
     warehouse_menu.refresh()
 

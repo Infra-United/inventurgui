@@ -6,6 +6,7 @@ from nicegui.elements.drawer import LeftDrawer
 from inventurgui.helper.config import load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
+from inventurgui.helper.storage import Storage
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.grid import create_aggrid
 from inventurgui.ui.layout import checkout_fab, tabs, tab_panels
@@ -21,13 +22,12 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
     if current_id != request_id:
         load_data_from_magic_link(current_id, request_id)
 
-    total = app.storage.user.get("Total")
-    if total == 0:
+    if Storage.total() == 0:
         ui.notify(cart["select_tip"], type="warning", position="center", color="primary", textColor="dark")
         time.sleep(1)
         ui.navigate.to(f"/{url_safe(load_config()['warehouse'].get('label'))}")
         return
-    if not app.storage.user.get("notified")["selection"] and total != 0:
+    if not Storage.notified() and Storage.total() != 0:
         ui.notify(cart["edit_tip"], position="center", color="primary", textColor="dark")
         app.storage.user["notified"]["selection"] = True
 

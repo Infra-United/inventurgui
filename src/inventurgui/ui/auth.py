@@ -2,7 +2,9 @@ import datetime
 import os
 
 import jwt
-from nicegui import app, Event
+from nicegui import Event
+
+from inventurgui.helper.storage import Storage
 
 authenticated = Event[bool]()
 
@@ -14,9 +16,9 @@ def create_jwt():
 
 def authenticate_user() -> bool:
     try:
-        if app.storage.user.get("auth_token") is None:
+        if Storage.auth_token() is None:
             return False
-        jwt.decode(app.storage.user["auth_token"], os.environ["UI_STORAGE_SECRET"], algorithms="HS256")
+        jwt.decode(Storage.auth_token(), os.environ["UI_STORAGE_SECRET"], algorithms="HS256")
         return True
     except KeyError:
         return False

@@ -199,7 +199,7 @@ def find_row_by_name_or_start(sheet: Sheet, start: str, name: str, name_only) ->
         return insert_count
 
 
-async def write_download_list(path: Path, warehouses: list[Warehouse]):
+def write_download_list(path: Path, warehouses: list[Warehouse]):
     if not get_path("/lists/").is_dir():
         mkdir(get_path("/lists/"))
     if path.is_file():
