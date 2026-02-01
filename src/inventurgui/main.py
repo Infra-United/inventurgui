@@ -64,8 +64,6 @@ def root():
 
     # Create Main Layout
     ld = left_drawer(warehouses)
-    header(ld)
-    footer(ld)
 
     # Register Pages
     user_id = app.storage.browser["id"]
@@ -86,6 +84,9 @@ def root():
         if authenticate_user():
             pages.add(f"/{name}/{url_safe(config['admin']['edits'])}", lambda w=warehouse, c=config['admin']['edits']: category_page(c, w))
 
+    header(ld)
+    footer(ld)
+
     LOGGER.debug("Finished. Starting UI...")
 
 
@@ -97,10 +98,12 @@ def backend():
 
 def frontend():
     storage_secret = os.environ["UI_STORAGE_SECRET"]
-    user_dir = get_path("users")
-    if not user_dir.exists():
-        mkdir(user_dir)
-    os.environ.setdefault("NICEGUI_STORAGE_PATH", str(user_dir))
+    dirs = [get_path("users"), get_path("images")]
+    for d in dirs:
+        if not d.exists():
+            mkdir(d)
+    os.environ.setdefault("NICEGUI_STORAGE_PATH", str(dirs[0]))
+    app.add_static_files('/images', str(dirs[1]))
     ui.run(
         root=root,
         language=config["language"],
