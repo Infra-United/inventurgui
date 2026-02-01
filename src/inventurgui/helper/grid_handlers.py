@@ -74,7 +74,7 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
             path = get_path(f"images/{name}/{data[conf['object']]}_{data['perma_id']}")
             url = '/images/' + f"{name}/{data[conf['object']]}_{data['perma_id']}"
             if path.is_file():
-                img = ui.interactive_image(url).classes('w-80 h-80')
+                img = ui.interactive_image(url)
                 data[conf['image']] = url
             md = ui.markdown().classes(
                 "p-10 pt-5 mx-auto text-justify hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
