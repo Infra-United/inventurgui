@@ -30,7 +30,7 @@ mail:
 data:
   sheets: 3
   category: Kategorie
-  image: Bild
+  image: Link
   count: Zahl
   of_total: "von" # String used in cart to format count as: "{value} {of_total} {total}"
   weight: "kg"
@@ -38,6 +38,7 @@ data:
   desc: Art
   object: Objekt
   pack: Packung
+  comment: Kommentar
   path: "IU_Inventur.ods"
   links:
     display: false
@@ -121,6 +122,7 @@ finish:
   download_data: 'Du kannst eine Liste deiner Ladung hier herunterladen:'
 admin:
   edits: "Meine Veränderungen"
+  upload: "Bild Hochladen"
 requests: # Only visible for admins and editors
   label: 'Anfragen'
   icon: 'drafts'

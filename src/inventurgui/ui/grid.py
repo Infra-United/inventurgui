@@ -1,10 +1,12 @@
+import time
+
 import pandas
 from nicegui import ui, app
 from nicegui.elements.aggrid import AgGrid
 from nicegui.ui import aggrid
 from pandas import DataFrame
 
-from inventurgui.helper.config import load_config
+from inventurgui.helper.config import load_config, get_path
 from inventurgui.helper.grid_handlers import handle_edit, handle_select, handle_click
 from inventurgui.helper.storage import Storage
 from inventurgui.ui.auth import authenticate_user
@@ -41,9 +43,14 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     column_defs = [
         {
             "colId": config['image'],
-            #":valueGetter": f'(p) => <img src="p.data.{config['image']}" alt="{config["object"]}" width="64" height="64">',
             "editable": False,
+            ":cellRenderer": f'''(p) => p.data.{config['image']} ?
+             "<span class='material-icons-outlined' style='font-size:28px'>info</span>" :
+              "<span class='material-icons-outlined' style='font-size:28px'>camera_alt</span>"'''
+            if authenticate_user() else f'''(p) => p.data.{config['image']} ? 
+            "<span class='material-icons-outlined' style='font-size:28px'>info</span>" : null''',
             "hide": cart,
+            "maxWidth": 60
         },
         {
             "field": config["object"],
@@ -133,13 +140,12 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "undoRedoCellEditing": True,
             "undoRedoCellEditingLimit": 20,
             "enterNavigatesVertically": True,
-            "editType": 'fullRow' if admin else "",
             "readOnlyEdit": not admin,
             "invalidEditValueMode": "block" if not admin else "",
-            "stopEditingWhenCellsLoseFocus": not admin,
+            #"stopEditingWhenCellsLoseFocus": not admin,
             "suppressCellFocus": not admin,
             "enterNavigatesVerticallyAfterEdit": True,
-            "singleClickEdit": True if Storage.width() > 640 else False,
+            "singleClickEdit": True,# if Storage.width() > 640 else False,
             ":getRowId": "(params) => params.data.perma_id.toString()",
         },
         html_columns=[0],
@@ -150,7 +156,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     # Handle events
     grid.on("rowSelected", lambda event: handle_select(name, event))
     if not cart:
-        #grid.on("cellClicked", lambda event: handle_click(name, grid, event))
+        grid.on("cellClicked", lambda event: handle_click(name, grid, event, df))
         for row in Storage.selected(name):
             grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     else:
@@ -163,9 +169,9 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             )
     if not admin:
         grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
-    #else:
-    # grid.on("rowValueChanged", lambda event: app.storage.user['edited'].update({}))
+    else:
+        grid.on("rowValueChanged", lambda event: handle_edit(grid, name, event))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
-    grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if Storage.width() > 640 else 'None'), leading_events=True)
+    grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if Storage.width() > 768 else 'None'), leading_events=True)
     return grid
 
