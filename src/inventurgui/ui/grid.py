@@ -63,7 +63,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             if not cart
             else {"text-bold": "x", "tracking-wider": "x"},
         },
-        {"field": config["desc"], "suppressSizeToFit": False, "wrapText": True, "autoHeight": True, 'sortable': False},
+        {"colId": config["desc"], "field": config["desc"], "suppressSizeToFit": False, "wrapText": True, "autoHeight": True, 'sortable': False},
         {
             "colId": config["weight"],
             ":valueGetter": f"(p) => p.data.{config['weight']} ? p.data.{config['weight']} * p.data.{config['count']} : null"
@@ -139,10 +139,8 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "suppressRowHoverHighlight": cart,
             "undoRedoCellEditing": True,
             "undoRedoCellEditingLimit": 20,
-            "enterNavigatesVertically": True,
             "readOnlyEdit": not admin,
             "invalidEditValueMode": "block" if not admin else "",
-            #"stopEditingWhenCellsLoseFocus": not admin,
             "suppressCellFocus": not admin,
             "enterNavigatesVerticallyAfterEdit": True,
             "singleClickEdit": True,# if Storage.width() > 640 else False,
@@ -170,6 +168,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     if not admin:
         grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
     else:
+        grid.on("cellFocused", lambda e: grid.run_grid_method('startEditingCell', e.args['rowIndex'], e.args['colId'], False, "F2"))
         grid.on("rowValueChanged", lambda event: handle_edit(grid, name, event))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if Storage.width() > 768 else 'None'), leading_events=True)
