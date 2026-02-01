@@ -29,7 +29,7 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
         return
     if not Storage.notified() and Storage.total() != 0:
         ui.notify(cart["edit_tip"], position="center", color="primary", textColor="dark")
-        app.storage.user["notified"]["selection"] = True
+        app.storage.user.update({"notified": True})
 
     ui.page_title(f"{cart['label']}")
     ld.hide()

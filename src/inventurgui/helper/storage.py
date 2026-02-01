@@ -6,7 +6,7 @@ class Storage:
         app.storage.user.indent = True
         app.storage.user.setdefault("screen", {})
         app.storage.user.setdefault("Total", 0)
-        app.storage.user.setdefault("notified", False)
+        app.storage.user.setdefault("notified", None)
         app.storage.user.setdefault(
             "form", {"dates": None, "name": "", "place": "", "donation": "", "email": "", "message": "", "sent": None}
         )
