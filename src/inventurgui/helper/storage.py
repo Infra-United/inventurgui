@@ -7,7 +7,6 @@ class Storage:
         app.storage.user.setdefault("screen", {})
         app.storage.user.setdefault("Total", 0)
         app.storage.user.setdefault("notified", False)
-        app.storage.user.setdefault("auth_token", None)
         app.storage.user.setdefault(
             "form", {"dates": None, "name": "", "place": "", "donation": "", "email": "", "message": "", "sent": None}
         )

@@ -7,6 +7,7 @@ from inventurgui.ui.layout import main_menu, warehouse_menu
 
 
 def login_page():
+    app.storage.user.update({"auth_token": None})
     main_menu.refresh()
     warehouse_menu.refresh()
 
@@ -25,4 +26,4 @@ def login_page():
         else:
             time.sleep(1)
             pw_in.set_value("")
-            ui.notify("This password is incorrect.", color="negative")
+            ui.notify("This password is incorrect.", color="negative", position='center')
