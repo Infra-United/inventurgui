@@ -168,7 +168,6 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     if not admin:
         grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
     else:
-        grid.on("cellFocused", lambda e: grid.run_grid_method('startEditingCell', e.args['rowIndex'], e.args['colId'], False, "F2"))
         grid.on("rowValueChanged", lambda event: handle_edit(grid, name, event))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if Storage.width() > 768 else 'None'), leading_events=True)
