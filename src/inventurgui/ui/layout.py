@@ -47,9 +47,14 @@ def left_drawer(warehouses: list[Warehouse]) -> LeftDrawer:
 
 def checkout_fab(next_page: dict[str, str]):
     props: str = "text-color=secondary"
+    if admin := authenticate_user():
+        next_page = {'icon': 'save', 'label': config['admin']['save']}
     with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_next", direction="up").props(f"{props} active-icon='hourglass_top'")
-        fab.on("click", lambda: ui.navigate.to(url_safe(f"/{next_page.get('label')}?id={app.storage.browser['id']}")))
+        if admin:
+            fab.on('click', lambda: ui.notify('saving...')) # TODO handle save
+        else:
+            fab.on("click", lambda: ui.navigate.to(url_safe(f"/{next_page.get('label')}?id={app.storage.browser['id']}")))
         fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
         with fab.add_slot("label"):
