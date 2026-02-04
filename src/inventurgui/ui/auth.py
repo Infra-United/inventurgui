@@ -2,6 +2,7 @@ import datetime
 import os
 
 import jwt
+from jwt import ExpiredSignatureError
 from nicegui import Event
 
 from inventurgui.helper.storage import Storage
@@ -20,5 +21,5 @@ def authenticate_user() -> bool:
             return False
         jwt.decode(Storage.auth_token(), os.environ["UI_STORAGE_SECRET"], algorithms="HS256")
         return True
-    except KeyError:
+    except KeyError, ExpiredSignatureError:
         return False
