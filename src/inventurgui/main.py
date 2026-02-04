@@ -113,7 +113,7 @@ def frontend():
         title=config["title"],
         favicon=get_path(config["favicon"]),
         port=8080,
-        storage_secret=storage_secret if storage_secret else 12341232312,
+        storage_secret=storage_secret if storage_secret else '12341232312',
     )
     LOGGER.debug("Successfully started UI.")
 

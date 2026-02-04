@@ -70,7 +70,8 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
 
     def dia_content():
         with (dia.clear(), ui.card().classes("w-100 gap-2 items-center py-4 text-bold")):
-            ui.label(text=f"{data[conf['object']]} ({data[conf['desc']]})")
+            if data is not None:
+                ui.label(text=f"{data[conf['object']]} ({data[conf['desc']]})")
             path = get_path(f"images/{name}/{data[conf['object']]}_{data['perma_id']}")
             url = '/images/' + f"{name}/{data[conf['object']]}_{data['perma_id']}"
             if path.is_file():

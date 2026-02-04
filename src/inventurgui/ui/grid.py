@@ -1,17 +1,16 @@
-import time
-
 import pandas
-from nicegui import ui, app
+from nicegui import ui
 from nicegui.elements.aggrid import AgGrid
 from nicegui.ui import aggrid
 from pandas import DataFrame
 
-from inventurgui.helper.config import load_config, get_path
+from inventurgui.helper.config import load_config
 from inventurgui.helper.grid_handlers import handle_edit, handle_select, handle_click
 from inventurgui.helper.storage import Storage
 from inventurgui.ui.auth import authenticate_user
 
 """This module implements functions to create AG Grids which display the data."""
+
 
 def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
@@ -29,7 +28,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     admin = authenticate_user()
 
     default_col_def: dict = {
-        "editable": authenticate_user(),
+        "editable": admin,
         "suppressSizeToFit": True,
         "sortable": True,
         'lockPinned': True,
@@ -47,7 +46,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             ":cellRenderer": f'''(p) => p.data.{config['image']} ?
              "<span class='material-icons-outlined' style='font-size:28px'>info</span>" :
               "<span class='material-icons-outlined' style='font-size:28px'>camera_alt</span>"'''
-            if authenticate_user() else f'''(p) => p.data.{config['image']} ? 
+            if admin else f'''(p) => p.data.{config['image']} ? 
             "<span class='material-icons-outlined' style='font-size:28px'>info</span>" : null''',
             "hide": cart,
             "maxWidth": 60
@@ -89,28 +88,25 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "cellClassRules": {"bg-accent": "data.total > 1", "text-bold": "data.total > 1"} if cart else "",
         },
         {"field": config["pack"], "lockPosition": "left" if cart else "", 'sortable': False},
+        {
+            "colId": 'add_delete',
+            "editable": False,
+            ":cellRenderer": f'''(p) => p.node.rowPinned ?
+                 "<span class='material-icons-outlined' style='font-size:28px'>add</span>" :
+                  "<span class='material-icons-outlined' style='font-size:28px'>delete</span>"'''
+            if admin else "",
+            "hide": not admin,
+            "maxWidth": 60
+        },
     ]
 
-    if config["links"]["display"]:
-        # Function to replace https links with HTML string
-        def replace_https_with_html(link):
-            if pandas.isna(link):
-                return link  # Return NaN as is
-            if link.startswith("http"):
-                return '<span style="font-size: 24px;">ℹ️</span>'
-            return link  # Return the link as is if it doesn't start with https://
-
-        # Apply the function to the 'links' column
-        pandas.options.mode.copy_on_write = True
-        config["has_link"] = df[config["links"]["column"]].apply(replace_https_with_html)
-        link_column = {"headerName": "", "field": "has_link", "filter": False, "minWidth": 50, "maxWidth": 50}
-        column_defs.insert(0, link_column)
-
     # Styling
-    def background(color:str):
+    def background(color: str):
         return f"""{{background-color: {load_config()["theme"][color]}}}"""
+
     ui.add_body_html(f"<style>.ag-row-selected .ag-cell  {background('secondary')}</style>")
     ui.add_body_html(f"<style>.ag-row-hover .ag-cell  {background('accent')}</style>")
+    ui.add_body_html(f"<style>.ag-row-pinned .ag-cell  {background('accent')}</style>")
 
     # Create Grid with given Data
     grid = aggrid(
@@ -119,6 +115,9 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "columnDefs": column_defs,
             "defaultColDef": default_col_def,
             "rowData": (df.to_dict("records")),
+            "pinnedTopRowData": [{col: ""} for col in df.columns] if admin else None,
+            #":editType": "(p) => p.data.rowPinned ? 'fullRow' : 'singleCell'",
+            #":isRowPinned": f"(p) => p.data.{config['weight']} != null ? 'top' : null",
             "alwaysMultiSort": True,
             "rowSelection": {
                 "mode": "multiRow",
@@ -144,7 +143,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "suppressCellFocus": not admin,
             "enterNavigatesVerticallyAfterEdit": True,
             "singleClickEdit": True,# if Storage.width() > 640 else False,
-            ":getRowId": "(params) => params.data.perma_id.toString()",
+            ":getRowId": f"(p) => p.data.rowPinned ? p.data.perma_id.toString() : {len(df) + 1}",
         },
         html_columns=[0],
         theme='alpine',
@@ -165,10 +164,10 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
                     r, "setDataValue", config["count"], Storage.amounts().get(name).get(r)[0]
                 ),
             )
-    if not admin:
-        grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
-    else:
-        grid.on("rowValueChanged", lambda event: handle_edit(grid, name, event))
+    #if not admin:
+    grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
+    #else:
+    #    grid.on("rowValueChanged", lambda event: handle_edit(grid, name, event))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if Storage.width() > 768 else 'None'), leading_events=True)
     return grid
