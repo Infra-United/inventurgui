@@ -108,7 +108,7 @@ def frontend():
         language=config["language"],
         uvicorn_logging_level="debug" if ARGS.debug else "info",
         show=False,
-        reload=ARGS.debug,
+        reload=ARGS.reload,
         title=config["title"],
         favicon=get_path(config["favicon"]),
         port=8080,

@@ -21,8 +21,10 @@ def get_args() -> Namespace:
     argparser.add_argument(
         "-c", "--helper", dest="config_file", help="specify path to helper file, defaults to files/helper.yml"
     )
+    argparser.add_argument("-r", "--reload", dest="reload", help="enable reloader", action="store_true"
+    )
     argparser.add_argument(
-        "-d", "--dev", dest="debug", help="set the log level to debug, enable reloader", action="store_true"
+        "-d", "--dev", dest="debug", help="set the log level to debug", action="store_true"
     )
     # argparser.add_argument("-p", "--set-password", dest='set_pass', help='set the password required for the admin panel (configuration)', action='store_true')
     # argparser.add_argument("-u", "--users", dest='users_file', help='specify path to users_file, defaults to files/users.yml')
