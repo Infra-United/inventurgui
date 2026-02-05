@@ -23,6 +23,16 @@ from inventurgui.ui.sub_pages.login import login_page
 from inventurgui.ui.sub_pages.start import start_page
 from inventurgui.ui.theme import Theme
 
+# Read Inventory File
+warehouses = []
+inventory = get_path(config["data"]["path"])
+LOGGER.debug(f"Reading Data from {inventory}...")
+with suppress(KeyError):
+    for sheet_num, sheet in enumerate(ezodf.opendoc(inventory).sheets):
+        if sheet_num < config["data"]["sheets"]:
+            LOGGER.debug(f"Reading sheet {sheet.name}...")
+            warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
+
 
 def root():
     # Everytime a user loads the page this is executed - creates the layout - content is created by sub_pages.
@@ -41,16 +51,6 @@ def root():
         </script>
     """)
     ui.on("resize", lambda e: app.storage.user.update({"screen": e.args}), throttle=0.4, trailing_events=True)
-
-    # Read Inventory File
-    warehouses = []
-    inventory = get_path(config["data"]["path"])
-    LOGGER.debug(f"Reading Data from {inventory}...")
-    with suppress(KeyError):
-        for sheet_num, sheet in enumerate(ezodf.opendoc(inventory).sheets):
-            if sheet_num < config["data"]["sheets"]:
-                LOGGER.debug(f"Reading sheet {sheet.name}...")
-                warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
 
     # Set colors
     Theme(load_config()["theme"]).set_colors()
@@ -90,10 +90,10 @@ def root():
     LOGGER.debug("Finished. Starting UI...")
 
 
-def backend():
-    nc = Nextcloud.singleton()
-    for key, file in config["cloud"]["pull"].items():
-        app.timer(7200, lambda f=file: nc.pull_file(f))  # Update files every 2 hours
+#def backend():
+#    nc = Nextcloud.singleton()
+#    for key, file in config["cloud"]["pull"].items():
+#        app.timer(60000, lambda f=file: nc.pull_file(f))  # Update files every 2 hours
 
 
 def frontend():
