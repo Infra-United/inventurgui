@@ -75,7 +75,6 @@ def main_menu(
     start: dict[str, str | dict[str, str]] = load_config()["start"]
     btn = ui.button(config['warehouse'].get('label'), icon="menu", on_click=lambda: ld.show())
     btn.classes(classes).props(f'{props} :visible=Quasar.Screen.lt.md')
-    #ui.on('resize', lambda: btn.set_visibility(640 >= app.storage.user['screen'].get('width') >= 1024))
     start_btn: Button = ui.button(start.get("label"), icon=start.get("icon")).classes(classes).props(props)
     start_btn.on_click(lambda: ui.navigate.to("/"))
     if authenticate_user():
@@ -133,7 +132,8 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
                     )
                     badge.bind_text_from(app.storage.user, warehouse.name, backward=lambda v: str(len(v)), strict=False)
             if len(warehouse.categories) == 2:
-                expansion.on("click", lambda: (ld.hide()) if Storage.width() < 1024 else None)
+                ui.on('resize',
+                      lambda e, x=expansion: x.on('click', lambda r=e: ld.hide() if r.args['width'] < 1024 else None))
                 continue
             categories = warehouse.categories
             categories[0] = config['admin']['edits'] if authenticate_user() else categories[0]
@@ -146,7 +146,8 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
             expansion.on("click", lambda e=expansion: e.open())
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
             toggle.on_value_change(lambda v, w=warehouse: ui.navigate.to(f"/{url_safe(w.name)}/{url_safe(v.value)}"))
-            toggle.on_value_change(lambda: ld.hide() if Storage.width() < 1024 else None)
+            ui.on('resize', lambda e, t=toggle: t.on_value_change(lambda r=e: ld.hide() if r.args['width'] < 1024 else None), trailing_events=True)
+
 
 
 def back_fab(

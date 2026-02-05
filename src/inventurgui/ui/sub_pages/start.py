@@ -26,4 +26,4 @@ async def start_page(ld: LeftDrawer) -> None:
                 await render_markdown(values)
     main_panels.set_value([t.props.get("label") for t in main_tabs.descendants()][0])  # First tab is open by default
     with suppress(TypeError):
-        ld.show() if Storage.width() >= 1024 else ld.hide()
+        ui.on('resize', lambda e: ld.show() if e.args['width'] >= 1024 else ld.hide(), trailing_events=True)

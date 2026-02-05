@@ -50,7 +50,6 @@ def root():
         window.onresize = emitSize;
         </script>
     """)
-    ui.on("resize", lambda e: app.storage.user.update({"screen": e.args}), throttle=0.4, trailing_events=True)
 
     # Set colors
     Theme(load_config()["theme"]).set_colors()

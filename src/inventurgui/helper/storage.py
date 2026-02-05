@@ -4,7 +4,6 @@ from nicegui.observables import ObservableList, ObservableDict
 class Storage:
     def __init__(self, warehouses):
         app.storage.user.indent = True
-        app.storage.user.setdefault("screen", {})
         app.storage.user.setdefault("Total", 0)
         app.storage.user.setdefault("notified", None)
         app.storage.user.setdefault(
@@ -14,18 +13,6 @@ class Storage:
         for warehouse in warehouses:
             app.storage.user.setdefault(warehouse.name, [])
             self.amounts().update({warehouse.name: {}}) if not self.amounts().get(warehouse.name) else None
-
-    @classmethod
-    def width(cls) -> int:
-        return int(app.storage.user["screen"].get('width'))
-
-    @classmethod
-    def height(cls) -> int:
-        return int(app.storage.user["screen"].get('height'))
-
-    @classmethod
-    def screen(cls) -> ObservableDict:
-        return app.storage.user["screen"]
 
     @classmethod
     def total(cls) -> int:

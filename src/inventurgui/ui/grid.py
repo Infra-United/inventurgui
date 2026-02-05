@@ -115,7 +115,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "columnDefs": column_defs,
             "defaultColDef": default_col_def,
             "rowData": (df.to_dict("records")),
-            "pinnedTopRowData": [{col: ""} for col in df.columns] if admin else None,
+            #"pinnedTopRowData": [{col: ""} for col in df.columns] if admin else None,
             #":editType": "(p) => p.data.rowPinned ? 'fullRow' : 'singleCell'",
             #":isRowPinned": f"(p) => p.data.{config['weight']} != null ? 'top' : null",
             "alwaysMultiSort": True,
@@ -142,8 +142,8 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "invalidEditValueMode": "block" if not admin else "",
             "suppressCellFocus": not admin,
             "enterNavigatesVerticallyAfterEdit": True,
-            "singleClickEdit": True,# if Storage.width() > 640 else False,
-            ":getRowId": f"(p) => p.data.rowPinned ? p.data.perma_id.toString() : {len(df) + 1}",
+            "singleClickEdit": True,
+            ":getRowId": f"(p) => p.data.perma_id.toString()",
         },
         html_columns=[0],
         theme='alpine',
@@ -168,7 +168,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
     #else:
     #    grid.on("rowValueChanged", lambda event: handle_edit(grid, name, event))
-    grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), leading_events=True)
-    grid.on("gridSizeChanged", lambda: grid.run_grid_method("sizeColumnsToFit" if Storage.width() > 768 else 'None'), leading_events=True)
+    grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), trailing_events=True)
+    ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)
     return grid
 
