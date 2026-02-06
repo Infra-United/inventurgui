@@ -1,9 +1,9 @@
 import os
-from contextlib import suppress
 from os import mkdir
 
 import ezodf
 from nicegui import ui, app
+from nicegui.elements.markdown import Markdown
 from pandas_ods_reader import read_ods
 
 from inventurgui.cli import ARGS
@@ -14,6 +14,7 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.layout import header, left_drawer, footer
+from inventurgui.ui.markdown import get_markdown
 from inventurgui.ui.sub_pages.cart import cart_page
 from inventurgui.ui.sub_pages.category import category_page
 from inventurgui.ui.sub_pages.finish import finish_page
@@ -23,9 +24,7 @@ from inventurgui.ui.sub_pages.start import start_page
 from inventurgui.ui.sub_pages.warehouse import warehouse_page
 from inventurgui.ui.theme import Theme
 
-create_default_config()
-
-def root(warehouses:list[Warehouse]):
+def root(warehouses:list[Warehouse], markdown:dict[str, str]):
     # Everytime a user loads the page this is executed - creates the layout - content is created by sub_pages.
 
     ui.add_head_html("""
@@ -57,7 +56,7 @@ def root(warehouses:list[Warehouse]):
 
     # Register Pages
     user_id = app.storage.browser["id"]
-    pages = ui.sub_pages(data={"warehouses": warehouses, "ld": ld, "user_id": user_id, "storage": storage})
+    pages = ui.sub_pages(data={"warehouses": warehouses, "ld": ld, "user_id": user_id, "storage": storage, 'md':markdown})
     pages.add("/", start_page)
     pages.add("/login", login_page)
     pages.add("/logout", login_page)
@@ -94,6 +93,8 @@ def frontend():
         if sheet_num < settings.data["sheets"]:
             LOGGER.debug(f"Reading sheet {sheet.name}...")
             warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
+    create_default_config()
+    markdown = get_markdown()
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     dirs = [get_path("users"), get_path("images")]
     for d in dirs:
@@ -102,7 +103,7 @@ def frontend():
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(dirs[0]))
     app.add_static_files('/images', str(dirs[1]))
     ui.run(
-        root=lambda: root(warehouses),
+        root=lambda: root(warehouses, markdown),
         language=settings.language,
         uvicorn_logging_level="debug" if ARGS.debug else "info",
         show=False,

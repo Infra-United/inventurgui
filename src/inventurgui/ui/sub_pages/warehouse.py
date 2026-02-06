@@ -1,14 +1,15 @@
 from nicegui import ui, app
 from nicegui.elements.drawer import LeftDrawer
+from nicegui.elements.markdown import Markdown
 
 from inventurgui.helper.config import settings
 from inventurgui.ui.markdown import render_markdown
 
 
-async def warehouse_page(ld: LeftDrawer):
+async def warehouse_page(ld: LeftDrawer, md:dict[str, str]) -> None:
     ui.page_title(settings.warehouse.get("label"))
     ld.show()
-    await render_markdown(settings.warehouse)
+    render_markdown(md.get(settings.warehouse["label"]))
     props: str = "text-color=secondary"
     with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_next", direction="up").props(f"{props} active-icon='hourglass_top'")

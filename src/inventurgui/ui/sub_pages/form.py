@@ -8,6 +8,7 @@ from nicegui.elements.date import Date
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.editor import Editor
 from nicegui.elements.input import Input
+from nicegui.elements.markdown import Markdown
 from nicegui.observables import ObservableDict
 
 from inventurgui.helper.config import settings, EMAIL_REGEX, get_path
@@ -21,7 +22,7 @@ from inventurgui.ui.layout import back_fab, tabs, tab_panels
 from inventurgui.ui.markdown import render_markdown
 
 
-async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
+async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], md: dict[str, str], args: PageArguments) -> None:
     form: dict[str, str | dict[str, str]] = settings.form
 
     ui.page_title(f"{form['label']}")
@@ -53,12 +54,12 @@ async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
             with ui.grid(columns=2) as grid:
                 Form().create(warehouses)
                 if terms.get("display"):
-                    await render_markdown(form.get("terms"))
+                    render_markdown(md.get(form.get("terms")))
         with ui.tab_panel(form.get("tab_label")).classes("m-0"):
             Form().create(warehouses)
         if terms.get("display"):
             with ui.tab_panel(terms.get("label")).classes("m-0 p-0"):
-                await render_markdown(form.get("terms"))
+                render_markdown(md.get(form.get("terms")))
     ui.on("resize", lambda e: set_panel(e.args), throttle=1, trailing_events=True)
 
 class Form:
