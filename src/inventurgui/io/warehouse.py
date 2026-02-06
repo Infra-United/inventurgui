@@ -1,11 +1,11 @@
-from typing import Generator, Any
+from typing import Generator
 
 import pandas as pd
 from nicegui.elements.aggrid import AgGrid
 from pandas import DataFrame, Series
 
 from inventurgui.helper.config import load_config
-from inventurgui.helper.storage import Storage
+from inventurgui.io.cache import Cache
 
 
 class Warehouse:
@@ -37,7 +37,7 @@ class Warehouse:
         return c
 
     def selected(self) -> DataFrame:
-        row_ids: list = list(Storage.selected(self.name))
+        row_ids: list = list(Cache.selected(self.name))
         def _match_selected() -> Generator[Series, None, None]:
             for row_id in row_ids:
                 for df_id, row_data in self.inventory.iterrows():
@@ -50,7 +50,7 @@ class Warehouse:
         df = self.selected()
         if df is None or df.empty:
             return None
-        user_amounts = Storage.amounts().get(self.name, {})
+        user_amounts = Cache.amounts().get(self.name, {})
         # For each row_id and associated values
         for row_id, values in user_amounts.items():
             # Create a boolean mask where 'perma_id' matches row_id

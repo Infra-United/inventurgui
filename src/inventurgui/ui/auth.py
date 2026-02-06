@@ -5,7 +5,7 @@ import jwt
 from jwt import ExpiredSignatureError
 from nicegui import Event
 
-from inventurgui.helper.storage import Storage
+from inventurgui.io.cache import Cache
 
 authenticated = Event[bool]()
 
@@ -17,9 +17,9 @@ def create_jwt():
 
 def authenticate_user() -> bool:
     try:
-        if Storage.auth_token() is None:
+        if Cache.auth_token() is None:
             return False
-        jwt.decode(Storage.auth_token(), os.environ["UI_STORAGE_SECRET"], algorithms="HS256")
+        jwt.decode(Cache.auth_token(), os.environ["UI_STORAGE_SECRET"], algorithms="HS256")
         return True
     except KeyError, ExpiredSignatureError:
         return False

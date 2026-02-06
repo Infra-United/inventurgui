@@ -1,10 +1,9 @@
 from contextlib import suppress
 
-from nicegui import ui, app
+from nicegui import ui
 from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import load_config, config
-from inventurgui.helper.storage import Storage
 from inventurgui.ui.layout import tabs, tab_panels
 from inventurgui.ui.markdown import render_markdown
 

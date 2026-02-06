@@ -6,13 +6,12 @@ from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 
 from dotenv.variables import Literal
-from nicegui import app
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from inventurgui.helper.config import load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.magic_link import get_magic_link
-from inventurgui.helper.storage import Storage
+from inventurgui.io.cache import Cache
 from inventurgui.io.request import convert_dates
 from inventurgui.io.warehouse import Warehouse
 
@@ -95,7 +94,7 @@ def to_html(request: dict[str, str | dict[str, str]], warehouses: list[Warehouse
             case _:
                 if key in form["input"].keys():
                     html += f"</br>{form['input'].get(key)}: {value}"
-    is_selected = [w.name for w in warehouses if Storage.selected(w.name) != []]
+    is_selected = [w.name for w in warehouses if Cache.selected(w.name) != []]
     html += f"</br></br>{load_config()['warehouse'].get('label')}: {', '.join(is_selected)}"
     html += f"</br>{form.get('update_link')}: <a href={magic_link}>{magic_link}</a>"
     html += f"</br></br>{form['input'].get('message')}:</br></br>{request.get('message')}"

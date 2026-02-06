@@ -5,7 +5,6 @@ from nicegui.elements.tabs import Tabs
 
 from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.safe_url import url_safe, reverse_url
-from inventurgui.helper.storage import Storage
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 

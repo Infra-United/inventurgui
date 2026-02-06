@@ -1,7 +1,7 @@
 from nicegui import app, ui
 from nicegui.observables import ObservableList, ObservableDict
 
-class Storage:
+class Cache:
     def __init__(self, warehouses):
         app.storage.user.indent = True
         app.storage.user.setdefault("Total", 0)

@@ -13,7 +13,7 @@ from nicegui.observables import ObservableDict
 from inventurgui.helper.config import config, EMAIL_REGEX, load_config, get_path
 from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.helper.safe_url import url_safe
-from inventurgui.helper.storage import Storage
+from inventurgui.io.cache import Cache
 from inventurgui.io.mail import send_mail
 from inventurgui.io.request import save_request, delete_request, write_download_list
 from inventurgui.io.warehouse import Warehouse
@@ -67,7 +67,7 @@ class Form:
         self.inputs: list[Input|Editor|Checkbox] = []
         self.config: dict[str, str | dict[str, str]] = load_config()["form"]
         self.dates: Date = ui.date()
-        self.request: ObservableDict = Storage.form()
+        self.request: ObservableDict = Cache.form()
 
     def validate(self) -> None:
         self.valid = False

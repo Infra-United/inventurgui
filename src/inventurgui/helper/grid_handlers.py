@@ -8,14 +8,14 @@ from nicegui.observables import ObservableDict
 from pandas import DataFrame
 
 from inventurgui.helper.config import config, get_path
-from inventurgui.helper.storage import Storage
+from inventurgui.io.cache import Cache
 from inventurgui.ui.auth import authenticate_user
 
 
 def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments):
     row_id = event.args["rowId"]
     new_value = event.args.get("newValue")
-    edited_rows: ObservableDict = Storage.amounts().get(name)
+    edited_rows: ObservableDict = Cache.amounts().get(name)
     if row_id not in edited_rows.keys():
         initial_value = event.args["oldValue"]
         if new_value > initial_value and not authenticate_user():
@@ -37,11 +37,11 @@ def handle_select(name: str, event: GenericEventArguments):
         case "api":
             return
     row_id = event.args["rowId"]
-    if row_id not in Storage.selected(name):
-        Storage.selected(name).append(row_id)
+    if row_id not in Cache.selected(name):
+        Cache.selected(name).append(row_id)
         app.storage.user["Total"] += 1
     else:
-        Storage.selected(name).remove(row_id)
+        Cache.selected(name).remove(row_id)
         app.storage.user["Total"] -= 1
 
 def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataFrame):
@@ -49,7 +49,7 @@ def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataF
         info_popup(name, event.args, df, grid)
     else:
         row = event.args['rowId']
-        is_selected = False if row in Storage.selected(name) else True
+        is_selected = False if row in Cache.selected(name) else True
         grid.run_row_method(row, 'setSelected', is_selected)
 
 def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):

@@ -1,4 +1,3 @@
-import pandas
 from nicegui import ui
 from nicegui.elements.aggrid import AgGrid
 from nicegui.ui import aggrid
@@ -6,7 +5,7 @@ from pandas import DataFrame
 
 from inventurgui.helper.config import load_config
 from inventurgui.helper.grid_handlers import handle_edit, handle_select, handle_click
-from inventurgui.helper.storage import Storage
+from inventurgui.io.cache import Cache
 from inventurgui.ui.auth import authenticate_user
 
 """This module implements functions to create AG Grids which display the data."""
@@ -154,14 +153,14 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     grid.on("rowSelected", lambda event: handle_select(name, event))
     if not cart:
         grid.on("cellClicked", lambda event: handle_click(name, grid, event, df))
-        for row in Storage.selected(name):
+        for row in Cache.selected(name):
             grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     else:
-        for row in Storage.amounts().get(name):
+        for row in Cache.amounts().get(name):
             grid.on(
                 "firstDataRendered",
                 lambda r=row: grid.run_row_method(
-                    r, "setDataValue", config["count"], Storage.amounts().get(name).get(r)[0]
+                    r, "setDataValue", config["count"], Cache.amounts().get(name).get(r)[0]
                 ),
             )
     #if not admin:

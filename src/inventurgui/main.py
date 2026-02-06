@@ -10,8 +10,7 @@ from inventurgui.cli import ARGS
 from inventurgui.helper.config import config, get_path, load_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
-from inventurgui.helper.storage import Storage
-from inventurgui.io.nextcloud import Nextcloud
+from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.layout import header, left_drawer, footer
@@ -59,7 +58,7 @@ def root():
     ui.query(".nicegui-sub-pages").classes("bg-dark w-full h-[calc(100vh-56px)] no-scroll").style(replace="gap:0")
 
     # init app storage
-    storage = Storage(warehouses)
+    storage = Cache(warehouses)
 
     # Create Main Layout
     ld = left_drawer(warehouses)
