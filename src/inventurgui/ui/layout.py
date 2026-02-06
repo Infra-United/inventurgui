@@ -82,11 +82,9 @@ def main_menu(
         requests_btn.on_click(lambda: ui.navigate.to(f"/{settings.requests["label"]}"))
     ui.space().classes("max-sm:hidden")
     if authenticate_user():
-        for label in ["settings", "logout"]: #TODO add to config
+        for label in ["settings", "logout"]:
             btn: Button = ui.button(icon=label).classes(classes).props(props)
             btn.on_click(lambda l=label: ui.navigate.to(f"/{l}"))
-            btn.on('mouseenter', lambda l=label, b=btn: b.set_text(f"{l}"))
-            btn.on('mouseleave', lambda b=btn: b.set_text(""))
 
 def tabs():
     return (
