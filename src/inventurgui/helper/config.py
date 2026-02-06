@@ -42,16 +42,12 @@ class Settings(BaseSettings):
     cloud: dict[str, str|dict[str, str]] = {
         'dir': "InventurGui",
         'pull': {
-            'config': 'config.md',
             'logo': 'logo.jpeg',
             'how_to': 'how_to.md',
             'help': 'help.md',
             'terms': 'terms.md',
             'about': 'about.md',
             'inventory': "inventory.ods"
-        },
-        'push': {
-            'requests': 'requests.ods'
         }
     }
     mail: dict[str, str] = {
