@@ -19,8 +19,6 @@ cloud:
     terms: 'terms.md'
     about: 'about.md'
     inventory: "IU_Inventur.ods"
-  push:
-    requests: 'IU_Anfragen.ods'
 mail:
   subject_request: '[Anfrage]'
   subject_update: '[Update]'
