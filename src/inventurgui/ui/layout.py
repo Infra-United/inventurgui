@@ -3,7 +3,7 @@ from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.tabs import Tabs
 
-from inventurgui.helper.config import config, get_path, load_config
+from inventurgui.helper.config import settings, get_path
 from inventurgui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
@@ -14,10 +14,11 @@ def header(ld: LeftDrawer|None = None):
 	Creates the header bar on top of the screen using the logo, the title and the main menu. NOTE: Only used on Screens wider than 640px.
     :param ld:  The left drawer that holds the warehouse menu.
     """
-    with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
-        img = ui.image(source=get_path(config.get("favicon"))).classes("h-full m-0 p-0 w-[56px]").on('click', lambda: ui.navigate.to("/"))
+    with (ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center")):
+        img = ui.image(source=get_path(settings.favicon)).classes("h-full m-0 p-0 w-[56px]")
+        img.on('click', lambda: ui.navigate.to("/"))
         img.force_reload()
-        ui.label(str(config.get("title")).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
+        ui.label(str(settings.title).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
         main_menu(ld, classes="stretch h-full")
 
 
@@ -47,7 +48,7 @@ def left_drawer(warehouses: list[Warehouse]) -> LeftDrawer:
 def checkout_fab(next_page: dict[str, str]):
     props: str = "text-color=secondary"
     if admin := authenticate_user():
-        next_page = {'icon': 'save', 'label': config['admin']['save']}
+        next_page = {'icon': 'save', 'label': settings.admin['save']}
     with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_next", direction="up").props(f"{props} active-icon='hourglass_top'")
         if admin:
@@ -71,18 +72,17 @@ def checkout_fab(next_page: dict[str, str]):
 def main_menu(
     ld: LeftDrawer, classes: str = "stretch", props: str = "unelevated no-wrap text-color=secondary square"
 ) -> None:
-    start: dict[str, str | dict[str, str]] = load_config()["start"]
-    btn = ui.button(config['warehouse'].get('label'), icon="menu", on_click=lambda: ld.show())
+    btn = ui.button(settings.warehouse['label'], icon="menu", on_click=lambda: ld.show())
     btn.classes(classes).props(f'{props} :visible=Quasar.Screen.lt.md')
-    start_btn: Button = ui.button(start.get("label"), icon=start.get("icon")).classes(classes).props(props)
+    start_btn: Button = ui.button(settings.start["label"], icon=settings.start["icon"]).classes(classes).props(props)
     start_btn.on_click(lambda: ui.navigate.to("/"))
     if authenticate_user():
-        requests: dict[str, str | dict[str, str]] = load_config()["requests"]
-        requests_btn: Button = ui.button(requests.get('label'), icon=requests.get('icon')).classes(classes).props(props)
-        requests_btn.on_click(lambda: ui.navigate.to(f"/{requests.get('label')}"))
+        requests_btn: Button = ui.button(settings.requests["label"], icon=settings.requests["icon"])
+        requests_btn.classes(classes).props(props)
+        requests_btn.on_click(lambda: ui.navigate.to(f"/{settings.requests["label"]}"))
     ui.space().classes("max-sm:hidden")
     if authenticate_user():
-        for label in ["settings", "logout"]:
+        for label in ["settings", "logout"]: #TODO add to config
             btn: Button = ui.button(icon=label).classes(classes).props(props)
             btn.on_click(lambda l=label: ui.navigate.to(f"/{l}"))
             btn.on('mouseenter', lambda l=label, b=btn: b.set_text(f"{l}"))
@@ -104,15 +104,13 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
     """
     See https://github.com/zauberzeug/nicegui/discussions/5566 for some documentation.
     """
-    warehouse_conf: dict = load_config()["warehouse"]
     path_category = reverse_url(ui.context.client.sub_pages_router.current_path.split("/")[-1])
     path_warehouse = reverse_url(ui.context.client.sub_pages_router.current_path.split("/")[-2])
-
     #t = ui.tree([{'id': w.name, 'label': w.name.upper(), 'children': [{'id': c, 'label': c.upper()} for c in w.categories]} for w in warehouses])
     #t.props(f'{props} accordion no-connectors "selected-color=accent"').classes(classes)
     with ui.row().classes("flex bg-primary row w-full px-20 py-3 mb-1"):
-        ui.icon(warehouse_conf.get("icon"), size="20px", color="secondary").classes(classes)
-        ui.label(warehouse_conf.get("label").upper()).classes(classes).classes("text-secondary")
+        ui.icon(settings.warehouse["icon"], size="20px", color="secondary").classes(classes)
+        ui.label(settings.warehouse["label"].upper()).classes(classes).classes("text-secondary")
 
     for warehouse in warehouses:
         name = warehouse.name
@@ -135,12 +133,12 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
                       lambda e, x=expansion: x.on('click', lambda r=e: ld.hide() if r.args['width'] < 1024 else None))
                 continue
             categories = warehouse.categories
-            categories[0] = config['admin']['edits'] if authenticate_user() else categories[0]
+            categories[0] = settings.admin['edits'] if authenticate_user() else categories[0]
             toggle = ui.toggle(categories)
             toggle.set_value(path_category)
             expansion.on("click", lambda t=toggle: t.set_value(path_category))
             expansion.on(
-                "click", lambda l=url_safe(name): ui.navigate.to(f"/{l}/{url_safe(warehouse_conf['everything'])}")
+                "click", lambda l=url_safe(name): ui.navigate.to(f"/{l}/{url_safe(settings.warehouse['everything'])}")
             )
             expansion.on("click", lambda e=expansion: e.open())
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")

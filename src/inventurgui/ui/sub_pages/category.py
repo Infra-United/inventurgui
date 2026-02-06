@@ -1,7 +1,6 @@
 from nicegui import ui
-from nicegui.elements.aggrid import AgGrid
 
-from inventurgui.helper.config import config, load_config
+from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
@@ -10,17 +9,16 @@ from inventurgui.ui.layout import checkout_fab
 
 
 def category_page(category: str, warehouse: Warehouse) -> None:
-    warehouse_conf: dict = load_config()["warehouse"]
     # Create One grid for each unique Category in the first Column
     ui.page_title(f"{warehouse.name}/{category}")
     LOGGER.debug(f"Creating Grid for {warehouse.name}/{category}...")
-    category_data = warehouse.inventory[warehouse.inventory[config["data"]["category"]] == category]
-    if category == warehouse_conf.get("everything"):
+    category_data = warehouse.inventory[warehouse.inventory[settings.columns["category"]] == category]
+    if category == settings.warehouse.get("everything"):
         category_data = warehouse.inventory
-    if category == warehouse_conf.get("selection"):
+    if category == settings.warehouse.get("selection"):
         category_data = warehouse.selected()
-    if category == config['admin']['edits'] and authenticate_user():
+    if category == settings.admin['edits'] and authenticate_user():
         category_data = warehouse.selected()
-    grid: AgGrid = create_aggrid(warehouse.name, category_data, cart=False)
-    checkout_fab(config["cart"])
+    create_aggrid(warehouse.name, category_data, cart=False)
+    checkout_fab(settings.cart)
     LOGGER.info(f"Created grid for: {warehouse.name}/{category}")

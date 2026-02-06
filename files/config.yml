@@ -15,6 +15,7 @@ cloud:
     logo: 'logo.jpeg'
     start: 'lager.md'
     help: 'help.md'
+    how_to: 'how_to.md'
     terms: 'terms.md'
     about: 'about.md'
     inventory: "IU_Inventur.ods"
@@ -28,21 +29,19 @@ mail:
   mail_to: 'aberallesisgut@riseup.net'
   admin: 'aberallesisgut@riseup.net'
 data:
-  sheets: 3
-  category: Kategorie
-  image: Link
-  count: Zahl
-  of_total: "von" # String used in cart to format count as: "{value} {of_total} {total}"
-  weight: "kg"
-  total_weight: Gesamtgewicht
-  desc: Art
-  object: Objekt
-  pack: Packung
-  comment: Kommentar
   path: "IU_Inventur.ods"
-  links:
-    display: false
-    column: "Link"
+  sheets: 3
+  columns:
+    category: Kategorie
+    image: Link
+    comment: Kommentar
+    object: Objekt
+    desc: Art
+    weight: kg
+    total_weight: Gesamtgewicht
+    count: Zahl
+    pack: Packung
+  of_total: "von" # String used in cart to format count as: "{value} {of_total} {total}"
 start:
   label: 'Start'
   icon: 'home'

@@ -3,7 +3,7 @@ from nicegui.elements.aggrid import AgGrid
 from nicegui.ui import aggrid
 from pandas import DataFrame
 
-from inventurgui.helper.config import load_config
+from inventurgui.helper.config import settings
 from inventurgui.helper.grid_handlers import handle_edit, handle_select, handle_click
 from inventurgui.io.cache import Cache
 from inventurgui.ui.auth import authenticate_user
@@ -23,7 +23,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
         aggrid: The AG Grid that results from the given Arguments.
     """
     # Define Columns for AG Grids
-    config = load_config()["data"]
+    columns = settings.columns
     admin = authenticate_user()
 
     default_col_def: dict = {
@@ -40,18 +40,18 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
 
     column_defs = [
         {
-            "colId": config['image'],
+            "colId": columns['image'],
             "editable": False,
-            ":cellRenderer": f'''(p) => p.data.{config['image']} ?
+            ":cellRenderer": f'''(p) => p.data.{columns['image']} ?
              "<span class='material-icons-outlined' style='font-size:28px'>info</span>" :
               "<span class='material-icons-outlined' style='font-size:28px'>camera_alt</span>"'''
-            if admin else f'''(p) => p.data.{config['image']} ? 
+            if admin else f'''(p) => p.data.{columns['image']} ? 
             "<span class='material-icons-outlined' style='font-size:28px'>info</span>" : null''',
             "hide": cart,
             "maxWidth": 60
         },
         {
-            "field": config["object"],
+            "field": columns["object"],
             "filter": not cart,
             "wrapText": True,
             "autoHeight": True,
@@ -61,21 +61,21 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             if not cart
             else {"text-bold": "x", "tracking-wider": "x"},
         },
-        {"colId": config["desc"], "field": config["desc"], "suppressSizeToFit": False, "wrapText": True, "autoHeight": True, 'sortable': False},
+        {"colId": columns["desc"], "field": columns["desc"], "suppressSizeToFit": False, "wrapText": True, "autoHeight": True, 'sortable': False},
         {
-            "colId": config["weight"],
-            ":valueGetter": f"(p) => p.data.{config['weight']} ? p.data.{config['weight']} * p.data.{config['count']} : null"
-            if cart else f"(p) => p.data.{config['weight']}",
+            "colId": columns["weight"],
+            ":valueGetter": f"(p) => p.data.{columns['weight']} ? p.data.{columns['weight']} * p.data.{columns['count']} : null"
+            if cart else f"(p) => p.data.{columns['weight']}",
             ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
             # ":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             #":colId": f"(p) => p.data.{config['weight']}.reduce((acc, x) => acc + (x || 0), 0);",
             #":headerValueGetter": f"(p) => p.location === 'header' ? p.column.colId : null;",
-            "headerName": config["total_weight"] + f"" if cart else f"[kg/{config["pack"]}]",
+            "headerName": columns["total_weight"] + f"" if cart else f"[kg/{columns["pack"]}]",
             "cellDataType": "number",
         },
         {
-            "field": config["count"],
-            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' {config.get('of_total')} ' + p.data.total : p.value" if cart else "",
+            "field": columns["count"],
+            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' {columns.get('of_total')} ' + p.data.total : p.value" if cart else "",
             #":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
             #":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             "headerName": "",
@@ -86,7 +86,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "sort": "desc" if cart else "",
             "cellClassRules": {"bg-accent": "data.total > 1", "text-bold": "data.total > 1"} if cart else "",
         },
-        {"field": config["pack"], "lockPosition": "left" if cart else "", 'sortable': False},
+        {"field": columns["pack"], "lockPosition": "left" if cart else "", 'sortable': False},
         {
             "colId": 'add_delete',
             "editable": False,
@@ -101,7 +101,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
 
     # Styling
     def background(color: str):
-        return f"""{{background-color: {load_config()["theme"][color]}}}"""
+        return f"""{{background-color: {settings.theme[color]}}}"""
 
     ui.add_body_html(f"<style>.ag-row-selected .ag-cell  {background('secondary')}</style>")
     ui.add_body_html(f"<style>.ag-row-hover .ag-cell  {background('accent')}</style>")
@@ -160,7 +160,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             grid.on(
                 "firstDataRendered",
                 lambda r=row: grid.run_row_method(
-                    r, "setDataValue", config["count"], Cache.amounts().get(name).get(r)[0]
+                    r, "setDataValue", columns["count"], Cache.amounts().get(name).get(r)[0]
                 ),
             )
     #if not admin:

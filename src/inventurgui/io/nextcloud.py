@@ -9,7 +9,7 @@ from aiowebdav2.exceptions import ConnectionExceptionError, NoConnectionError
 from dateutil.utils import today
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from inventurgui.helper.config import get_path, config
+from inventurgui.helper.config import get_path, settings
 from inventurgui.helper.logger import LOGGER
 
 
@@ -38,7 +38,7 @@ class Nextcloud(Client):
     @classmethod
     def singleton(cls) -> Self:
         if not cls.instance:
-            cls.instance = Nextcloud(remote_dir=config["cloud"]["dir"])
+            cls.instance = Nextcloud(remote_dir=settings["cloud"]["dir"])
         return cls.instance
 
     @staticmethod

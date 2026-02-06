@@ -7,7 +7,7 @@ from nicegui import ui, app
 from pandas_ods_reader import read_ods
 
 from inventurgui.cli import ARGS
-from inventurgui.helper.config import config, get_path, load_config
+from inventurgui.helper.config import settings, get_path, create_default_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
@@ -23,18 +23,9 @@ from inventurgui.ui.sub_pages.start import start_page
 from inventurgui.ui.sub_pages.warehouse import warehouse_page
 from inventurgui.ui.theme import Theme
 
-# Read Inventory File
-warehouses = []
-inventory = get_path(config["data"]["path"])
-LOGGER.debug(f"Reading Data from {inventory}...")
-with suppress(KeyError):
-    for sheet_num, sheet in enumerate(ezodf.opendoc(inventory).sheets):
-        if sheet_num < config["data"]["sheets"]:
-            LOGGER.debug(f"Reading sheet {sheet.name}...")
-            warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
+create_default_config()
 
-
-def root():
+def root(warehouses:list[Warehouse]):
     # Everytime a user loads the page this is executed - creates the layout - content is created by sub_pages.
 
     ui.add_head_html("""
@@ -52,7 +43,7 @@ def root():
     """)
 
     # Set colors
-    Theme(load_config()["theme"]).set_colors()
+    Theme(settings.theme).set_colors()
 
     # Set default styles
     ui.query(".nicegui-content").classes("p-0 min-h-full bg-dark w-full no-scroll h-[calc(100vh-56px)]")
@@ -70,10 +61,10 @@ def root():
     pages.add("/", start_page)
     pages.add("/login", login_page)
     pages.add("/logout", login_page)
-    pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
-    pages.add(f"/{url_safe(config['form']['label'])}", form_page)
-    pages.add(f"/{url_safe(config['finish']['label'])}", finish_page)
-    pages.add(f"/{url_safe(config['warehouse']['label'])}", warehouse_page)
+    pages.add(f"/{url_safe(settings.cart['label'])}", cart_page)
+    pages.add(f"/{url_safe(settings.form['label'])}", form_page)
+    pages.add(f"/{url_safe(settings.finish['label'])}", finish_page)
+    pages.add(f"/{url_safe(settings.warehouse['label'])}", warehouse_page)
 
     # Register category sub_pages
     for warehouse in warehouses:
@@ -82,7 +73,7 @@ def root():
         for category in warehouse.categories:
             pages.add(f"/{name}/{url_safe(category)}", lambda w=warehouse, c=category: category_page(c, w))
         if authenticate_user():
-            pages.add(f"/{name}/{url_safe(config['admin']['edits'])}", lambda w=warehouse, c=config['admin']['edits']: category_page(c, w))
+            pages.add(f"/{name}/{url_safe(settings.admin['edits'])}", lambda w=warehouse, c=settings.admin['edits']: category_page(c, w))
 
     header(ld)
     footer(ld)
@@ -95,6 +86,14 @@ def root():
 
 
 def frontend():
+    # Read Inventory File
+    warehouses = []
+    inventory = get_path(settings.data["path"])
+    LOGGER.debug(f"Reading Data from {inventory}...")
+    for sheet_num, sheet in enumerate(ezodf.opendoc(inventory).sheets):
+        if sheet_num < settings.data["sheets"]:
+            LOGGER.debug(f"Reading sheet {sheet.name}...")
+            warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     dirs = [get_path("users"), get_path("images")]
     for d in dirs:
@@ -103,18 +102,17 @@ def frontend():
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(dirs[0]))
     app.add_static_files('/images', str(dirs[1]))
     ui.run(
-        root=root,
-        language=config["language"],
+        root=lambda: root(warehouses),
+        language=settings.language,
         uvicorn_logging_level="debug" if ARGS.debug else "info",
         show=False,
         reload=ARGS.reload,
-        title=config["title"],
-        favicon=get_path(config["favicon"]),
+        title=settings.title,
+        favicon=get_path(settings.favicon),
         port=8080,
         storage_secret=storage_secret if storage_secret else '12341232312',
     )
     LOGGER.debug("Successfully started UI.")
-
 
 if __name__ in {"__main__", "__mp_main__"}:
     #app.on_startup(backend)

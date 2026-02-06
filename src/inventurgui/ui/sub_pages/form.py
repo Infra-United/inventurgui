@@ -10,7 +10,7 @@ from nicegui.elements.editor import Editor
 from nicegui.elements.input import Input
 from nicegui.observables import ObservableDict
 
-from inventurgui.helper.config import config, EMAIL_REGEX, load_config, get_path
+from inventurgui.helper.config import settings, EMAIL_REGEX, get_path
 from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
@@ -22,14 +22,14 @@ from inventurgui.ui.markdown import render_markdown
 
 
 async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
-    form: dict[str, str | dict[str, str]] = load_config()["form"]
+    form: dict[str, str | dict[str, str]] = settings.form
 
     ui.page_title(f"{form['label']}")
     def set_panel(screen: dict[str, int]):
         if screen['width'] < 1280:
-            form_panels.set_value(
-                [t.props.get("label") for t in form_tabs.descendants()][0]
-            )  # First tab is open by default
+            with suppress(IndexError):
+                # First tab is open by default
+                form_panels.set_value([t.props.get("label") for t in form_tabs.descendants()][0])
         else:
             form_panels.set_value("default")
 
@@ -42,7 +42,7 @@ async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
     terms = form.get("terms")
     form_tabs = tabs()
     form_panels = tab_panels(form_tabs)
-    back_fab(config["cart"])
+    back_fab(settings.cart)
     with form_tabs.classes("xl:hidden"):
         with form_tabs:
             ui.tab(form.get("tab_label"), icon=form.get("tab_icon")).classes("px-7").props("inline-label")
@@ -59,13 +59,12 @@ async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
         if terms.get("display"):
             with ui.tab_panel(terms.get("label")).classes("m-0 p-0"):
                 await render_markdown(form.get("terms"))
-    ui.on("resize", lambda e: set_panel(e.args), throttle=0.8, trailing_events=True)
+    ui.on("resize", lambda e: set_panel(e.args), throttle=1, trailing_events=True)
 
 class Form:
     def __init__(self):
         self.valid = False
         self.inputs: list[Input|Editor|Checkbox] = []
-        self.config: dict[str, str | dict[str, str]] = load_config()["form"]
         self.dates: Date = ui.date()
         self.request: ObservableDict = Cache.form()
 
@@ -79,54 +78,54 @@ class Form:
 
     async def submit(self, warehouses) -> None:
         is_update = True if self.request.get("sent") else False
-        self.request.update({"finish": config.get("processing")})
-        ui.navigate.to(f"/{url_safe(config['finish']['label'])}")
+        self.request.update({"finish": settings.form.get("processing")})
+        ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
         self.request.update(
-            {"sent": datetime.date.today().strftime(config["date_format"])}
+            {"sent": datetime.date.today().strftime(settings.date_format)}
             if not self.request.get("sent")
-            else {"updated": datetime.date.today().strftime(config["date_format"])}
+            else {"updated": datetime.date.today().strftime(settings.date_format)}
         )
         try:
-            send_mail(self.request, warehouses, type="update" if is_update else "request")
+            send_mail(self.request, warehouses, request_type="update" if is_update else "request")
             await save_request(self.request, warehouses)
-            filename = get_path(f"lists/{config['finish'].get('filename')}-{self.request.get('name')}.ods")
+            filename = get_path(f"lists/{settings.finish.get('filename')}-{self.request.get('name')}.ods")
             write_download_list(filename, warehouses)
             self.request.update({"download": str(filename)})
             self.request.update({"message": None})
-            self.request.update({"finish": self.config.get("success")})
+            self.request.update({"finish": settings.form.get("success")})
         except Exception as exception:
-            self.request.update({"finish": self.config.get("failure")})
-            send_mail(self.request, warehouses, type="failure", exception=exception)
+            self.request.update({"finish": settings.form.get("failure")})
+            send_mail(self.request, warehouses, request_type="failure", exception=exception)
 
     async def delete_request(self, warehouses:list[Warehouse]) -> None:
         ui.notify("Deleting...")
-        self.request.update({"finish": self.config.get("processing")})
-        ui.navigate.to(f"/{url_safe(config['finish']['label'])}")
-        send_mail(self.request, warehouses, type="delete")
+        self.request.update({"finish": settings.form.get("processing")})
+        ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
+        send_mail(self.request, warehouses, request_type="delete")
         await delete_request(self.request)
         ui.notify("Deleted")
-        self.request.update({"deleted": True, "finish": self.config.get("deleted")})
+        self.request.update({"deleted": True, "finish": settings.form.get("deleted")})
 
     def create(self, warehouses:list[Warehouse]):
         with ui.dialog() as delete_dialog:
             with ui.card():
                 ui.label("Bist du sicher?".upper()).classes("w-full pt-2 text-center tracking-widest")
-                delete = ui.button(self.config.get("delete"), icon=self.config.get("delete_icon"), color="negative")
+                delete = ui.button(settings.form.get("delete"), icon=settings.form.get("delete_icon"), color="negative")
                 delete.on_click(lambda: self.delete_request(warehouses))
 
         with ui.grid(columns=2).classes("w-full bg-dark pb-10 h-screen flex-column") as grid:
             with ui.column(align_items='end').classes("max-sm:col-span-2 ml-auto pb-10") as submit_column:
-                submit = ui.button(self.config.get("send"), icon=self.config.get("send_icon"))
+                submit = ui.button(settings.form.get("send"), icon=settings.form.get("send_icon"))
                 submit.on_click(lambda: self.submit(warehouses))
                 submit.props("text-color=secondary rounded")
                 submit.classes("p-3 sm:w-80 text-lg")
-                delete = ui.button(self.config.get("delete"), icon=self.config.get("delete_icon"),
+                delete = ui.button(settings.form.get("delete"), icon=settings.form.get("delete_icon"),
                                    on_click=lambda: delete_dialog.open())
                 delete.bind_visibility_from(self.request, "sent")
                 delete.props("text-color=gray-300 rounded").classes("p-3 bg-negative sm:w-80 text-lg")
 
             with ui.column().classes("mx-auto max-sm:col-span-2") as column:
-                dates_label = ui.label(f"{self.config.get('start')} - {self.config.get('end')}".upper()).classes(
+                dates_label = ui.label(f"{settings.form.get('start')} - {settings.form.get('end')}".upper()).classes(
                     "w-full pt-2 text-center tracking-widest"
                 )
                 dates = self.dates.classes("p-0").props("range minimal flat")
@@ -135,18 +134,18 @@ class Form:
                 dates.bind_value(self.request, "dates")
                 dates.on_value_change(lambda: self.validate())
 
-            email_validation = {self.config.get("email_invalid"): lambda v: True if re.match(EMAIL_REGEX, v) else False}
-            input_validation = {self.config.get("please_fill"): lambda v: len(v) > 0}
+            email_validation = {settings.form.get("email_invalid"): lambda v: True if re.match(EMAIL_REGEX, v) else False}
+            input_validation = {settings.form.get("please_fill"): lambda v: len(v) > 0}
             with ui.column().classes("items-stretch max-sm:col-span-2"):
-                for key, value in self.config.get("input").items():
+                for key, value in settings.form.get("input").items():
                     if not key == "message": # Negative if statement because editor has to be moved
                         i = ui.input(value, validation=email_validation if key == "email" else input_validation)
                         i.without_auto_validation()
                         i.on('blur', lambda x=i: x.validate())
                     else:
                         i = ui.editor(value='',
-                            placeholder=self.config.get("message") if not self.request.get("sent")
-                            else self.config.get("update_message")
+                            placeholder=settings.form.get("message") if not self.request.get("sent")
+                            else settings.form.get("update_message")
                         )
                         i.classes("col-span-2")
                         i.move(grid) # Moves editor
@@ -157,7 +156,7 @@ class Form:
                     self.inputs.append(i)
 
             with ui.column().classes("max-sm:col-span-2"):
-                for value in self.config.get("checkbox").values():
+                for value in settings.form.get("checkbox").values():
                     c = ui.checkbox(value)
                     c.on_value_change(lambda: self.validate())
                     self.inputs.append(c)
@@ -167,8 +166,8 @@ class Form:
             submit.bind_enabled_from(self, 'valid')
             submit.bind_text_from(
                 self.request, "sent",
-                backward=lambda v: self.config.get("update") if v else self.config.get("send"))
+                backward=lambda v: settings.form.get("update") if v else settings.form.get("send"))
             submit.bind_icon_from(
                 self.request, "sent",
-                backward=lambda v: self.config.get("update_icon") if v else self.config.get("send_icon")
+                backward=lambda v: settings.form.get("update_icon") if v else settings.form.get("send_icon")
             )
