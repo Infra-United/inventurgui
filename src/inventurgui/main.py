@@ -20,6 +20,7 @@ from inventurgui.ui.sub_pages.finish import finish_page
 from inventurgui.ui.sub_pages.form import form_page
 from inventurgui.ui.sub_pages.login import login_page
 from inventurgui.ui.sub_pages.start import start_page
+from inventurgui.ui.sub_pages.warehouse import warehouse_page
 from inventurgui.ui.theme import Theme
 
 # Read Inventory File
@@ -72,6 +73,7 @@ def root():
     pages.add(f"/{url_safe(config['cart']['label'])}", cart_page)
     pages.add(f"/{url_safe(config['form']['label'])}", form_page)
     pages.add(f"/{url_safe(config['finish']['label'])}", finish_page)
+    pages.add(f"/{url_safe(config['warehouse']['label'])}", warehouse_page)
 
     # Register category sub_pages
     for warehouse in warehouses:
@@ -84,8 +86,6 @@ def root():
 
     header(ld)
     footer(ld)
-
-    LOGGER.debug("Finished. Starting UI...")
 
 
 #def backend():
