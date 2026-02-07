@@ -8,7 +8,7 @@ from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.grid import create_aggrid
+from inventurgui.grid.grid import create_aggrid
 from inventurgui.ui.layout import checkout_fab, tabs, tab_panels
 from inventurgui.helper.magic_link import load_data_from_magic_link
 

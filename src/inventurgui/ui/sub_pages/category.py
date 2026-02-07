@@ -4,7 +4,7 @@ from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
-from inventurgui.ui.grid import create_aggrid
+from inventurgui.grid.grid import create_aggrid
 from inventurgui.ui.layout import checkout_fab
 
 
