@@ -34,7 +34,7 @@ data:
     image: Link
     comment: Kommentar
     object: Objekt
-    desc: Art
+    type: Art
     weight: kg
     total_weight: Gesamtgewicht
     count: Zahl
