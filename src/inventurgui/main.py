@@ -2,6 +2,7 @@ import os
 from os import mkdir
 
 import ezodf
+import jwt
 from nicegui import ui, app
 from nicegui.elements.markdown import Markdown
 from pandas_ods_reader import read_ods
@@ -95,6 +96,8 @@ def frontend():
             warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
     create_default_config()
     markdown = get_markdown()
+    if len(os.environ["UI_AUTH_SECRET"]) < 32:
+        raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     dirs = [get_path("users"), get_path("images")]
     for d in dirs:
