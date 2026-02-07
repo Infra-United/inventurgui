@@ -122,7 +122,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
                 "mode": "multiRow",
                 "selectAll": "filtered",
                 "ctrlASelectsRows": True,
-                "enableClickSelection": True,
+                "enableClickSelection": False,
                 "checkboxes": True,
                 "headerCheckbox": True,
                 "enableSelectionWithoutKeys": True,
@@ -150,7 +150,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     ).classes("h-dvh w-full")
 
     # Handle events
-    grid.on("rowSelected", lambda event: handle_select(name, event))
+    grid.on("rowSelected",lambda e: handle_select(name, e, grid) if e.args["source"] == 'uiSelectAllFiltered' else None)
     if not cart:
         grid.on("cellClicked", lambda event: handle_click(name, grid, event, df))
         for row in Cache.selected(name):

@@ -1,3 +1,4 @@
+from contextlib import suppress
 from os import mkdir
 from pathlib import Path
 
@@ -32,25 +33,25 @@ def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments):
     grid.run_row_method(row_id, "setData", row_data)
 
 
-def handle_select(name: str, event: GenericEventArguments):
-    match event.args["source"]:
-        case "api":
+def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
+    with suppress(KeyError):
+        if event.args["source"] == "api":
             return
     row_id = event.args["rowId"]
     if row_id not in Cache.selected(name):
         Cache.selected(name).append(row_id)
         app.storage.user["Total"] += 1
+        grid.run_row_method(row_id, 'setSelected', True)
     else:
         Cache.selected(name).remove(row_id)
         app.storage.user["Total"] -= 1
+        grid.run_row_method(row_id, 'setSelected', False)
 
 def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataFrame):
     if event.args['colId'] == settings.columns['image']:
         info_popup(name, event.args, df, grid)
     else:
-        row = event.args['rowId']
-        is_selected = False if row in Cache.selected(name) else True
-        grid.run_row_method(row, 'setSelected', is_selected)
+        handle_select(name, event, grid)
 
 def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
     async def upload_img(event: UploadEventArguments):
