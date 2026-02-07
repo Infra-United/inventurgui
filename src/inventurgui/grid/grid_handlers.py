@@ -12,26 +12,24 @@ from inventurgui.helper.config import settings, get_path
 from inventurgui.io.cache import Cache
 from inventurgui.ui.auth import authenticate_user
 
+def update_row_data(df: DataFrame, data: dict, grid:AgGrid):
+    grid.run_row_method(data['perma_id'], "setData", data)
+    df.loc[data['perma_id']] = data
 
 def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments):
+    pass
+
+def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     row_id = event.args["rowId"]
     new_value = event.args.get("newValue")
-    edited_rows: ObservableDict = Cache.amounts().get(name)
-    if row_id not in edited_rows.keys():
-        initial_value = event.args["oldValue"]
-        if new_value > initial_value and not authenticate_user():
-            ui.notify(settings["cart"]["invalid_edit"], position="center", type="negative", color="secondary")
-            return
-        edited_rows.update({row_id: [new_value, initial_value]})
-    else:
-        if new_value > edited_rows[row_id][1] and not authenticate_user():
-            ui.notify(settings["cart"]["invalid_edit"], position="center", type="negative", color="secondary")
-            return
-        edited_rows[row_id][0] = new_value
-    row_data: dict = event.args["data"]
-    row_data.update({event.args['colId']: new_value})
-    grid.run_row_method(row_id, "setData", row_data)
-
+    data: dict = event.args["data"]
+    total = data["total"]
+    if new_value > total:
+        ui.notify(settings["cart"]["invalid_edit"], position="center", type="negative", color="secondary")
+        return
+    Cache.amounts().get(name).update({row_id: [new_value, total]})
+    data.update({event.args['colId']: new_value})
+    grid.run_row_method(row_id, "setData", data)
 
 def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
     with suppress(KeyError):
@@ -72,7 +70,7 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
     def dia_content():
         with (dia.clear(), ui.card().classes("w-100 gap-2 items-center py-4 text-bold")):
             if data is not None:
-                ui.label(text=f"{data[columns['object']]} ({data[columns['desc']]})")
+                ui.label(text=f"{data[columns['object']]} ({data[columns['type']]})")
             path = get_path(f"images/{name}/{data[columns['object']]}_{data['perma_id']}")
             url = '/images/' + f"{name}/{data[columns['object']]}_{data['perma_id']}"
             if path.is_file():
@@ -85,7 +83,7 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
             md.bind_visibility(md, 'content')
             if authenticate_user():
                 if not path.is_file():
-                    up = ui.upload(label=settings['admin']['upload'], auto_upload=True, on_upload=lambda e: upload_img(e))
+                    up = ui.upload(label=settings.admin['upload'], auto_upload=True, on_upload=lambda e: upload_img(e))
                     up.props('accept="image/*" capture=environment')
                 else:
                     img.force_reload() # To prevent use of cached image instead of newly uploaded one
@@ -99,7 +97,3 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
         dia_content()
         dia.on('hide', lambda: update_row_data(df, data, grid))
     return dia
-
-def update_row_data(df: DataFrame, data: dict, grid:AgGrid):
-    grid.run_row_method(data['perma_id'], "setData", data)
-    df.loc[data['perma_id']] = data
