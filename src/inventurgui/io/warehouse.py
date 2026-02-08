@@ -35,6 +35,10 @@ class Warehouse:
         c.insert(1, settings.warehouse["everything"])
         return c
 
+    @property
+    def count(self) -> int:
+        return self.inventory.index.max()
+
     def selected(self) -> DataFrame:
         row_ids: list = list(Cache.selected(self.name))
         def _match_selected() -> Generator[Series, None, None]:
