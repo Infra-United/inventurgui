@@ -75,7 +75,7 @@ class Settings(BaseSettings):
         'of_total': "of"  # String used in cart to format count as: "{value} {of_total} {total}"
     }
     @property
-    def columns(self):
+    def columns(self) -> dict[str, str]:
         return self.data['columns']
     start: dict[str, str|dict[str, str|bool]] = {
         'label': 'Start',
