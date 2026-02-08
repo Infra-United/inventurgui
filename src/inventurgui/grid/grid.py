@@ -93,7 +93,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     if not admin:
         grid.on("cellEditRequest", lambda event: update_amount(grid, name, event))
     else:
-        grid.on("cellEditRequest", lambda event: handle_edit(grid, name, event))
+        grid.on("cellValueChanged", lambda event: handle_edit(grid, name, event, df))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), trailing_events=True)
     ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)
     return grid

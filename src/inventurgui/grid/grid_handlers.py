@@ -16,8 +16,11 @@ def update_row_data(df: DataFrame, data: dict, grid:AgGrid):
     grid.run_row_method(data['perma_id'], "setData", data)
     df.loc[data['perma_id']] = data
 
-def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments):
-    pass
+def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments, df:DataFrame):
+    ui.notify("editing")
+
+def handle_delete(grid: AgGrid, name: str, event: GenericEventArguments, df: DataFrame):
+    ui.notify("deleting")
 
 def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     row_id = event.args["rowId"]
@@ -48,8 +51,10 @@ def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
 def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataFrame):
     if event.args['colId'] == settings.columns['image']:
         info_popup(name, event.args, df, grid)
+    elif event.args['colId'] == 'add_delete':
+        handle_delete(grid, name, event, df)
     else:
-        handle_select(name, event, grid)
+        handle_select(name, event, grid) if not authenticate_user() else None
 
 def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
     async def upload_img(event: UploadEventArguments):
