@@ -88,12 +88,13 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
     ).classes("h-dvh w-full")
 
     # Handle events
-    grid.on("rowSelected",lambda e: handle_select(warehouse.name, e, grid) if e.args["source"] == 'uiSelectAllFiltered' else None)
+    grid.on("rowSelected",lambda e: handle_select(warehouse.name, e, grid))
     if not cart:
         grid.on("cellClicked", lambda event: handle_click(warehouse.name, grid, event, df))
-        for row in Cache.selected(warehouse.name):
-            grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
-    else:
+        if not admin:
+            for row in Cache.selected(warehouse.name):
+                grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
+    if cart:
         for row in Cache.amounts().get(warehouse.name):
             grid.on(
                 "firstDataRendered",
@@ -101,9 +102,8 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
                     r, "setDataValue", columns["count"], Cache.amounts().get(warehouse.name).get(r)[0]
                 ),
             )
-    if not admin:
         grid.on("cellEditRequest", lambda event: update_amount(grid, warehouse.name, event))
-    else:
+    if admin:
         grid.on("cellValueChanged", lambda event: handle_edit(grid, warehouse.name, event, df))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), trailing_events=True)
     ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)
