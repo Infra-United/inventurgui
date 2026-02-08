@@ -45,7 +45,7 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
                 badge.bind_text_from(app.storage.user, w.name, lambda e: len(e))
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
-                create_aggrid(w.name, selected, cart=True)
+                create_aggrid(w, cart=True)
     truck_panels.set_value(warehouses[0].name.upper())
     LOGGER.info("Created cart page")
     checkout_fab(settings.form)

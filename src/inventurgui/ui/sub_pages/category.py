@@ -12,13 +12,6 @@ def category_page(category: str, warehouse: Warehouse) -> None:
     # Create One grid for each unique Category in the first Column
     ui.page_title(f"{warehouse.name}/{category}")
     LOGGER.debug(f"Creating Grid for {warehouse.name}/{category}...")
-    category_data = warehouse.inventory[warehouse.inventory[settings.columns["category"]] == category]
-    if category == settings.warehouse.get("everything"):
-        category_data = warehouse.inventory
-    if category == settings.warehouse.get("selection"):
-        category_data = warehouse.selected()
-    if category == settings.admin['edits'] and authenticate_user():
-        category_data = warehouse.selected()
-    create_aggrid(warehouse.name, category_data, cart=False)
+    create_aggrid(warehouse, category, cart=False)
     checkout_fab(settings.cart)
     LOGGER.info(f"Created grid for: {warehouse.name}/{category}")
