@@ -21,7 +21,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
         cart (bool): Whether the grid is for the cart page. Defaults to False.
 
     Returns:
-        aggrid: The AG Grid that results from the given Arguments.
+        AgGrid: The AG Grid that results from the given Arguments.
     """
     # Define Columns for AG Grids
     columns = settings.columns
@@ -36,7 +36,7 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
 
     ui.add_body_html(f"<style>.ag-row-selected .ag-cell  {background('secondary')}</style>")
     ui.add_body_html(f"<style>.ag-row-hover .ag-cell  {background('accent')}</style>")
-    ui.add_body_html(f"<style>.ag-row-pinned .ag-cell  {background('accent')}</style>")
+    ui.add_body_html(f"<style>.ag-row-pinned .ag-cell  {background('secondary')}</style>")
 
     # Create Grid with given Data
     grid = aggrid(
@@ -45,9 +45,8 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "columnDefs": col_defs,
             "defaultColDef": default_column_options(admin),
             "rowData": (df.to_dict("records")),
-            #"pinnedTopRowData": [{col: ""} for col in df.columns] if admin else "",
+            "pinnedTopRowData": [{}],
             #":editType": "(p) => p.data.rowPinned ? 'fullRow' : 'singleCell'",
-            #":isRowPinned": f"(p) => p.data.{columns['weight']} != null ? 'top' : null",
             "alwaysMultiSort": True,
             "rowSelection": {
                 "mode": "multiRow",
@@ -69,7 +68,8 @@ def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
             "suppressCellFocus": not admin,
             "enterNavigatesVerticallyAfterEdit": True,
             "singleClickEdit": True,
-            ":getRowId": f"(p) => p.data.perma_id.toString()",
+            "stopEditingWhenCellsLoseFocus": True,
+            ":getRowId": f"(p) => p.data.perma_id == undefined ? '{df.attrs['warehouse']}_{df.attrs['category']}' : p.data.perma_id.toString()",
         },
         html_columns=[0],
         theme='alpine',
