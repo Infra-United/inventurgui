@@ -104,7 +104,8 @@ def pack_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
 def delete_col() -> dict[str, Any]:
     return {
             "colId": 'add_delete',
-            "editable": False,
+            ":editable": f"(p) => p.node.rowPinned ? true : false",
+            ":valueGetter": f"(p) => p.node.rowPinned ? 'Enter' : null",
             ":cellRenderer": f'''(p) => p.node.rowPinned ?
                  "<span class='material-icons-outlined' style='font-size:28px'>add</span>" :
                   "<span class='material-icons-outlined' style='font-size:28px'>delete</span>"''',
