@@ -26,4 +26,4 @@ def login_page():
         else:
             time.sleep(1)
             pw_in.set_value("")
-            ui.notify("This password is incorrect.", color="negative", position='center')
+            ui.notify("This password is incorrect.", color="negative")
