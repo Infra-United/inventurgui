@@ -5,22 +5,29 @@ from pathlib import Path
 from nicegui import app, ui
 from nicegui.elements.aggrid import AgGrid
 from nicegui.events import GenericEventArguments, UploadEventArguments
-from nicegui.observables import ObservableDict
 from pandas import DataFrame
 
 from inventurgui.helper.config import settings, get_path
 from inventurgui.io.cache import Cache
 from inventurgui.ui.auth import authenticate_user
 
-def update_row_data(df: DataFrame, data: dict, grid:AgGrid):
-    grid.run_row_method(data['perma_id'], "setData", data)
-    df.loc[data['perma_id']] = data
+
+def update_row_data(df: DataFrame, data: dict, grid:AgGrid, event_args: dict):
+    if not "rowPinned" in event_args:
+        grid.run_row_method(data.get('perma_id'), "setData", data)
+        df.loc[data.get('perma_id')] = data
+    else:
+        print(data)
+        ui.notify("pinned") # TODO add new row with data
 
 def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments, df:DataFrame):
     ui.notify("editing")
 
-def handle_delete(grid: AgGrid, name: str, event: GenericEventArguments, df: DataFrame):
-    ui.notify("deleting")
+def handle_add_delete(grid: AgGrid, name: str, event: GenericEventArguments, df: DataFrame):
+    if "rowPinned" in event.args:
+        ui.notify("adding")
+    else:
+        ui.notify("deleting")
 
 def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     row_id = event.args["rowId"]
@@ -52,7 +59,7 @@ def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataF
     if event.args['colId'] == settings.columns['image']:
         info_popup(name, event.args, df, grid)
     elif event.args['colId'] == 'add_delete':
-        handle_delete(grid, name, event, df)
+        handle_add_delete(grid, name, event, df)
     else:
         handle_select(name, event, grid) if not authenticate_user() else None
 
@@ -75,9 +82,9 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
     def dia_content():
         with (dia.clear(), ui.card().classes("w-100 gap-2 items-center py-4 text-bold")):
             if data is not None:
-                ui.label(text=f"{data[columns['object']]} ({data[columns['type']]})")
-            path = get_path(f"images/{name}/{data[columns['object']]}_{data['perma_id']}")
-            url = '/images/' + f"{name}/{data[columns['object']]}_{data['perma_id']}"
+                ui.label(text=f"{data.get(columns['object'])} ({data.get(columns['type'])})")
+            path = get_path(f"images/{name}/{data.get(columns['object'])}_{data.get('perma_id')}")
+            url = '/images/' + f"{name}/{data.get(columns['object'])}_{data.get('perma_id')}"
             if path.is_file():
                 img = ui.interactive_image(url)
                 data[columns['image']] = url
@@ -94,11 +101,11 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
                     img.force_reload() # To prevent use of cached image instead of newly uploaded one
                     with img:
                         ui.button(icon='delete', on_click=lambda e: delete_img(path)).classes("absolute bottom-0 right-0")
-                ui.editor(value=data[columns['comment']]).bind_value_to(data, columns['comment'])
+                ui.editor(value=data.get(columns['comment'])).bind_value_to(data, columns['comment'])
 
     data = event_args['data']
     columns = settings.columns
     with ui.dialog(value=True) as dia:
         dia_content()
-        dia.on('hide', lambda: update_row_data(df, data, grid))
+        dia.on('hide', lambda: update_row_data(df, data, grid, event_args))
     return dia
