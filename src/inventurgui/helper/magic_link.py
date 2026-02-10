@@ -6,7 +6,7 @@ from inventurgui.helper.safe_url import url_safe
 
 
 def get_magic_link() -> str:
-    return f"https://{settings['domain']}/{url_safe(settings['cart']['label'])}?id={app.storage.browser['id']}"
+    return f"https://{settings.domain}/{url_safe(settings.cart['label'])}?id={app.storage.browser['id']}"
 
 
 def load_data_from_magic_link(old_id: str, new_id: str) -> None:

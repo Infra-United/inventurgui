@@ -43,10 +43,6 @@ class Settings(BaseSettings):
         }
     }
     mail: dict[str, str] = {
-        'subject_request': '[Request]',
-        'subject_update': '[Update]',
-        'subject_failure': '[Error]',
-        'subject_delete': '[Delete]',
         'mail_to': 'hello@example.org',
         'admin': 'admin@example.org'
     }
@@ -63,8 +59,7 @@ class Settings(BaseSettings):
             'total_weight': 'Total Weight',
             'count': 'Amount',
             'pack': 'Package',
-        },
-        'of_total': "of"  # String used in cart to format count as: "{value} {of_total} {total}"
+        }
     }
     @property
     def columns(self) -> dict[str, str]:
@@ -102,9 +97,6 @@ class Settings(BaseSettings):
         'label': 'Cart',
         'icon': 'cart',
         'tab_icon': 'local_shipping',
-        'edit_tip': "Change the amounts to your needs by clicking on them.",
-        'select_tip': "Please select something first.",
-        'invalid_edit': "We don't have that many!",
     }
     form: dict[str, str|dict[str, str | bool]] = {
         'label': 'Form',  # The url path of the requests page

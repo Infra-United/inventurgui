@@ -12,11 +12,12 @@ def render_markdown(text:str) -> Markdown:
 
 def get_markdown() -> dict[str, str]:
     markdown = {}
-    for keys, values in settings.start.items():
-        if isinstance(values, str) or not values.get("display"):
-            continue
-        label = values.get("label")
-        path = get_path(values.get("path"))
+
+    def read_markdown(page_conf: dict[str, str]) -> None:
+        if isinstance(page_conf, str) or not page_conf.get("display"):
+            return
+        label = page_conf.get("label")
+        path = get_path(page_conf.get("path"))
         try:
             with open(path, "r") as f:  # open file
                 LOGGER.debug(f"Reading {label} from content of {path}...")
@@ -29,4 +30,9 @@ def get_markdown() -> dict[str, str]:
                 f"<br>In that case a page reload might also fix the problem."
             )
         markdown.update({label: text})
+
+    for values in settings.start.values():
+        read_markdown(values)
+    read_markdown(settings.form.get("terms"))
+
     return markdown

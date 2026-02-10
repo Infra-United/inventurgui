@@ -1,6 +1,7 @@
 title: IU Inventur
 favicon: logo.jpeg
 domain: 'inventur.infraunited.org'
+port: 8080
 language: 'de' # The language to use on Quasar UI Components
 date_format: '%d.%m.%y' # The format for dates - see https://strftime.org/
 theme:
@@ -19,11 +20,9 @@ cloud:
     terms: 'terms.md'
     about: 'about.md'
     inventory: "IU_Inventur.ods"
+  push:
+    requests: "IU_Anfragen.ods"
 mail:
-  subject_request: '[Anfrage]'
-  subject_update: '[Update]'
-  subject_failure: '[Fehler]'
-  subject_delete: '[Gelöscht]'
   mail_to: 'aberallesisgut@riseup.net'
   admin: 'aberallesisgut@riseup.net'
 data:
@@ -39,7 +38,6 @@ data:
     total_weight: Gesamtgewicht
     count: Zahl
     pack: Packung
-  of_total: "von" # String used in cart to format count as: "{value} {of_total} {total}"
 start:
   label: 'Start'
   icon: 'home'
@@ -68,9 +66,6 @@ cart:
   label: 'Palettieren'
   icon: 'sym_o_pallet'
   tab_icon: 'local_shipping'
-  edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
-  select_tip: "Bitte wähle erst etwas aus."
-  invalid_edit: "So viele haben wir nicht!"
 form:
   label: 'Beladen' # The url path of the requests page
   icon: 'sym_o_forklift' # The menu icon for the requests page
@@ -82,20 +77,9 @@ form:
     donation: 'Geplante Spende'
     email: 'E-Mail'
     message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
-  please_fill: 'Bitte fülle dieses Feld aus.' # All above input fields have to be filled
   checkbox: # Will create checkboxes at the end of the form for any number of items
     terms: 'Ich habe die Leihbedingungen gelesen.'
-  # Comment this out if you don't want users to be able to include a message to the mails
-  # Just String Settings
-  month: 'Monat'
-  start: 'Abholung'
-  end: 'Rückgabe'
-  email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
-  update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
   # Submit Button Settings
-  send: 'Anfragen'
-  update: 'Speichern'
-  delete: 'Löschen'
   send_icon: 'outgoing_mail'
   update_icon: 'save'
   delete_icon: 'delete_sweep'

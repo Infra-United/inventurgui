@@ -39,7 +39,7 @@ class Nextcloud(Client):
     @classmethod
     def singleton(cls) -> Self:
         if not cls.instance:
-            cls.instance = Nextcloud(remote_dir=settings["cloud"]["dir"])
+            cls.instance = Nextcloud(remote_dir=settings.cloud["dir"])
         return cls.instance
 
     @staticmethod

@@ -2,6 +2,8 @@ from functools import wraps
 from typing import Any, Callable
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.i18n import i18n
+
 
 def default_column_options(admin:bool) -> dict[str, Any]:
     return {
@@ -86,7 +88,7 @@ def weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
 def count_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
     return {
             "field": columns["count"],
-            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' {settings.data.get('of_total')} ' + p.data.total : p.value" if cart else "",
+            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' {i18n.get('cart.of')} ' + p.data.total : p.value" if cart else "",
             #":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
             #":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             "headerName": "",

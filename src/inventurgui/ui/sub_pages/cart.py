@@ -4,6 +4,7 @@ from nicegui import app, ui, PageArguments
 from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
@@ -22,12 +23,12 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
         load_data_from_magic_link(current_id, request_id)
 
     if Cache.total() == 0:
-        ui.notify(settings.cart["select_tip"], type="warning", position="center", color="primary", textColor="dark")
+        ui.notify(i18n.get("cart.select_tip"), type="warning", position="center", color="primary", textColor="dark")
         time.sleep(1)
         ui.navigate.to(f"/{url_safe(settings.warehouse['label'])}")
         return
     if not Cache.notified() and Cache.total() != 0:
-        ui.notify(settings.cart["edit_tip"], position="center", color="primary", textColor="dark")
+        ui.notify(i18n.get("cart.edit_tip"), position="center", color="primary", textColor="dark")
         app.storage.user.update({"notified": True})
 
     ui.page_title(f"{settings.cart['label']}")

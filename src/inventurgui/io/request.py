@@ -18,7 +18,7 @@ from inventurgui.io.warehouse import Warehouse
 async def save_request(
     request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], update: bool = False
 ) -> None:
-    path = get_path(settings["cloud"]["push"]["requests"])
+    path = get_path(settings.cloud["push"]["requests"])
 
     start, end, month, year = convert_dates(request.get("dates"))
     # Get or create doc and overview_sheet
@@ -47,7 +47,7 @@ async def save_request(
 
 
 async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
-    path = get_path(settings["cloud"]["push"]["requests"])
+    path = get_path(settings.cloud["push"]["requests"])
     start, end, month, year = convert_dates(request.get("dates"))
     ods, overview_sheet, data_sheet = get_request_file(request, path, f"20{year}")
     row_number = find_row_by_name_or_start(overview_sheet, start, request.get("name"), name_only=True)
@@ -82,7 +82,7 @@ def get_request_file(request: dict[str, str], path: Path, year: str) -> Tuple[Pa
 
 
 def init_overview_sheet(request: dict[str, str | dict[str, str]], year: str):
-    form: dict[str, str | dict[str, str]] = settings.form
+    form: dict[str, str | dict[str, str]] = settings.date_format.form
     sheet = Sheet(str(year), size=(1, 20))
     # Write Column Headers
     count = 0
@@ -167,19 +167,19 @@ def convert_dates(dates: str | dict[str, str]) -> Tuple[str, str, str, str]:
     end = datetime.date.fromisoformat(end)
     year = f"{start:%y}/{end:%y}" if not start.year == end.year else f"{start:%y}"
     month = f"{start:%B}/{end:%B}" if not start.month == end.month else f"{start:%B}"
-    start = start.strftime(settings["date_format"])
-    end = end.strftime(settings["date_format"])
+    start = start.strftime(settings.date_format)
+    end = end.strftime(settings.date_format)
     return start, end, month, year
 
 
 def find_row_by_name_or_start(sheet: Sheet, start: str, name: str, name_only) -> int:
     LOGGER.debug("Finding row number by name or start...")
     count = 0
-    start = datetime.date.strptime(start, settings["date_format"])
+    start = datetime.date.strptime(start, settings.date_format)
     insert_count = None
     for row in sheet.rows():
         try:
-            row_start = datetime.date.strptime(row[1].value, settings["date_format"])
+            row_start = datetime.date.strptime(row[1].value, settings.date_format)
             row_name = str(row[3].value)
         except ValueError:
             count += 1
@@ -214,7 +214,7 @@ def write_download_list(path: Path, warehouses: list[Warehouse]):
         df = w.get_final()
         if df is None or df.empty:
             continue
-        df.drop(columns=[settings["warehouse"]["label"]], inplace=True)
+        df.drop(columns=[settings.warehouse["label"]], inplace=True)
         data_sheet = None
         for idx, name in enumerate(ods.sheets.names()):
             if name == w.name:

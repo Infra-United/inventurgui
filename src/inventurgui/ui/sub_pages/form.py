@@ -12,6 +12,7 @@ from nicegui.elements.markdown import Markdown
 from nicegui.observables import ObservableDict
 
 from inventurgui.helper.config import settings, EMAIL_REGEX
+from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.helper.safe_url import url_safe
@@ -55,12 +56,12 @@ async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], md: dict[str, s
             with ui.grid(columns=2) as grid:
                 Form().create(warehouses)
                 if terms.get("display"):
-                    render_markdown(md.get(form.get("terms")))
+                    render_markdown(md.get(form.get("terms").get('label')))
         with ui.tab_panel(form.get("tab_label")).classes("m-0"):
             Form().create(warehouses)
         if terms.get("display"):
             with ui.tab_panel(terms.get("label")).classes("m-0 p-0"):
-                render_markdown(md.get(form.get("terms")))
+                render_markdown(md.get(form.get("terms").get("label")))
     ui.on("resize", lambda e: set_panel(e.args), throttle=1, trailing_events=True)
 
 class Form:
@@ -116,15 +117,15 @@ class Form:
                 delete.on_click(lambda: self.delete_request(warehouses))
 
         with ui.grid(columns=2).classes("w-full bg-dark pb-10 h-screen flex-column") as grid:
-            with ui.column(align_items='end').classes("max-sm:col-span-2 ml-auto pb-10") as submit_column:
-                submit = ui.button(settings.form.get("send"), icon=settings.form.get("send_icon"))
-                submit.on_click(lambda: self.submit(warehouses))
-                submit.props("text-color=secondary rounded")
-                submit.classes("p-3 sm:w-80 text-lg")
+            with ui.row(align_items='end').classes("max-sm:col-span-2 ml-auto pb-10") as submit_column:
                 delete = ui.button(settings.form.get("delete"), icon=settings.form.get("delete_icon"),
                                    on_click=lambda: delete_dialog.open())
                 delete.bind_visibility_from(self.request, "sent")
-                delete.props("text-color=gray-300 rounded").classes("p-3 bg-negative sm:w-80 text-lg")
+                delete.props("text-color=secondary rounded").classes("p-3 bg-red text-lg")
+                submit = ui.button(icon=settings.form.get("send_icon"))
+                submit.on_click(lambda: self.submit(warehouses))
+                submit.props("text-color=secondary rounded")
+                submit.classes("p-3 text-lg")
 
             with ui.column().classes("mx-auto max-sm:col-span-2") as column:
                 dates_label = ui.label(f"{settings.form.get('start')} - {settings.form.get('end')}".upper()).classes(
@@ -137,7 +138,7 @@ class Form:
                 dates.on_value_change(lambda: self.validate())
 
             email_validation = {settings.form.get("email_invalid"): lambda v: True if re.match(EMAIL_REGEX, v) else False}
-            input_validation = {settings.form.get("please_fill"): lambda v: len(v) > 0}
+            input_validation = {i18n.get("form.please_fill_field"): lambda v: len(v) > 0}
             with ui.column().classes("items-stretch max-sm:col-span-2"):
                 for key, value in settings.form.get("input").items():
                     if not key == "message": # Negative if statement because editor has to be moved
@@ -166,9 +167,6 @@ class Form:
             # Move so it is available as variable above
             submit_column.move(grid)
             submit.bind_enabled_from(self, 'valid')
-            submit.bind_text_from(
-                self.request, "sent",
-                backward=lambda v: settings.form.get("update") if v else settings.form.get("send"))
             submit.bind_icon_from(
                 self.request, "sent",
                 backward=lambda v: settings.form.get("update_icon") if v else settings.form.get("send_icon")
