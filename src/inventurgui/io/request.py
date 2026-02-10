@@ -222,6 +222,6 @@ def write_download_list(path: Path, warehouses: list[Warehouse]):
                 data_sheet.clear()
         if data_sheet is None:
             data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
-            ods.sheets += write_data_sheet(df, data_sheet)
+        ods.sheets += write_data_sheet(df, data_sheet)
     ods.backup = False
     ods.save()

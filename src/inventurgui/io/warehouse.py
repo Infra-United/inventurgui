@@ -5,6 +5,7 @@ from nicegui.elements.aggrid import AgGrid
 from pandas import DataFrame, Series
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.i18n import i18n
 from inventurgui.io.cache import Cache
 
 columns = settings.columns
@@ -20,7 +21,8 @@ class Warehouse:
         self.inventory.insert(
             0, "perma_id", self.inventory.index.tolist()
         )  # This ensures we can have selection across grids
-        self.inventory.insert(0, "total", inventory[columns["count"]])
+        total_loc = self.inventory.columns.get_loc(columns["count"])+1
+        self.inventory.insert(total_loc, i18n.get("cart.of"), inventory[columns["count"]])
         self.inventory.insert(0, settings.warehouse["label"], self.name)
 
     @property

@@ -56,8 +56,7 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
             "columnDefs": col_defs,
             "defaultColDef": default_column_options(admin),
             "rowData": (df.to_dict("records")),
-            "pinnedTopRowData": [{}],
-            #":editType": "(p) => p.data.rowPinned ? 'fullRow' : 'singleCell'",
+            "pinnedTopRowData": [{}] if admin else "",
             "alwaysMultiSort": True,
             "rowSelection": {
                 "mode": "multiRow",

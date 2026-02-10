@@ -8,6 +8,7 @@ from nicegui.events import GenericEventArguments, UploadEventArguments
 from pandas import DataFrame
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
 from inventurgui.ui.auth import authenticate_user
@@ -34,7 +35,7 @@ def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     row_id = event.args["rowId"]
     new_value = event.args.get("newValue")
     data: dict = event.args["data"]
-    total = data["total"]
+    total = data[i18n.get("cart.of")]
     if new_value > total:
         ui.notify(settings["cart"]["invalid_edit"], position="center", type="negative", color="secondary")
         return

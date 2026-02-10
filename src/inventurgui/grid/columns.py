@@ -1,7 +1,6 @@
 from functools import wraps
 from typing import Any, Callable
 
-from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 
 
@@ -88,16 +87,16 @@ def weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
 def count_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
     return {
             "field": columns["count"],
-            ":valueFormatter": f"(p) => p.data.total > 1 ? p.value + ' {i18n.get('cart.of')} ' + p.data.total : p.value" if cart else "",
-            #":valueGetter": f"(p) => (p.data.{data["count"]} == 1000) ? 100 : p.data.{data["count"]};",
-            #":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
+            ":valueFormatter": f"(p) => p.data.{i18n.get('cart.of')} > 1 ? p.value + ' {i18n.get('cart.of')} ' "
+                               f"+ p.data.{i18n.get('cart.of')} : p.value" if cart else "",
             "headerName": "",
             "editable": cart or admin,
             "cellDataType": "number",
             "maxWidth": 50 if not cart else None,
             "lockPosition": "left" if cart else "",
             "sort": "desc" if cart else "",
-            "cellClassRules": {"bg-accent": "data.total > 1", "text-bold": "data.total > 1"} if cart else "",
+            "cellClassRules": {"bg-accent": f"data.{i18n.get('cart.of')} > 1",
+                               "text-bold": f"data.{i18n.get('cart.of')} > 1"} if cart else "",
         }
 @register_column("pack")
 def pack_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
