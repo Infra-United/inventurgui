@@ -4,6 +4,7 @@ from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.tabs import Tabs
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
@@ -49,7 +50,7 @@ def left_drawer(warehouses: list[Warehouse]) -> LeftDrawer:
 def checkout_fab(next_page: dict[str, str]):
     props: str = "text-color=secondary"
     if admin := authenticate_user():
-        next_page = {'icon': 'save', 'label': settings.admin['save']}
+        next_page = {'icon': 'save', 'label': (i18n.get('admin.save'))}
     with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_next", direction="up").props(f"{props} active-icon='hourglass_top'")
         if admin:
@@ -132,7 +133,7 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
                       lambda e, x=expansion: x.on('click', lambda r=e: ld.hide() if r.args['width'] < 1024 else None))
                 continue
             categories = warehouse.categories
-            categories[0] = settings.admin['edits'] if authenticate_user() else categories[0]
+            categories[0] = i18n.get('admin.edits') if authenticate_user() else categories[0]
             toggle = ui.toggle(categories)
             toggle.set_value(path_category)
             expansion.on("click", lambda t=toggle: t.set_value(path_category))

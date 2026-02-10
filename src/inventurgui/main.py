@@ -9,6 +9,7 @@ from pandas_ods_reader import read_ods
 
 from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings, create_default_config
+from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
@@ -75,7 +76,7 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str]):
         for category in warehouse.categories:
             pages.add(f"/{name}/{url_safe(category)}", lambda w=warehouse, c=category: category_page(c, w))
         if authenticate_user():
-            pages.add(f"/{name}/{url_safe(settings.admin['edits'])}", lambda w=warehouse, c=settings.admin['edits']: category_page(c, w))
+            pages.add(f"/{name}/{url_safe(i18n.get('admin.edits'))}", lambda w=warehouse, c=i18n.get('admin.edits'): category_page(c, w))
 
     header(ld)
     footer(ld)

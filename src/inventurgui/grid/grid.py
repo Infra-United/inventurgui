@@ -6,6 +6,7 @@ from pandas import DataFrame
 from inventurgui.grid.columns import default_column_options, col_fns, delete_col
 from inventurgui.helper.config import settings
 from inventurgui.grid.grid_handlers import handle_edit, handle_select, handle_click, update_amount
+from inventurgui.helper.i18n import i18n
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
@@ -44,7 +45,7 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
         df = warehouse.inventory
     elif category == settings.warehouse.get("selection") or category is None and cart:
         df = warehouse.selected()
-    elif category == settings.admin['edits'] and admin:
+    elif category == i18n.get('admin.edits') and admin:
         df = warehouse.selected()
     else:
         df = warehouse.inventory[warehouse.inventory[settings.columns["category"]] == category]

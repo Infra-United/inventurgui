@@ -97,7 +97,7 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
             md.bind_visibility(md, 'content')
             if authenticate_user():
                 if not path.is_file():
-                    up = ui.upload(label=settings.admin['upload'], auto_upload=True, on_upload=lambda e: upload_img(e))
+                    up = ui.upload(label=i18n.get('admin.upload'), auto_upload=True, on_upload=lambda e: upload_img(e))
                     up.props('accept="image/*" capture=environment')
                 else:
                     img.force_reload() # To prevent use of cached image instead of newly uploaded one

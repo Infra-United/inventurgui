@@ -81,7 +81,7 @@ class Form:
 
     async def submit(self, warehouses) -> None:
         is_update = True if self.request.get("sent") else False
-        self.request.update({"finish": settings.form.get("processing")})
+        self.request.update({"finish": i18n.get("finish.processing")})
         ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
         self.request.update(
             {"sent": datetime.date.today().strftime(settings.date_format)}
@@ -91,34 +91,33 @@ class Form:
         try:
             send_mail(self.request, warehouses, request_type="update" if is_update else "request")
             await save_request(self.request, warehouses)
-            filename = get_path(f"lists/{settings.finish.get('filename')}-{self.request.get('name')}.ods")
+            filename = get_path(f"lists/{settings.organization}-{self.request.get('name')}.ods")
             write_download_list(filename, warehouses)
             self.request.update({"download": str(filename)})
             self.request.update({"message": None})
-            self.request.update({"finish": settings.form.get("success")})
+            self.request.update({"finish": i18n.get("finish.success")})
         except Exception as exception:
-            self.request.update({"finish": settings.form.get("failure")})
+            self.request.update({"finish": i18n.get("finish.failure")})
             send_mail(self.request, warehouses, request_type="failure", exception=exception)
 
     async def delete_request(self, warehouses:list[Warehouse]) -> None:
         ui.notify("Deleting...")
-        self.request.update({"finish": settings.form.get("processing")})
+        self.request.update({"finish": i18n.get("finish.processing")})
         ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
         send_mail(self.request, warehouses, request_type="delete")
         await delete_request(self.request)
-        ui.notify("Deleted")
-        self.request.update({"deleted": True, "finish": settings.form.get("deleted")})
+        self.request.update({"deleted": True, "finish": i18n.get("finish.deleted")})
 
     def create(self, warehouses:list[Warehouse]):
         with ui.dialog() as delete_dialog:
             with ui.card():
-                ui.label("Bist du sicher?".upper()).classes("w-full pt-2 text-center tracking-widest")
-                delete = ui.button(settings.form.get("delete"), icon=settings.form.get("delete_icon"), color="negative")
+                ui.label(i18n.get("finish.are_you_sure").upper()).classes("w-full pt-2 text-center tracking-widest")
+                delete = ui.button(icon='delete_sweep', color="negative")
                 delete.on_click(lambda: self.delete_request(warehouses))
 
         with ui.grid(columns=2).classes("w-full bg-dark pb-10 h-screen flex-column") as grid:
             with ui.row(align_items='end').classes("max-sm:col-span-2 ml-auto pb-10") as submit_column:
-                delete = ui.button(settings.form.get("delete"), icon="delete_sweep",
+                delete = ui.button(icon="delete_sweep",
                                    on_click=lambda: delete_dialog.open())
                 delete.bind_visibility_from(self.request, "sent")
                 delete.props("text-color=secondary rounded").classes("p-3 bg-red text-lg")

@@ -1,5 +1,4 @@
 import datetime
-from os import mkdir
 from pathlib import Path
 from typing import Tuple
 
@@ -9,8 +8,8 @@ from ezodf.document import FlatXMLDocument, PackagedDocument
 from pandas import DataFrame, notna
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.paths import get_path
 from inventurgui.helper.logger import LOGGER
+from inventurgui.helper.paths import get_path
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 
@@ -52,9 +51,9 @@ async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
     ods, overview_sheet, data_sheet = get_request_file(request, path, f"20{year}")
     row_number = find_row_by_name_or_start(overview_sheet, start, request.get("name"), name_only=True)
     overview_sheet.delete_rows(row_number)
-    data_sheet.clear()
     del ods.sheets[data_sheet.name]
     ods.save()
+    get_path(request.get("download")).unlink()
     await Nextcloud.singleton().push_file(path)
 
 
@@ -201,27 +200,15 @@ def find_row_by_name_or_start(sheet: Sheet, start: str, name: str, name_only) ->
 
 
 def write_download_list(path: Path, warehouses: list[Warehouse]):
-    if not get_path("/lists/").is_dir():
-        mkdir(get_path("/lists/"))
-    if path.is_file():
-        LOGGER.debug(f"Found existing list file @{path}.")
-        ods: PackagedDocument = opendoc(path)
-    else:
-        LOGGER.debug(f"Couldn't find list file @{path} - creating it.")
-        ods: PackagedDocument = newdoc("ods", str(path))
-    LOGGER.debug("Writing list for download...")
+    path.unlink(missing_ok=True)
+    LOGGER.info(f"Creating download list file @{path}")
+    ods: PackagedDocument = newdoc("ods", str(path))
     for w in warehouses:
         df = w.get_final()
         if df is None or df.empty:
             continue
         df.drop(columns=[settings.warehouse["label"]], inplace=True)
-        data_sheet = None
-        for idx, name in enumerate(ods.sheets.names()):
-            if name == w.name:
-                data_sheet = ods.sheets[idx]
-                data_sheet.clear()
-        if data_sheet is None:
-            data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
+        data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
         ods.sheets += write_data_sheet(df, data_sheet)
     ods.backup = False
     ods.save()

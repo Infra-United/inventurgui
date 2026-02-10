@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     title: str = 'InventurGui'
     favicon: str = 'logo.jpeg'
+    organization: str = "example"
     domain: str = 'inventur.example.org'
     port: int = 8080
     language: str = 'en'
@@ -111,29 +112,9 @@ class Settings(BaseSettings):
             'email': 'E-Mail',
             'message': 'Your Message - Questions, Notes and important Infos'
         },
-        'please_fill': 'Please fill this field.',
-        # Just String Settings
-        'email_invalid': 'This is not a valid email address.',
-        'start': 'pick-up',
-        'end': 'return',
-        'month': 'month',
         'checkbox': {
             'terms': 'I have read the terms.'
         },
-        # Submit Button Settings
-        'send': 'Send',
-        'update': 'Save',
-        'delete': 'Delete',
-        'send_icon': 'outgoing_mail',
-        'update_icon': 'save',
-        'delete_icon': 'delete_sweep',
-        'sent': "Sent",
-        'updated': "Updated",
-        'update_link': "Editing link",
-        'processing': "We are processing your request - please wait a moment...",
-        'success': "Your request has been processed successfully - we will reach out to you soon. You can edit you request using this link:",
-        'failure': "Something went wrong :/ We have been sent an error report - we will reach out to you soon.",
-        'deleted': "Your request has been deleted. See you soon!",
         'terms': {  # Show terms to the user in a tab next to the form
             'display': True,  # Set this to false if you don't need this
             'label': 'Terms',
@@ -142,16 +123,7 @@ class Settings(BaseSettings):
         },
     }
     finish: dict[str, str] = {
-        'label': 'Finish',
-        'copy_link': 'Copy Link',
-        'download': 'Download List',
-        'filename': 'Org',
-        'download_data': 'You can download a list with your request here:',
-    }
-    admin: dict[str, str] = {
-        'edits': "My Changes",
-        'upload': "Upload Image",
-        'save': "Save",
+        'label': 'Finish'
     }
     requests: dict[str, str] = { # Only visible for admins and editors
         'label': 'Requests',
