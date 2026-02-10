@@ -7,7 +7,8 @@ from nicegui.elements.aggrid import AgGrid
 from nicegui.events import GenericEventArguments, UploadEventArguments
 from pandas import DataFrame
 
-from inventurgui.helper.config import settings, get_path
+from inventurgui.helper.config import settings
+from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
 from inventurgui.ui.auth import authenticate_user
 

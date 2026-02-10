@@ -3,7 +3,8 @@ from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.tabs import Tabs
 
-from inventurgui.helper.config import settings, get_path
+from inventurgui.helper.config import settings
+from inventurgui.helper.paths import get_path
 from inventurgui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user

@@ -1,6 +1,7 @@
 from nicegui import json, app, ui
 
-from inventurgui.helper.config import get_path, settings
+from inventurgui.helper.config import settings
+from inventurgui.helper.paths import get_path
 from inventurgui.helper.safe_url import url_safe
 
 

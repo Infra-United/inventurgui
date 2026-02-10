@@ -1,7 +1,8 @@
 from nicegui import ui
 from nicegui.elements.markdown import Markdown
 
-from inventurgui.helper.config import get_path, settings
+from inventurgui.helper.config import settings
+from inventurgui.helper.paths import get_path
 from inventurgui.helper.logger import LOGGER
 
 def render_markdown(text:str) -> Markdown:

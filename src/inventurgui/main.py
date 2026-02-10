@@ -4,11 +4,12 @@ from os import mkdir
 import ezodf
 import jwt
 from nicegui import ui, app
-from nicegui.elements.markdown import Markdown
+from i18n_modern import I18nModern
 from pandas_ods_reader import read_ods
 
 from inventurgui.cli import ARGS
-from inventurgui.helper.config import settings, get_path, create_default_config
+from inventurgui.helper.config import settings, create_default_config
+from inventurgui.helper.paths import get_path
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
@@ -24,6 +25,7 @@ from inventurgui.ui.sub_pages.login import login_page
 from inventurgui.ui.sub_pages.start import start_page
 from inventurgui.ui.sub_pages.warehouse import warehouse_page
 from inventurgui.ui.theme import Theme
+
 
 def root(warehouses:list[Warehouse], markdown:dict[str, str]):
     # Everytime a user loads the page this is executed - creates the layout - content is created by sub_pages.
@@ -94,17 +96,18 @@ def frontend():
         if sheet_num < settings.data["sheets"]:
             LOGGER.debug(f"Reading sheet {sheet.name}...")
             warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
+    # Create default config
     create_default_config()
+    # Read .md files
     markdown = get_markdown()
+    # Manage env vars
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     storage_secret = os.environ["UI_STORAGE_SECRET"]
-    dirs = [get_path("users"), get_path("images")]
-    for d in dirs:
-        if not d.exists():
-            mkdir(d)
-    os.environ.setdefault("NICEGUI_STORAGE_PATH", str(dirs[0]))
-    app.add_static_files('/images', str(dirs[1]))
+    os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
+    app.add_static_files('/images', str(get_path("images")))
+
+    # Run
     ui.run(
         root=lambda: root(warehouses, markdown),
         language=settings.language,
@@ -114,7 +117,7 @@ def frontend():
         uvicorn_reload_dirs=str(get_path("").parent.joinpath("src")),
         title=settings.title,
         favicon=get_path(settings.favicon),
-        port=8080,
+        port=settings.port,
         storage_secret=storage_secret if storage_secret else '12341232312',
     )
     LOGGER.debug("Successfully started UI.")

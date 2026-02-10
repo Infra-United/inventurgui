@@ -11,7 +11,8 @@ from nicegui.elements.input import Input
 from nicegui.elements.markdown import Markdown
 from nicegui.observables import ObservableDict
 
-from inventurgui.helper.config import settings, EMAIL_REGEX, get_path
+from inventurgui.helper.config import settings, EMAIL_REGEX
+from inventurgui.helper.paths import get_path
 from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache

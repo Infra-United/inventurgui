@@ -9,7 +9,8 @@ from aiowebdav2.exceptions import ConnectionExceptionError, NoConnectionError
 from dateutil.utils import today
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from inventurgui.helper.config import get_path, settings
+from inventurgui.helper.config import settings
+from inventurgui.helper.paths import get_path
 from inventurgui.helper.logger import LOGGER
 
 

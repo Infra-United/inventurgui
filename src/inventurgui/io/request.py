@@ -8,7 +8,8 @@ from ezodf import opendoc, Sheet, newdoc, Cell
 from ezodf.document import FlatXMLDocument, PackagedDocument
 from pandas import DataFrame, notna
 
-from inventurgui.helper.config import settings, get_path
+from inventurgui.helper.config import settings
+from inventurgui.helper.paths import get_path
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
