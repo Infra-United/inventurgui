@@ -29,7 +29,7 @@ class MailServer(BaseSettings):
 def send_mail(
     request: dict[str, str | dict[str, str]],
     warehouses: list[Warehouse],
-    request_type: Literal["request", "update", "delete", "exception"],
+    request_type: Literal["request", "update", "delete", "failure"],
     exception: Exception = None,
     mail_server: MailServer = MailServer(),
 ) -> None:
@@ -59,7 +59,7 @@ def send_mail(
 
 
 def create_subject(
-    request: dict[str, str | dict[str, str]], type: Literal["request", "update", "delete", "exception"]
+    request: dict[str, str | dict[str, str]], type: Literal["request", "update", "delete", "failure"]
 ) -> str:
     start, end, month, year = convert_dates(request.get("dates"))
     return f"[{i18n.get(f'mail_subject.{type}')}] {request.get('name')} {month} {year}"
