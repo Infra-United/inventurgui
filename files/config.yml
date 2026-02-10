@@ -80,9 +80,6 @@ form:
   checkbox: # Will create checkboxes at the end of the form for any number of items
     terms: 'Ich habe die Leihbedingungen gelesen.'
   # Submit Button Settings
-  send_icon: 'outgoing_mail'
-  update_icon: 'save'
-  delete_icon: 'delete_sweep'
   sent: "Angefragt"
   updated: "Bearbeitet"
   update_link: "Bearbeitungslink"

@@ -118,11 +118,11 @@ class Form:
 
         with ui.grid(columns=2).classes("w-full bg-dark pb-10 h-screen flex-column") as grid:
             with ui.row(align_items='end').classes("max-sm:col-span-2 ml-auto pb-10") as submit_column:
-                delete = ui.button(settings.form.get("delete"), icon=settings.form.get("delete_icon"),
+                delete = ui.button(settings.form.get("delete"), icon="delete_sweep",
                                    on_click=lambda: delete_dialog.open())
                 delete.bind_visibility_from(self.request, "sent")
                 delete.props("text-color=secondary rounded").classes("p-3 bg-red text-lg")
-                submit = ui.button(icon=settings.form.get("send_icon"))
+                submit = ui.button(icon="outgoing_mail")
                 submit.on_click(lambda: self.submit(warehouses))
                 submit.props("text-color=secondary rounded")
                 submit.classes("p-3 text-lg")
@@ -169,5 +169,5 @@ class Form:
             submit.bind_enabled_from(self, 'valid')
             submit.bind_icon_from(
                 self.request, "sent",
-                backward=lambda v: settings.form.get("update_icon") if v else settings.form.get("send_icon")
+                backward=lambda v: 'save' if v else 'outgoing_mail'
             )
