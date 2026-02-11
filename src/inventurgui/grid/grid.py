@@ -106,6 +106,5 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
     if admin:
         grid.on("cellValueChanged", lambda event: handle_edit(grid, warehouse.name, event, df))
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), trailing_events=True)
-    ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)
+    #ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)
     return grid
-

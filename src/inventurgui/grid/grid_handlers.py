@@ -1,3 +1,4 @@
+import re
 from contextlib import suppress
 from os import mkdir
 from pathlib import Path
@@ -7,7 +8,7 @@ from nicegui.elements.aggrid import AgGrid
 from nicegui.events import GenericEventArguments, UploadEventArguments
 from pandas import DataFrame
 
-from inventurgui.helper.config import settings
+from inventurgui.helper.config import settings, URL_REGEX
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
@@ -79,19 +80,23 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
         dia_content()
 
     def dia_content():
-        with (dia.clear(), ui.card().classes("w-100 gap-2 items-center py-4 text-bold")):
+        with (dia.clear(), ui.card().classes("w-100 gap-2 items-center text-justify py-4 text-bold")):
             if data is not None:
-                ui.label(text=f"{data.get(columns['object'])} ({data.get(columns['type'])})")
+                ui.label(text=f"{data.get(columns['object'])}")
             path = get_path(f"{name}/{data.get(columns['object'])}_{data.get('perma_id')}", "images")
-            url = '/images/' + f"{name}/{data.get(columns['object'])}_{data.get('perma_id')}"
             if path.is_file():
-                img = ui.interactive_image(url)
-                data[columns['image']] = url
+                img_url = '/images/' + f"{name}/{data.get(columns['object'])}_{data.get('perma_id')}"
+                img = ui.interactive_image(img_url)
+                data[columns['image']] = img_url
+            else:
+                match = re.search(URL_REGEX, data[columns['image']]) if data[columns['image']] else None
+                ui.interactive_image(match.group("url")) if match else None
             md = ui.markdown().classes(
-                "p-10 pt-5 mx-auto text-justify hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
+                "p-5 mx-auto hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
             )
             md.bind_content_from(data, columns['comment'], backward=lambda x: '' if x is None else x)
             md.bind_visibility(md, 'content')
+            ui.link(data[columns["url"]], data[columns["url"]], new_tab=True) if data[columns["url"]] else None
             if authenticate_user():
                 if not path.is_file():
                     up = ui.upload(label=i18n.get('admin.upload'), auto_upload=True, on_upload=lambda e: upload_img(e))
@@ -101,7 +106,6 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
                     with img:
                         ui.button(icon='delete', on_click=lambda e: delete_img(path)).classes("absolute bottom-0 right-0")
                 ui.editor(value=data.get(columns['comment'])).bind_value_to(data, columns['comment'])
-
     data = event_args['data']
     columns = settings.columns
     with ui.dialog(value=True) as dia:

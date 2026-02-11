@@ -31,10 +31,10 @@ data:
   sheets: 3
   columns:
     category: Kategorie
-    image: Link
+    image: Bild
+    url: Link
     comment: Kommentar
     object: Objekt
-    type: Art
     weight: kg
     total_weight: Gesamtgewicht
     count: Zahl
