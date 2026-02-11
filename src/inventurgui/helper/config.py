@@ -79,12 +79,6 @@ class Settings(BaseSettings):
             'icon': 'info',
             'path': 'about.md',
         },
-        'how_to': {
-            'display': True,
-            'label': 'How To',
-            'icon': 'menu_book',
-            'path': 'how_to.md',
-        },
         'help': {
             'display': True,
             'label': 'Help',
@@ -92,8 +86,9 @@ class Settings(BaseSettings):
             'path': 'help.md',
         }
     }
-    warehouse: dict[str, str] = {
+    warehouse: dict[str, str|bool] = {
         'label': 'Lager',
+        'display': True,
         'icon': 'warehouse',
         'path': 'lager.md',
         'everything': 'Everything',

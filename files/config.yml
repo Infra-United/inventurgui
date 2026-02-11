@@ -47,20 +47,16 @@ start:
     label: 'Über Uns'
     icon: 'info'
     path: 'about.md'
-  how_to:
-    display: true
-    label: 'How To'
-    icon: 'menu_book'
-    path: 'lager.md'
   help:
     display: true
     label: 'Hilfe'
     icon: 'help_outline'
     path: 'help.md'
 warehouse:
+  display: True
   label: 'Lager'
   icon: 'warehouse'
-  path: 'lager.md'
+  path: 'lager.md' # Should be a help page that explains how it works
   everything: 'Alles'
   selection: 'Meine Auswahl'
 cart:

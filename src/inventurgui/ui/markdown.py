@@ -34,5 +34,8 @@ def get_markdown() -> dict[str, str]:
     for values in settings.start.values():
         read_markdown(values)
     read_markdown(settings.form.get("terms"))
+    read_markdown(settings.warehouse)
+    print(markdown)
+
 
     return markdown

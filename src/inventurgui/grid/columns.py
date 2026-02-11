@@ -39,7 +39,7 @@ def image_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
         ":cellRenderer": f'''(p) => p.data.{columns['image']} ?
          "<span class='material-icons-outlined' style='font-size:28px'>info</span>" :
           "<span class='material-icons-outlined' style='font-size:28px'>camera_alt</span>"'''
-        if admin else f'''(p) => p.data.{columns['image']} || p.data.{columns['comment']} ? 
+        if admin else f'''(p) => p.data.{columns['image']} || p.data.{columns['comment']} || p.data.{columns['url']} ? 
         "<span class='material-icons-outlined bg-secondary text-3xl' >info</span>" : null''',
         "hide": cart,
         "maxWidth": 50,
