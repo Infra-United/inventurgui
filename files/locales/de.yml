@@ -1,0 +1,31 @@
+mail_subject:
+  request: 'Anfrage'
+  update: 'Update'
+  delete: 'Gelöscht'
+  failure: 'Fehler'
+cart:
+  of: "von" # String used in cart to format count as: "{value} {of_total} {total}"
+  edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
+  select_tip: "Bitte wähle erst etwas aus."
+  too_many: "So viele haben wir nicht!"
+form:
+  please_fill_field: 'Bitte fülle dieses Feld aus.'
+  email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
+  month: 'Monat'
+  start: 'Abholung'
+  end: 'Rückgabe'
+  update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
+finish:
+  are_you_sure: "Bist du sicher?"
+  editing_link: "Bearbeitungslink"
+  processing: "Wir verarbeiten deine Anfrage - bitte warte einen Moment..."
+  success: "Deine Anfrage wurde erfolgreich an uns gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage mit diesem Link teilen und bearbeiten:"
+  failure: "Etwas ist schiefgelaufen :/ Uns wurde eine Mail mit dem Fehler gesendet, wir melden uns zeitnah bei dir."
+  deleted: "Deine Anfrage wurde erfolgreich gelöscht. Bis Bald!"
+  copy_link: 'Link kopieren'
+  download_button: 'Liste Herunterladen'
+  download_tip: 'Du kannst eine Liste deiner Ladung hier herunterladen:'
+admin:
+  edits: "Meine Veränderungen"
+  upload: "Bild Hochladen"
+  save: "Speichern"
