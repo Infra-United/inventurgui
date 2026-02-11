@@ -1,12 +1,16 @@
 from logging import debug, exception
+from pathlib import Path
 
 import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict, YamlConfigSettingsSource
 
+from inventurgui.cli import ARGS
 from inventurgui.helper.logger import LOGGER
-from inventurgui.helper.paths import config_file, default_config_file
+from inventurgui.helper.paths import get_path
 
 EMAIL_REGEX = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
+config_file: Path = get_path(ARGS.config_file)
+default_config_file: Path = get_path("default_config.yml")
 
 # This is only for creating a default config if we cant find any
 class Settings(BaseSettings):

@@ -10,7 +10,7 @@ from pandas_ods_reader import read_ods
 from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings, create_default_config
 from inventurgui.helper.i18n import i18n
-from inventurgui.helper.paths import get_path
+from inventurgui.helper.paths import get_path, ensure_dirs
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
@@ -99,6 +99,8 @@ def frontend():
             warehouses.append(Warehouse(name=sheet.name, inventory=read_ods(inventory, sheet_num + 1)))
     # Create default config
     create_default_config()
+    # Ensure Filesystem Structure
+    ensure_dirs([w.name for w in warehouses])
     # Read .md files
     markdown = get_markdown()
     # Manage env vars

@@ -67,10 +67,7 @@ def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataF
 
 def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
     async def upload_img(event: UploadEventArguments):
-        w_dir = get_path(f"images/{name}")
-        if not w_dir.is_dir():
-            mkdir(w_dir)
-        path = Path(f"{w_dir}/{data[settings.columns['object']]}_{data['perma_id']}")
+        path = get_path(f"{name}/{data[settings.columns['object']]}_{data['perma_id']}", "images")
         path.unlink(missing_ok=True)
         await event.file.save(path)
         dia_content()
@@ -78,14 +75,14 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
     async def delete_img(path: Path):
         path.unlink()
         data[columns['image']] = ''
-        update_row_data(df, data, grid)
+        update_row_data(df, data, grid, event_args)
         dia_content()
 
     def dia_content():
         with (dia.clear(), ui.card().classes("w-100 gap-2 items-center py-4 text-bold")):
             if data is not None:
                 ui.label(text=f"{data.get(columns['object'])} ({data.get(columns['type'])})")
-            path = get_path(f"images/{name}/{data.get(columns['object'])}_{data.get('perma_id')}")
+            path = get_path(f"{name}/{data.get(columns['object'])}_{data.get('perma_id')}", "images")
             url = '/images/' + f"{name}/{data.get(columns['object'])}_{data.get('perma_id')}"
             if path.is_file():
                 img = ui.interactive_image(url)

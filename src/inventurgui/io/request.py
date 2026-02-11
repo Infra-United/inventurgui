@@ -53,7 +53,7 @@ async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
     overview_sheet.delete_rows(row_number)
     del ods.sheets[data_sheet.name]
     ods.save()
-    get_path(request.get("download")).unlink()
+    Path(request.get("download")).unlink()
     await Nextcloud.singleton().push_file(path)
 
 

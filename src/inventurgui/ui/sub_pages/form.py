@@ -8,13 +8,12 @@ from nicegui.elements.date import Date
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.editor import Editor
 from nicegui.elements.input import Input
-from nicegui.elements.markdown import Markdown
 from nicegui.observables import ObservableDict
 
 from inventurgui.helper.config import settings, EMAIL_REGEX
 from inventurgui.helper.i18n import i18n
-from inventurgui.helper.paths import get_path
 from inventurgui.helper.magic_link import load_data_from_magic_link
+from inventurgui.helper.paths import get_path
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
 from inventurgui.io.mail import send_mail
@@ -91,7 +90,7 @@ class Form:
         try:
             send_mail(self.request, warehouses, request_type="update" if is_update else "request")
             await save_request(self.request, warehouses)
-            filename = get_path(f"lists/{settings.organization}-{self.request.get('name')}.ods")
+            filename = get_path(f"{settings.organization}-{self.request.get('name')}.ods", "lists")
             write_download_list(filename, warehouses)
             self.request.update({"download": str(filename)})
             self.request.update({"message": None})

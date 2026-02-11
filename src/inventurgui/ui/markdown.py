@@ -17,7 +17,7 @@ def get_markdown() -> dict[str, str]:
         if isinstance(page_conf, str) or not page_conf.get("display"):
             return
         label = page_conf.get("label")
-        path = get_path(page_conf.get("path"))
+        path = get_path(page_conf.get("path"), "pages")
         try:
             with open(path, "r") as f:  # open file
                 LOGGER.debug(f"Reading {label} from content of {path}...")
