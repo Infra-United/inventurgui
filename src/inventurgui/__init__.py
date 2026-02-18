@@ -1,6 +1,6 @@
-from nicegui import app
+import asyncio
 
-from inventurgui.main import frontend
+from inventurgui.main import frontend, backend
 
-#app.on_startup(backend)
-frontend()
+warehouses, markdown = asyncio.run(backend())
+frontend(warehouses, markdown)

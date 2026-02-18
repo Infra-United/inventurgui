@@ -1,5 +1,7 @@
+import asyncio
 import os
 from os import mkdir
+from typing import Tuple
 
 import ezodf
 import jwt
@@ -14,6 +16,7 @@ from inventurgui.helper.paths import get_path, ensure_dirs
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
+from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.layout import header, left_drawer, footer
@@ -82,13 +85,10 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str]):
     footer(ld)
 
 
-#def backend():
-#    nc = Nextcloud.singleton()
-#    for key, file in config["cloud"]["pull"].items():
-#        app.timer(60000, lambda f=file: nc.pull_file(f))  # Update files every 2 hours
-
-
-def frontend():
+async def backend() -> Tuple[list[Warehouse], dict[str, str]] :
+    #nc = Nextcloud.singleton()
+    #for key, file in settings.cloud["pull"].items():
+        #await nc.pull_file(key, file)
     # Read Inventory File
     warehouses = []
     inventory = get_path(settings.data["path"])
@@ -106,6 +106,9 @@ def frontend():
     # Manage env vars
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
+    return warehouses, markdown
+
+def frontend(warehouses:list[Warehouse], markdown:dict[str, str]):
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files('/images', str(get_path("images")))
@@ -126,5 +129,5 @@ def frontend():
     LOGGER.debug("Successfully started UI.")
 
 if __name__ in {"__main__", "__mp_main__"}:
-    #app.on_startup(backend)
-    frontend()
+    whs, mds = asyncio.run(backend())
+    frontend(whs, mds)

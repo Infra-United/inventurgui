@@ -52,8 +52,11 @@ class Nextcloud(Client):
             await self.close()
             exit(1)
 
-    async def pull_file(self, file: str) -> None:
-        local = get_path(Path(file).name)
+    async def pull_file(self, key:str, file: str) -> None:
+        if key is 'inventory' or 'logo':
+            local = get_path(Path(file).name)
+        else:
+            local = get_path(Path(file).name, "pages" )
         remote = "/".join((self.remote_dir, file))
         try:
             if local.is_file() and self.get_mod_time(local).date() == today().date():

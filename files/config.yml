@@ -17,7 +17,7 @@ cloud:
     logo: 'logo.jpeg'
     start: 'lager.md'
     help: 'help.md'
-    how_to: 'how_to.md'
+    how_to: 'lager.md'
     terms: 'terms.md'
     about: 'about.md'
     inventory: "IU_Inventur.ods"
