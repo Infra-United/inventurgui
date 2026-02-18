@@ -107,7 +107,7 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
                 img = ui.interactive_image(img_url)
                 data[columns['image']] = img_url
             else:
-                match = re.search(URL_REGEX, data[columns['image']]) if data[columns['image']] else None
+                match = re.search(URL_REGEX, data[columns['image']]) if data.get(columns['image']) else None
                 ui.interactive_image(match.group("url")) if match else None
             md = ui.markdown().classes(
                 "p-5 mx-auto hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
