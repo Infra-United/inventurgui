@@ -5,7 +5,7 @@ from pandas import DataFrame
 
 from inventurgui.grid.columns import default_column_options, col_fns, delete_col
 from inventurgui.helper.config import settings
-from inventurgui.grid.grid_handlers import handle_edit, handle_select, handle_click, update_amount
+from inventurgui.grid.grid_handlers import handle_edit, handle_select, handle_click, update_amount, handle_keydown
 from inventurgui.helper.i18n import i18n
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
@@ -71,6 +71,11 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
                 'type': 'fitCellContents',
                 'scaleUpToFitGridWidth': True,
             },
+            'rowClassRules': {
+                    ':!bg-negative':  "(p) => console.log(p.data.add_delete)",
+                    ':!bg-positive': '(p) => p.data.add_delete == "added"',
+                    ':!bg-info': '(p) => p.data.add_delete == "edited"',
+            } if admin else '',
             "suppressRowHoverHighlight": cart,
             "undoRedoCellEditing": True,
             "undoRedoCellEditingLimit": 20,
@@ -104,7 +109,9 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
             )
         grid.on("cellEditRequest", lambda event: update_amount(grid, warehouse.name, event))
     if admin:
+        grid.on("cellKeyDown", lambda event: handle_keydown(grid, warehouse, event))
         grid.on("cellValueChanged", lambda event: handle_edit(grid, warehouse.name, event, df))
+
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), trailing_events=True)
     #ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)
     return grid

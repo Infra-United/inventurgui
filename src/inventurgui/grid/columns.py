@@ -98,6 +98,7 @@ def count_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
             "cellClassRules": {"bg-accent": f"data.{i18n.get('cart.of')} > 1",
                                "text-bold": f"data.{i18n.get('cart.of')} > 1"} if cart else "",
         }
+
 @register_column("pack")
 def pack_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
     return {"field": columns["pack"], "lockPosition": "left" if cart else "", 'sortable': False}
@@ -105,8 +106,8 @@ def pack_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
 def delete_col() -> dict[str, Any]:
     return {
             "colId": 'add_delete',
-            ":editable": f"(p) => p.node.rowPinned ? true : false",
-            ":valueGetter": f"(p) => p.node.rowPinned ? 'Enter' : null",
+            #":editable": f"(p) => p.node.rowPinned ? true : false",
+            ":valueGetter": f"(p) => p.node.rowPinned ? 'added' : 'deleted'",
             ":cellRenderer": f'''(p) => p.node.rowPinned ?
                  "<span class='material-icons-outlined' style='font-size:28px'>add</span>" :
                   "<span class='material-icons-outlined' style='font-size:28px'>delete</span>"''',

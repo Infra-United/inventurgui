@@ -12,6 +12,7 @@ from inventurgui.helper.config import settings, URL_REGEX
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
+from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 
 
@@ -25,6 +26,23 @@ def update_row_data(df: DataFrame, data: dict, grid:AgGrid, event_args: dict):
 
 def handle_edit(grid: AgGrid, name: str, event: GenericEventArguments, df:DataFrame):
     ui.notify("editing")
+
+def handle_keydown(grid:AgGrid, warehouse:Warehouse, event:GenericEventArguments):
+    ui.notify(event.args)
+    if not event.args['colId'] == "add_delete":
+        return
+    row = event.args['rowId']
+    value = event.args['value']
+    match value:
+        case 'add':
+            new_value = 'added'
+        case 'delete':
+            new_value = 'deleted'
+        case _:
+            new_value = value
+    ui.notify(new_value)
+    grid.run_row_method(row, 'setDataValue',  'add_delete', new_value, 'api')
+
 
 def handle_add_delete(grid: AgGrid, name: str, event: GenericEventArguments, df: DataFrame):
     if "rowPinned" in event.args:
