@@ -6,7 +6,7 @@ from inventurgui.helper.i18n import i18n
 
 def default_column_options(admin:bool) -> dict[str, Any]:
     return {
-        "editable": admin,
+        "editable": False,
         "suppressSizeToFit": True,
         "sortable": True,
         'lockPinned': True,

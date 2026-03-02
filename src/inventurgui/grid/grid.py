@@ -1,12 +1,10 @@
 from nicegui import ui
 from nicegui.elements.aggrid import AgGrid
 from nicegui.ui import aggrid
-from pandas import DataFrame
 
-from inventurgui.grid.columns import default_column_options, col_fns, delete_col
+from inventurgui.grid.columns import default_column_options, col_fns
 from inventurgui.helper.config import settings
-from inventurgui.grid.grid_handlers import handle_edit, handle_select, handle_click, update_amount, handle_keydown
-from inventurgui.helper.i18n import i18n
+from inventurgui.grid.grid_handlers import handle_select, handle_click, update_amount
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
@@ -30,7 +28,6 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
     admin = authenticate_user()
 
     col_defs = [col_fns.get(c)(columns, cart, admin) if col_fns.get(c) else {"hide":True} for c in columns.keys()]
-    col_defs.append(delete_col()) if admin else None
 
     # Styling
     def background(color: str):
@@ -45,8 +42,6 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
         df = warehouse.inventory
     elif category == settings.warehouse.get("selection") or category is None and cart:
         df = warehouse.selected()
-    elif category == i18n.get('admin.edits') and admin:
-        df = warehouse.selected()
     else:
         df = warehouse.inventory[warehouse.inventory[settings.columns["category"]] == category]
 
@@ -57,7 +52,6 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
             "columnDefs": col_defs,
             "defaultColDef": default_column_options(admin),
             "rowData": (df.to_dict("records")),
-            "pinnedTopRowData": [{}] if admin else "",
             "alwaysMultiSort": True,
             "rowSelection": {
                 "mode": "multiRow",
@@ -71,11 +65,6 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
                 'type': 'fitCellContents',
                 'scaleUpToFitGridWidth': True,
             },
-            'rowClassRules': {
-                    ':!bg-negative':  "(p) => console.log(p.data.add_delete)",
-                    ':!bg-positive': '(p) => p.data.add_delete == "added"',
-                    ':!bg-info': '(p) => p.data.add_delete == "edited"',
-            } if admin else '',
             "suppressRowHoverHighlight": cart,
             "undoRedoCellEditing": True,
             "undoRedoCellEditingLimit": 20,
@@ -85,7 +74,7 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
             "enterNavigatesVerticallyAfterEdit": True,
             "singleClickEdit": True,
             "stopEditingWhenCellsLoseFocus": True,
-            ":getRowId": f"(p) => p.data.perma_id == undefined ? '{warehouse.name}_{category}' : p.data.perma_id.toString()",
+            ":getRowId": "p.data.perma_id.toString()",
         },
         html_columns=[0],
         theme='alpine',
@@ -108,9 +97,6 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
                 ),
             )
         grid.on("cellEditRequest", lambda event: update_amount(grid, warehouse.name, event))
-    if admin:
-        grid.on("cellKeyDown", lambda event: handle_keydown(grid, warehouse, event))
-        grid.on("cellValueChanged", lambda event: handle_edit(grid, warehouse.name, event, df))
 
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), trailing_events=True)
     #ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)
