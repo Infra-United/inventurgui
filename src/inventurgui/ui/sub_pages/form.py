@@ -19,7 +19,7 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.mail import send_mail
 from inventurgui.io.request import save_request, delete_request, write_download_list
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.layout import back_fab, tabs, tab_panels
+from inventurgui.ui.reusable_elements import back_fab, tabs, tab_panels
 from inventurgui.ui.markdown import render_markdown
 
 

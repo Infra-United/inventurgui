@@ -5,7 +5,7 @@ from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
-from inventurgui.ui.layout import tabs, tab_panels
+from inventurgui.ui.reusable_elements import tabs, tab_panels
 from inventurgui.ui.markdown import render_markdown
 
 
