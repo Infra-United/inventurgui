@@ -1,4 +1,5 @@
 import datetime
+from contextlib import suppress
 from pathlib import Path
 from typing import Tuple
 
@@ -51,9 +52,11 @@ async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
     ods, overview_sheet, data_sheet = get_request_file(request, path, f"20{year}")
     row_number = find_row_by_name_or_start(overview_sheet, start, request.get("name"), name_only=True)
     overview_sheet.delete_rows(row_number)
-    del ods.sheets[data_sheet.name]
+    with suppress(AttributeError):
+        del ods.sheets[data_sheet.name]
     ods.save()
-    Path(request.get("download")).unlink()
+    with suppress(FileNotFoundError):
+        Path(request.get("download")).unlink()
     await Nextcloud.singleton().push_file(path)
 
 
@@ -81,7 +84,7 @@ def get_request_file(request: dict[str, str], path: Path, year: str) -> Tuple[Pa
 
 
 def init_overview_sheet(request: dict[str, str | dict[str, str]], year: str):
-    form: dict[str, str | dict[str, str]] = settings.date_format.form
+    form: dict[str, str | dict[str, str]] = settings.form
     sheet = Sheet(str(year), size=(1, 20))
     # Write Column Headers
     count = 0

@@ -60,14 +60,14 @@ def send_mail(
             part.add_header("Content-Disposition", f"attachment; filename={filename.name}")
             mail.attach(part)
 
-            receiver = [settings.mail["mail_to"], request.get("email")] if not exception else [settings.mail["admin"]]
-            for r in receiver:
-                mail["to"] = r
-                LOGGER.debug(f"Sending E-Mail to {r}...")
-                smtp.ehlo()
-                smtp.sendmail(str(mail_server.user), r, mail.as_string())
-            LOGGER.debug("Quitting Connection to SMTP Server...")
-            smtp.quit()
+        receiver = [settings.mail["mail_to"], request.get("email")] if not exception else [settings.mail["admin"]]
+        for r in receiver:
+            mail["to"] = r
+            LOGGER.debug(f"Sending E-Mail to {r}...")
+            smtp.ehlo()
+            smtp.sendmail(str(mail_server.user), r, mail.as_string())
+        LOGGER.debug("Quitting Connection to SMTP Server...")
+        smtp.quit()
 
 
 def create_subject(

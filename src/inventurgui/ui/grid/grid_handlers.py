@@ -40,7 +40,7 @@ def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
         if event.args["source"] == "api":
             return
     row_id = event.args["rowId"]
-    if row_id not in Cache.selected(name):
+    if int(row_id) not in Cache.selected(name):
         Cache.selected(name).append(int(row_id))
         app.storage.user["Total"] += 1
         grid.run_row_method(row_id, 'setSelected', True)

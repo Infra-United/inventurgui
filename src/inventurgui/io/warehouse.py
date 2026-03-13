@@ -52,5 +52,4 @@ class Warehouse:
         update_df = self.inventory.filter(pl.arange(0, self.count).is_in(changed_amounts))
         if not update_df.is_empty():
             df.update(update_df)
-            print(df)
-        return df.drop(["index", i18n.get("cart.of")], strict=False)
+        return df.drop(["index", i18n.get("cart.of")], strict=False) if not df.is_empty() else None

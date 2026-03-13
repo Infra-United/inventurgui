@@ -2,7 +2,7 @@ import datetime
 import re
 from contextlib import suppress
 
-from nicegui import ui, binding
+from nicegui import ui, binding, app
 from nicegui.elements.checkbox import Checkbox
 from nicegui.elements.date import Date
 from nicegui.elements.input import Input
@@ -37,7 +37,7 @@ class Form:
                 self.valid = True
 
     async def submit(self, warehouses) -> None:
-        is_update = True if self.request.get("sent") else False
+        is_update = True if self.request.get("request") else False
         self.request.update({"finish": i18n.get("finish.processing")})
         ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
         self.request.update(
@@ -58,13 +58,18 @@ class Form:
             send_mail(self.request, warehouses, request_type="failure", exception=exception)
 
     async def delete_request(self, warehouses:list[Warehouse]) -> None:
-        ui.notify("Deleting...")
         self.request.update({"finish": i18n.get("finish.processing")})
         ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
-        send_mail(self.request, warehouses, request_type="delete")
-        await delete_request(self.request)
-        self.request.update({"delete": datetime.date.today().strftime(settings.date_format),
-                             "finish": i18n.get("finish.deleted")})
+        try:
+            send_mail(self.request, warehouses, request_type="delete")
+            await delete_request(self.request)
+            self.request.clear()
+            self.request.update({"delete": datetime.date.today().strftime(settings.date_format),
+                                 "finish": i18n.get("finish.deleted"), "request": None})
+            app.storage.user.clear()
+        except Exception as exception:
+            self.request.update({"finish": i18n.get("finish.failure")})
+            send_mail(self.request, warehouses, request_type="failure", exception=exception)
 
     def create(self, warehouses:list[Warehouse]):
         with ui.dialog() as delete_dialog:
@@ -77,7 +82,7 @@ class Form:
             with ui.row(align_items='end').classes("max-sm:col-span-2 ml-auto pb-10") as submit_column:
                 delete = ui.button(icon="delete_sweep",
                                    on_click=lambda: delete_dialog.open())
-                delete.bind_visibility_from(self.request, "sent")
+                delete.bind_visibility_from(self.request, "request")
                 delete.props("text-color=secondary rounded").classes("p-3 bg-red text-lg")
                 submit = ui.button(icon="outgoing_mail")
                 submit.on_click(lambda: self.submit(warehouses))
@@ -124,7 +129,7 @@ class Form:
             submit_column.move(grid)
             submit.bind_enabled_from(self, 'valid')
             submit.bind_icon_from(
-                self.request, "sent",
+                self.request, "request",
                 backward=lambda v: 'save' if v else 'outgoing_mail'
             )
             self.validate()
