@@ -62,7 +62,7 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str]):
         warehouse = warehouse
         name = url_safe(warehouse.name)
         for category in warehouse.categories:
-            pages.add(f"/{name}/{url_safe(category)}", lambda w=warehouse, c=category: category_page(c, w))
+            pages.add(f"/{name}/{url_safe(category)}", lambda w=warehouse, c=category: category_page(c, w, ld))
         if authenticate_user():
             pages.add(f"/{name}/{url_safe(i18n.get('admin.edits'))}", lambda w=warehouse, c=i18n.get('admin.edits'): category_page(c, w))
 
