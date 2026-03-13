@@ -1,9 +1,8 @@
 from nicegui import ui, app
 from nicegui.elements.drawer import LeftDrawer
-from nicegui.elements.markdown import Markdown
 
 from inventurgui.helper.config import settings
-from inventurgui.ui.markdown import render_markdown
+from inventurgui.ui.helper.markdown import render_markdown
 
 
 async def warehouse_page(ld: LeftDrawer, md:dict[str, str]) -> None:

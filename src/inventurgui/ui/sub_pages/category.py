@@ -5,7 +5,7 @@ from inventurgui.grid.grid import create_aggrid
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.reusable_elements import next_fab
+from inventurgui.ui.helper.reusable_elements import next_fab
 
 
 def category_page(category: str, warehouse: Warehouse, ld:LeftDrawer) -> None:

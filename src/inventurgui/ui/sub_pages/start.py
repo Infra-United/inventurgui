@@ -5,8 +5,8 @@ from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
-from inventurgui.ui.reusable_elements import tabs, tab_panels
-from inventurgui.ui.markdown import render_markdown
+from inventurgui.ui.helper.reusable_elements import tabs, tab_panels
+from inventurgui.ui.helper.markdown import render_markdown
 
 
 def start_page(ld: LeftDrawer, md: dict[str,str]) -> None:

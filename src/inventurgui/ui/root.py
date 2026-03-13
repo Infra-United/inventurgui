@@ -14,7 +14,7 @@ from inventurgui.ui.sub_pages.form import form_page
 from inventurgui.ui.sub_pages.login import login_page
 from inventurgui.ui.sub_pages.start import start_page
 from inventurgui.ui.sub_pages.warehouse import warehouse_page
-from inventurgui.ui.theme import Theme
+from inventurgui.ui.helper.theme import Theme
 
 """The root page that constructs the layout and is only loaded on when requesting / ."""
 

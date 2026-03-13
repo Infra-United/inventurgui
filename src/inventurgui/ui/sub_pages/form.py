@@ -6,9 +6,9 @@ from nicegui.elements.drawer import LeftDrawer
 from inventurgui.helper.config import settings
 from inventurgui.helper.magic_link import load_data_from_magic_link
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.markdown import render_markdown
-from inventurgui.ui.request_form import Form
-from inventurgui.ui.reusable_elements import back_fab, tabs, tab_panels
+from inventurgui.ui.helper.markdown import render_markdown
+from inventurgui.ui.helper.request_form import Form
+from inventurgui.ui.helper.reusable_elements import back_fab, tabs, tab_panels
 
 
 async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], md: dict[str, str], args: PageArguments) -> None:

@@ -4,7 +4,7 @@ from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.magic_link import get_magic_link
 from inventurgui.io.cache import Cache
-from inventurgui.ui.reusable_elements import next_fab, back_fab
+from inventurgui.ui.helper.reusable_elements import back_fab
 
 
 async def finish_page():

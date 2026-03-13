@@ -13,7 +13,7 @@ from inventurgui.helper.config import settings, create_default_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path, ensure_dirs
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.markdown import get_markdown
+from inventurgui.ui.helper.markdown import get_markdown
 from inventurgui.ui.root import root
 
 
