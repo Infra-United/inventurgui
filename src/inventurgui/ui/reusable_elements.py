@@ -10,8 +10,17 @@ def selected_count_badge(warehouse_name:str):
     badge = ui.badge("0", color="primary", text_color="secondary").props().classes("text-bold ml-2")
     return badge.bind_text_from(app.storage.user.get("selected"), warehouse_name, backward=lambda v: str(len(v)))
 
+def tabs():
+    return (
+        ui.tabs()
+        .classes("bg-secondary h-[56px] w-full scroll font-bold subpixel-antialiased tracking-widest m-0 p-0")
+        .props("height=56px active-bg-color=accent inline-label mobile-arrows stretch")
+    )
 
-def checkout_fab(next_page: dict[str, str]):
+def tab_panels(_tabs: Tabs):
+    return ui.tab_panels(_tabs).classes("w-full h-dvh")
+
+def next_fab(next_page: dict[str, str]):
     props: str = "text-color=secondary"
     if admin := authenticate_user():
         next_page = {'icon': 'save', 'label': (i18n.get('admin.save'))}
@@ -35,9 +44,7 @@ def checkout_fab(next_page: dict[str, str]):
             badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
 
 
-def back_fab(
-    last_page: dict[str, str],
-):
+def back_fab(last_page: dict[str, str]):
     props: str = "text-color=primary"
     with ui.page_sticky(position="bottom-left", x_offset=30, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_before", direction="up", color="secondary").props(f"{props}")
@@ -57,13 +64,3 @@ def back_fab(
             badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
 
 
-def tabs():
-    return (
-        ui.tabs()
-        .classes("bg-secondary h-[56px] w-full scroll font-bold subpixel-antialiased tracking-widest m-0 p-0")
-        .props("height=56px active-bg-color=accent inline-label mobile-arrows stretch")
-    )
-
-
-def tab_panels(tabs: Tabs):
-    return ui.tab_panels(tabs).classes("w-full h-dvh")
