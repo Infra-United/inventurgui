@@ -14,6 +14,7 @@ from inventurgui.helper.paths import get_path
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 
+#Todo maybe write to excel instead and separate files per year
 
 async def save_request(
     request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], update: bool = False
@@ -125,7 +126,7 @@ def write_overview(sheet: Sheet, request: dict[str, str | dict[str, str]], row_n
                 continue
             case _:
                 cell: Cell = sheet.get_cell((row_number, count))
-                cell.set_value(str(value) if value else "") # TODO check if this works properly
+                cell.set_value(str(value) if value else "")
                 count += 1
     LOGGER.info(f"Successfully wrote request to overview sheet @ row: {row_number}.")
 
@@ -137,12 +138,12 @@ def write_data_sheet(df: DataFrame, data_sheet: Sheet) -> Sheet:
         cell = data_sheet[0, col_idx]
         cell.set_value(str(col_name))
 
-    # Write the data # TODO
+    # Write the data
     try:
         for row_idx, row in enumerate(df.iter_rows(), start=1):
             for col_idx, value in enumerate(row):
                 cell = data_sheet[row_idx, col_idx]
-                cell.set_value(str(value) if value else "") # TODO Check this
+                cell.set_value(str(value) if value else "")
     except IndexError:
         LOGGER.exception(f"{row_idx, col_idx} out of range.")
 
