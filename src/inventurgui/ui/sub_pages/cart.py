@@ -38,7 +38,7 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
     LOGGER.debug("Creating Cart page...")
     for w in warehouses:
         selected = w.selected()
-        if selected is None or selected.empty:
+        if selected is None:
             continue
         with truck_tabs:
             with ui.tab(w.name.upper(), icon=settings.cart["tab_icon"]):

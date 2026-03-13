@@ -2,10 +2,10 @@ import datetime
 from pathlib import Path
 from typing import Tuple
 
-import pandas as pd
+import polars as pl
 from ezodf import opendoc, Sheet, newdoc, Cell
 from ezodf.document import FlatXMLDocument, PackagedDocument
-from pandas import DataFrame, notna
+from polars import DataFrame
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
@@ -123,7 +123,7 @@ def write_overview(sheet: Sheet, request: dict[str, str | dict[str, str]], row_n
                 continue
             case _:
                 cell: Cell = sheet.get_cell((row_number, count))
-                cell.set_value(str(value) if value and notna(value) else "")
+                cell.set_value(str(value) if value else "") # TODO check if this works properly
                 count += 1
     LOGGER.info(f"Successfully wrote request to overview sheet @ row: {row_number}.")
 
@@ -135,12 +135,12 @@ def write_data_sheet(df: DataFrame, data_sheet: Sheet) -> Sheet:
         cell = data_sheet[0, col_idx]
         cell.set_value(str(col_name))
 
-    # Write the data
+    # Write the data # TODO
     try:
-        for row_idx, (index, row) in enumerate(df.iterrows(), start=1):
+        for row_idx, (index, row) in enumerate(df.iter_rows(), start=1):
             for col_idx, value in enumerate(row):
                 cell = data_sheet[row_idx, col_idx]
-                cell.set_value(str(value) if value and notna(value) else "")
+                cell.set_value(str(value) if value else "") # TODO Check this
     except IndexError:
         LOGGER.exception(f"{row_idx, col_idx} out of range.")
 

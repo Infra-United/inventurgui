@@ -1,24 +1,14 @@
 from functools import wraps
 from typing import Any, Callable
 
+from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
-
-
-def default_column_options(admin:bool) -> dict[str, Any]:
-    return {
-        "editable": False,
-        "suppressSizeToFit": True,
-        "sortable": True,
-        'lockPinned': True,
-        "lockVisible": True,
-        "suppressMovable": True,
-        "resizable": False,
-        "filter": False,
-        "floatingFilter": False
-    }
 
 type colSettings = dict[str, str]
 type colDefFunction = Callable[[colSettings, bool, bool], dict[str, Any]]
+
+def col_defs(cart:bool, admin:bool, columns=settings.columns) -> list[dict[str, Any]]:
+    return [col_fns.get(c)(columns, cart, admin) if col_fns.get(c) else {"hide":True} for c in columns.keys()]
 
 col_fns = {}
 
@@ -30,6 +20,19 @@ def register_column(name: str) -> Callable[[colDefFunction], colDefFunction]:
         col_fns[name] = wrapper
         return wrapper
     return decorator
+
+def default_col_defs() -> dict[str, Any]:
+    return {
+        "editable": False,
+        "suppressSizeToFit": True,
+        "sortable": True,
+        'lockPinned': True,
+        "lockVisible": True,
+        "suppressMovable": True,
+        "resizable": False,
+        "filter": False,
+        "floatingFilter": False
+    }
 
 @register_column("image")
 def image_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:

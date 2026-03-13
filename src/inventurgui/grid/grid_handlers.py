@@ -2,10 +2,11 @@ import re
 from contextlib import suppress
 from pathlib import Path
 
+import polars as pl
 from nicegui import app, ui
 from nicegui.elements.aggrid import AgGrid
 from nicegui.events import GenericEventArguments, UploadEventArguments
-from pandas import DataFrame
+from polars import DataFrame
 
 from inventurgui.helper.config import settings, URL_REGEX
 from inventurgui.helper.i18n import i18n
@@ -17,7 +18,7 @@ from inventurgui.ui.auth import authenticate_user
 def update_row_data(df: DataFrame, data: dict, grid:AgGrid, event_args: dict):
     if not "rowPinned" in event_args:
         grid.run_row_method(data.get('perma_id'), "setData", data)
-        df.loc[data.get('perma_id')] = data
+        df.update(pl.from_dict(data), on='perma_id')
     else:
         print(data)
         ui.notify("pinned") # TODO add new row with data
@@ -30,7 +31,7 @@ def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     if new_value > total:
         ui.notify(settings["cart"]["invalid_edit"], position="center", type="negative", color="secondary")
         return
-    Cache.amounts().get(name).update({row_id: [new_value, total]})
+    Cache.amounts(name).update({row_id: [int(new_value), int(total)]})
     data.update({event.args['colId']: new_value})
     grid.run_row_method(row_id, "setData", data)
 
@@ -40,11 +41,11 @@ def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
             return
     row_id = event.args["rowId"]
     if row_id not in Cache.selected(name):
-        Cache.selected(name).append(row_id)
+        Cache.selected(name).append(int(row_id))
         app.storage.user["Total"] += 1
         grid.run_row_method(row_id, 'setSelected', True)
     else:
-        Cache.selected(name).remove(row_id)
+        Cache.selected(name).remove(int(row_id))
         app.storage.user["Total"] -= 1
         grid.run_row_method(row_id, 'setSelected', False)
 

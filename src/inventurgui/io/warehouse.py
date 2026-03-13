@@ -1,8 +1,8 @@
 from typing import Generator
 
-import pandas as pd
+import polars as pl
 from nicegui.elements.aggrid import AgGrid
-from pandas import DataFrame, Series
+from polars import DataFrame, Series
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
@@ -13,17 +13,17 @@ columns = settings.columns
 class Warehouse:
     _grid: AgGrid = None
 
-    def __init__(self, name: str, inventory: DataFrame):
+    def __init__(self, name: str, df: DataFrame):
         self.name = name
-        inventory[columns["count"]] = pd.to_numeric(inventory[columns["count"]], 'coerce', downcast='integer')
-        inventory[columns["weight"]] = pd.to_numeric(inventory[columns["weight"]], 'coerce', downcast='integer')
-        self.inventory = inventory
-        self.inventory.insert(
-            0, "perma_id", self.inventory.index.tolist()
-        )  # This ensures we can have selection across grids
-        total_loc = self.inventory.columns.get_loc(columns["count"])+1
-        self.inventory.insert(total_loc, i18n.get("cart.of"), inventory[columns["count"]])
-        self.inventory.insert(0, settings.warehouse["label"], self.name)
+        self.inventory = df.with_columns([pl.col(columns["count"]).cast(pl.Int8, strict=False),
+                                          pl.col(columns["weight"]).cast(pl.Int8, strict=False),
+                                          pl.col(columns["count"] * 1).alias(i18n.get("cart.of")),
+                                          pl.lit(self.name).alias(settings.warehouse["label"])],
+                                         )
+        # Move warehouse column to first place
+        cols = self.inventory.columns
+        new_order = [cols[-1]] + cols[:-1]
+        self.inventory = self.inventory.select(new_order)
 
     @property
     def categories(self) -> list[str]:
@@ -39,28 +39,22 @@ class Warehouse:
 
     @property
     def count(self) -> int:
-        return self.inventory.index.max()
+        return self.inventory.height
 
     def selected(self) -> DataFrame:
-        row_ids: list = list(Cache.selected(self.name))
-        def _match_selected() -> Generator[Series, None, None]:
-            for row_id in row_ids:
-                for df_id, row_data in self.inventory.iterrows():
-                    if str(df_id) == row_id:
-                        yield row_data
-
-        return DataFrame.from_records([r for r in _match_selected()])
+        return self.inventory.filter(pl.arange(0, self.count).is_in(Cache.selected(self.name)))
 
     def get_final(self) -> DataFrame | None:
-        df = self.selected()
-        if df is None or df.empty:
+        changed_amounts = {int(k): v for k, v in Cache.amounts(self.name).items()}
+        df = self.inventory.filter(pl.arange(0, self.count).is_in(changed_amounts)).select(columns["count"])
+        if df.is_empty():
             return None
-        user_amounts = Cache.amounts().get(self.name, {})
+        print(df)
         # For each row_id and associated values
-        for row_id, values in user_amounts.items():
+        """for row_id, values in user_amounts.items():
             # Create a boolean mask where 'perma_id' matches row_id
-            mask = df.get("perma_id") == int(row_id)
+            mask = df.row(by_predicate=(pl.col('index') == row_id))
             # Update the target column for all matching rows
             df.loc[mask, columns["count"]] = int(values[0])
-        df.drop("perma_id", axis=1, inplace=True)
-        return df
+        return df.drop("index", strict=False)
+"""
