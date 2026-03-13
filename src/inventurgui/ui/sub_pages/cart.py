@@ -12,6 +12,7 @@ from inventurgui.io.warehouse import Warehouse
 from inventurgui.grid.grid import create_aggrid
 from inventurgui.ui.layout import checkout_fab, tabs, tab_panels
 from inventurgui.helper.magic_link import load_data_from_magic_link
+from inventurgui.ui.reusable_elements import selected_count_badge
 
 
 def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
@@ -38,12 +39,11 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
     LOGGER.debug("Creating Cart page...")
     for w in warehouses:
         selected = w.selected()
-        if selected is None:
+        if selected.is_empty():
             continue
         with truck_tabs:
             with ui.tab(w.name.upper(), icon=settings.cart["tab_icon"]):
-                badge = ui.badge("0", color="white", text_color='secondary').props("").classes("text-bold ml-2 p-1")
-                badge.bind_text_from(app.storage.user, w.name, lambda e: len(e))
+                selected_count_badge(w.name)
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
                 create_aggrid(w, cart=True)

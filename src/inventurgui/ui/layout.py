@@ -7,8 +7,10 @@ from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.helper.safe_url import url_safe, reverse_url
+from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
+from inventurgui.ui.reusable_elements import selected_count_badge
 
 
 def header(ld: LeftDrawer|None = None):
@@ -107,7 +109,8 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
     path_category = reverse_url(ui.context.client.sub_pages_router.current_path.split("/")[-1])
     path_warehouse = reverse_url(ui.context.client.sub_pages_router.current_path.split("/")[-2])
     #t = ui.tree([{'id': w.name, 'label': w.name.upper(), 'children': [{'id': c, 'label': c.upper()} for c in w.categories]} for w in warehouses])
-    #t.props(f'{props} accordion no-connectors "selected-color=accent"').classes(classes)
+    #t.props(f'{props} accordion no-connectors no-selection-unset selected-color=accent').classes(classes)
+    #t.on_select(lambda e: (ui.notify(e.value), t.expand(e.value)))
     with ui.row().classes("flex bg-primary row w-full px-20 py-3 mb-1"):
         ui.icon(settings.warehouse["icon"], size="20px", color="secondary").classes(classes)
         ui.label(settings.warehouse["label"].upper()).classes(classes).classes("text-secondary")
@@ -124,10 +127,7 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
             expansion.set_value(True if name == path_warehouse else True if name == warehouses[0].name else False)
             with expansion.add_slot("header"):
                 with ui.label(name.upper()).classes("py-3 w-full"):
-                    badge = (
-                        ui.badge("0", color="primary", text_color="secondary").props().classes("text-bold ml-2")
-                    )
-                    badge.bind_text_from(app.storage.user, warehouse.name, backward=lambda v: str(len(v)), strict=False)
+                    selected_count_badge(warehouse.name)
             if len(warehouse.categories) == 2:
                 ui.on('resize',
                       lambda e, x=expansion: x.on('click', lambda r=e: ld.hide() if r.args['width'] < 1024 else None))
