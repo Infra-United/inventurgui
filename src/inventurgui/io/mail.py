@@ -31,12 +31,13 @@ class MailServer(BaseSettings):
 
 def send_mail(
     request: dict[str, str | dict[str, str]],
-    warehouses: list[Warehouse],
+    selected_warehouses: list[str],
     request_type: Literal["request", "update", "delete", "failure"],
     filename: Path = None,
     exception: Exception = None,
+    magic_link: str = None,
     mail_server: MailServer = MailServer(),
-) -> None:
+    ) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
     email = request.get("email")
     with smtplib.SMTP_SSL(mail_server.domain, mail_server.port, context=ssl.create_default_context()) as smtp:
@@ -51,7 +52,7 @@ def send_mail(
         mail.add_header("Message-ID", make_msgid())
         mail.add_header("Return-Path", mail_server.user)
         mail.add_header("reply-to", f"{email.split('@')[0].capitalize()} <{email}>")
-        mail.attach(MIMEText(to_html(request, warehouses, exception), "html"))
+        mail.attach(MIMEText(to_html(request, selected_warehouses, exception, magic_link), "html"))
         if filename is not None:
             with open(filename, "rb") as attachment:
                 part = MIMEBase("application", "octet-stream")
@@ -77,9 +78,8 @@ def create_subject(
     return f"[{i18n.get(f'mail.{type}')}] {request.get('name')} {month} {year}"
 
 
-def to_html(request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], exception: Exception) -> str:
+def to_html(request: dict[str, str | dict[str, str]], selected_warehouses: list[str], exception: Exception, magic_link:str|None) -> str:
     html = ""
-    magic_link = get_magic_link()
     for key, value in request.items():
         match key:
             case "dates":
@@ -94,9 +94,9 @@ def to_html(request: dict[str, str | dict[str, str]], warehouses: list[Warehouse
             case _:
                 if key in settings.form["input"].keys():
                     html += f"</br>{settings.form['input'].get(key)}: {value}"
-    is_selected = [w.name for w in warehouses if Cache.selected(w.name) != []]
-    html += f"</br></br>{settings.warehouse.get('label')}: {', '.join(is_selected)}"
-    html += f"</br>{i18n.get('finish.editing_link')}: <a href={magic_link}>{magic_link}</a>"
+    html += f"</br></br>{settings.warehouse.get('label')}: {', '.join(selected_warehouses)}"
+    if magic_link:
+        html += f"</br>{i18n.get('finish.editing_link')}: <a href={magic_link}>{magic_link}</a>"
     html += f"</br></br>{i18n.get('form.message')}:</br></br>{request.get('message')}"
     if exception:
         html += f"</br></br>{exception.args[0]}: <br><br>{traceback.print_exc()}"

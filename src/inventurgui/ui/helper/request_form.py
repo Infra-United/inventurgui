@@ -1,7 +1,9 @@
 import datetime
 import re
+import socket
 from contextlib import suppress
 
+import nicegui.run
 from nicegui import ui, binding, app
 from nicegui.elements.checkbox import Checkbox
 from nicegui.elements.date import Date
@@ -10,7 +12,9 @@ from nicegui.observables import ObservableDict
 
 from inventurgui.helper.config import settings, EMAIL_REGEX
 from inventurgui.helper.i18n import i18n
+from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
+from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
 from inventurgui.io.mail import send_mail
@@ -47,29 +51,47 @@ class Form:
         )
 
         try:
+            selected_warehouses = [w.name for w in warehouses if Cache.selected(w.name) != []]
+            magic_link = get_magic_link()
             await save_request(self.request, warehouses)
             filename = get_path(f"{settings.organization}-{self.request.get('name')}.ods", "lists")
-            write_download_list(filename, warehouses)
-            send_mail(self.request, warehouses, request_type="update" if is_update else "request",  filename=filename)
+            await write_download_list(filename, warehouses)
+            await nicegui.run.io_bound(lambda: send_mail(self.request,
+                                                         selected_warehouses,
+                                                         request_type="update" if is_update else "request",
+                                                         filename=filename,
+                                                         magic_link=magic_link))
             self.request.update({"download": str(filename)})
             self.request.update({"finish": i18n.get("finish.success")})
         except Exception as exception:
-            self.request.update({"finish": i18n.get("finish.failure")})
-            send_mail(self.request, warehouses, request_type="failure", exception=exception)
+            self.request.update({"finish": i18n.get("finish.failure_mail")})
+            try:
+                await nicegui.run.io_bound(
+                    lambda: send_mail(self.request, selected_warehouses, request_type="failure", exception=exception))
+                self.request.update({"finish": i18n.get("finish.failure_success")})
+            except socket.gaierror as exception:
+                self.request.update({"finish": i18n.get("finish.mail_exception")})
+                LOGGER.exception("The mailserver is unreachable. Try again later.")
 
     async def delete_request(self, warehouses:list[Warehouse]) -> None:
         self.request.update({"finish": i18n.get("finish.processing")})
         ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
         try:
-            send_mail(self.request, warehouses, request_type="delete")
+            self.request.update({"delete": datetime.date.today().strftime(settings.date_format)})
+            selected_warehouses = [w.name for w in warehouses if Cache.selected(w.name) != []]
+            await nicegui.run.io_bound(lambda: send_mail(self.request, selected_warehouses, request_type="delete"))
             await delete_request(self.request)
-            self.request.clear()
-            self.request.update({"delete": datetime.date.today().strftime(settings.date_format),
-                                 "finish": i18n.get("finish.deleted"), "request": None})
+            self.request.update({"finish": i18n.get("finish.deleted"), "request": None})
             app.storage.user.clear()
+            Cache(warehouses)
         except Exception as exception:
-            self.request.update({"finish": i18n.get("finish.failure")})
-            send_mail(self.request, warehouses, request_type="failure", exception=exception)
+            self.request.update({"finish": i18n.get("finish.failure_mail")})
+            try:
+                await nicegui.run.io_bound(lambda: send_mail(self.request, selected_warehouses, request_type="failure", exception=exception))
+                self.request.update({"finish": i18n.get("finish.failure_success")})
+            except socket.gaierror as exception:
+                self.request.update({"finish": i18n.get("finish.mail_exception")})
+                LOGGER.exception("The mailserver is unreachable. Try again later.")
 
     def create(self, warehouses:list[Warehouse]):
         with ui.dialog() as delete_dialog:

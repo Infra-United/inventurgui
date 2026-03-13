@@ -27,7 +27,7 @@ async def save_request(
     write_overview(overview_sheet, request, row_number)
 
     # Get Data and write to new sheet
-    dfs = [w.get_final() for w in warehouses]
+    dfs = [await w.get_final() for w in warehouses]
     df = pl.concat(df for df in dfs if df is not None)
     if not data_sheet:
         data_sheet = Sheet(request.get("name"), size=(len(df) + 1, len(df.columns)))
@@ -43,8 +43,7 @@ async def save_request(
 
     ods.save()
     LOGGER.info(f"Successfully wrote to sheet {data_sheet.name} @ {path}")
-    await Nextcloud.singleton().push_file(path)
-
+    Nextcloud.singleton().push_file(path)
 
 async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
     path = get_path(settings.cloud["push"]["requests"])
@@ -57,7 +56,7 @@ async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
     ods.save()
     with suppress(FileNotFoundError):
         Path(request.get("download")).unlink()
-    await Nextcloud.singleton().push_file(path)
+    Nextcloud.singleton().push_file(path)
 
 
 def get_request_file(request: dict[str, str], path: Path, year: str) -> Tuple[PackagedDocument, Sheet, Sheet | None]:
@@ -202,12 +201,12 @@ def find_row_by_name_or_start(sheet: Sheet, start: str, name: str, name_only) ->
         return insert_count
 
 
-def write_download_list(path: Path, warehouses: list[Warehouse]):
+async def write_download_list(path: Path, warehouses: list[Warehouse]):
     path.unlink(missing_ok=True)
     LOGGER.info(f"Creating download list file @{path}")
     ods: PackagedDocument = newdoc("ods", str(path))
     for w in warehouses:
-        df = w.get_final()
+        df = await w.get_final()
         if df is None or df.is_empty():
             continue
         df.drop([settings.warehouse["label"]])

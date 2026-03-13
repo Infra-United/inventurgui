@@ -44,7 +44,7 @@ class Warehouse:
     def selected(self) -> DataFrame:
         return self.inventory.filter(pl.arange(0, self.count).is_in(Cache.selected(self.name)))
 
-    def get_final(self) -> DataFrame | None:
+    async def get_final(self) -> DataFrame | None:
         df = self.selected()
         if df.is_empty():
             return None

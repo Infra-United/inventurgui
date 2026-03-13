@@ -89,22 +89,6 @@ wheels = [
 ]
 
 [[package]]
-name = "aiowebdav2"
-version = "0.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aiofiles" },
-    { name = "aiohttp" },
-    { name = "lxml" },
-    { name = "python-dateutil" },
-    { name = "yarl" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bc/f7/46d04b0b25264e98c1eaa134bb264253c4c64f00e4a86d9dbf7829356623/aiowebdav2-0.5.0.tar.gz", hash = "sha256:1688cd0c06a2ab0be7f1ec6fe392bbef0e76cc33638d375aea2700911223fd5b", size = 21985, upload-time = "2025-06-30T07:26:38.695Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/77/6c67f96c22190e4edfd4da0124f13cdbb0102e03b530f972bf7c2cbd83aa/aiowebdav2-0.5.0-py3-none-any.whl", hash = "sha256:53a79763c33f54285b09cef8588fe10bd83071c8c03a7186fb0c613ecb98049e", size = 20626, upload-time = "2025-06-30T07:26:37.652Z" },
-]
-
-[[package]]
 name = "annotated-doc"
 version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -397,16 +381,16 @@ name = "inventurgui"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "aiowebdav2" },
     { name = "ezodf" },
     { name = "fastexcel" },
-    { name = "httpx" },
     { name = "i18n-modern", extra = ["yaml"] },
+    { name = "lxml" },
     { name = "nicegui" },
     { name = "polars" },
     { name = "pydantic-settings" },
     { name = "pyjwt" },
     { name = "python-slugify" },
+    { name = "webdav4" },
 ]
 
 [package.dev-dependencies]
@@ -416,16 +400,16 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiowebdav2", specifier = ">=0.5.0" },
     { name = "ezodf", specifier = ">=0.3.2" },
     { name = "fastexcel", specifier = ">=0.19.0" },
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "i18n-modern", extras = ["yaml"], specifier = ">=0.2.1" },
+    { name = "lxml", specifier = ">=6.0.2" },
     { name = "nicegui", specifier = ">=3.7.1" },
     { name = "polars", specifier = ">=1.39.0" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
     { name = "pyjwt", specifier = ">=2.11.0" },
     { name = "python-slugify", specifier = ">=8.0.4" },
+    { name = "webdav4", specifier = ">=0.11.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1082,6 +1066,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/4f/55/2af26693fd15165c4ff7857e38330e1b61ab8c37d15dc79118cdba115b7a/watchfiles-1.1.1-cp314-cp314t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8c91ed27800188c2ae96d16e3149f199d62f86c7af5f5f4d2c61a3ed8cd3666c", size = 455072, upload-time = "2025-10-14T15:05:48.928Z" },
     { url = "https://files.pythonhosted.org/packages/66/1d/d0d200b10c9311ec25d2273f8aad8c3ef7cc7ea11808022501811208a750/watchfiles-1.1.1-cp314-cp314t-musllinux_1_1_aarch64.whl", hash = "sha256:311ff15a0bae3714ffb603e6ba6dbfba4065ab60865d15a6ec544133bdb21099", size = 629104, upload-time = "2025-10-14T15:05:49.908Z" },
     { url = "https://files.pythonhosted.org/packages/e3/bd/fa9bb053192491b3867ba07d2343d9f2252e00811567d30ae8d0f78136fe/watchfiles-1.1.1-cp314-cp314t-musllinux_1_1_x86_64.whl", hash = "sha256:a916a2932da8f8ab582f242c065f5c81bed3462849ca79ee357dd9551b0e9b01", size = 622112, upload-time = "2025-10-14T15:05:50.941Z" },
+]
+
+[[package]]
+name = "webdav4"
+version = "0.11.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "python-dateutil" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bb/2d/3d20527d81b25ef039ac92c15f4b9c8760b099e4e0fbf2b1d5d24ef78c3f/webdav4-0.11.0.tar.gz", hash = "sha256:7062c6640e0520bfbd49862bdd335db839e519bf2ca02cd4f89957069ed600ea", size = 228940, upload-time = "2026-02-19T04:43:03.549Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/72/274a2a641fd7b14a5ad3191cfec31dc65db857da107340863bbfda9b1682/webdav4-0.11.0-py3-none-any.whl", hash = "sha256:9a8690a919bf65b90b5f8159e29b4465bd82d926ea8f334a9c70ba6cd88f52f1", size = 36517, upload-time = "2026-02-19T04:43:04.712Z" },
 ]
 
 [[package]]
