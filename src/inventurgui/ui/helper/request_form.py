@@ -11,7 +11,7 @@ from nicegui.observables import ObservableDict
 from inventurgui.helper.config import settings, EMAIL_REGEX
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
-from inventurgui.helper.safe_url import url_safe
+from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
 from inventurgui.io.mail import send_mail
 from inventurgui.io.request import save_request, delete_request, write_download_list

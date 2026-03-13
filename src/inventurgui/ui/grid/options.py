@@ -1,4 +1,4 @@
-from inventurgui.grid.columns import default_col_defs, col_defs
+from inventurgui.ui.grid.columns import default_col_defs, col_defs
 
 
 def options(cart:bool, admin:bool) -> dict:

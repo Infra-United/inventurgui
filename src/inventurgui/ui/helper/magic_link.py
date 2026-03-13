@@ -2,7 +2,7 @@ from nicegui import json, app, ui
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.paths import get_path
-from inventurgui.helper.safe_url import url_safe
+from inventurgui.ui.helper.safe_url import url_safe
 
 
 def get_magic_link() -> str:

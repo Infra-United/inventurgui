@@ -5,7 +5,7 @@ from nicegui.elements.drawer import LeftDrawer
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
-from inventurgui.helper.safe_url import url_safe, reverse_url
+from inventurgui.ui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.helper.reusable_elements import selected_count_badge

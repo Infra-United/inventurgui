@@ -1,7 +1,7 @@
 from nicegui import ui
 from nicegui.elements.drawer import LeftDrawer
 
-from inventurgui.grid.grid import create_aggrid
+from inventurgui.ui.grid.grid import create_aggrid
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse

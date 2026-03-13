@@ -4,7 +4,7 @@ from nicegui import app, ui, PageArguments
 from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.magic_link import load_data_from_magic_link
+from inventurgui.ui.helper.magic_link import load_data_from_magic_link
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.markdown import render_markdown
 from inventurgui.ui.helper.request_form import Form

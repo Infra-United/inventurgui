@@ -4,9 +4,9 @@ from nicegui.ui import aggrid
 
 import polars as pl
 
-from inventurgui.grid.options import options
+from inventurgui.ui.grid.options import options
 from inventurgui.helper.config import settings
-from inventurgui.grid.grid_handlers import handle_select, handle_click, update_amount
+from inventurgui.ui.grid.grid_handlers import handle_select, handle_click, update_amount
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user

@@ -6,11 +6,11 @@ from nicegui.elements.drawer import LeftDrawer
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
-from inventurgui.helper.safe_url import url_safe
+from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.grid.grid import create_aggrid
-from inventurgui.helper.magic_link import load_data_from_magic_link
+from inventurgui.ui.grid.grid import create_aggrid
+from inventurgui.ui.helper.magic_link import load_data_from_magic_link
 from inventurgui.ui.helper.reusable_elements import selected_count_badge, next_fab, tabs, tab_panels
 
 
