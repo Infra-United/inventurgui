@@ -27,7 +27,7 @@ async def save_request(
 
     # Get Data and write to new sheet
     dfs = [w.get_final() for w in warehouses]
-    df = pd.concat(df for df in dfs if df is not None)
+    df = pl.concat(df for df in dfs if df is not None)
     if not data_sheet:
         data_sheet = Sheet(request.get("name"), size=(len(df) + 1, len(df.columns)))
     else:
@@ -137,7 +137,7 @@ def write_data_sheet(df: DataFrame, data_sheet: Sheet) -> Sheet:
 
     # Write the data # TODO
     try:
-        for row_idx, (index, row) in enumerate(df.iter_rows(), start=1):
+        for row_idx, row in enumerate(df.iter_rows(), start=1):
             for col_idx, value in enumerate(row):
                 cell = data_sheet[row_idx, col_idx]
                 cell.set_value(str(value) if value else "") # TODO Check this
@@ -205,9 +205,9 @@ def write_download_list(path: Path, warehouses: list[Warehouse]):
     ods: PackagedDocument = newdoc("ods", str(path))
     for w in warehouses:
         df = w.get_final()
-        if df is None or df.empty:
+        if df is None or df.is_empty():
             continue
-        df.drop(columns=[settings.warehouse["label"]], inplace=True)
+        df.drop([settings.warehouse["label"]])
         data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
         ods.sheets += write_data_sheet(df, data_sheet)
     ods.backup = False

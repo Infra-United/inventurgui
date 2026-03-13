@@ -18,7 +18,7 @@ from inventurgui.ui.auth import authenticate_user
 def update_row_data(df: DataFrame, data: dict, grid:AgGrid, event_args: dict):
     if not "rowPinned" in event_args:
         grid.run_row_method(data.get('perma_id'), "setData", data)
-        df.update(pl.from_dict(data), on='perma_id')
+        df.update(pl.from_dict(data), on='perma_id') # TODO handle correctly
     else:
         print(data)
         ui.notify("pinned") # TODO add new row with data
@@ -29,7 +29,7 @@ def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     data: dict = event.args["data"]
     total = data[i18n.get("cart.of")]
     if new_value > total:
-        ui.notify(settings["cart"]["invalid_edit"], position="center", type="negative", color="secondary")
+        ui.notify(i18n.get("cart.too_many"), position="center", type="negative", color="secondary")
         return
     Cache.amounts(name).update({row_id: [int(new_value), int(total)]})
     data.update({event.args['colId']: new_value})
@@ -56,6 +56,7 @@ def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataF
         handle_select(name, event, grid) if not authenticate_user() else None
 
 def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
+    admin = authenticate_user()
     async def upload_img(event: UploadEventArguments):
         path = get_path(f"{name}/{data[settings.columns['object']]}_{data['perma_id']}", "images")
         path.unlink(missing_ok=True)
@@ -72,9 +73,9 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
         with (dia.clear(), ui.card().classes("w-100 gap-2 items-center text-justify py-4 text-bold")):
             if data is not None:
                 ui.label(text=f"{data.get(columns['object'])}")
-            path = get_path(f"{name}/{data.get(columns['object'])}_{data.get('perma_id')}", "images")
+            path = get_path(f"{name}/{data.get(columns['object'])}", "images")
             if path.is_file():
-                img_url = '/images/' + f"{name}/{data.get(columns['object'])}_{data.get('perma_id')}"
+                img_url = '/images/' + f"{name}/{data.get(columns['object'])}"
                 img = ui.interactive_image(img_url)
                 data[columns['image']] = img_url
             else:
@@ -85,8 +86,9 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
             )
             md.bind_content_from(data, columns['comment'], backward=lambda x: '' if x is None else x)
             md.bind_visibility(md, 'content')
-            ui.link(data[columns["url"]], data[columns["url"]], new_tab=True) if data[columns["url"]] else None
-            if authenticate_user():
+            url = data.get(columns.get("url"))
+            ui.link(url, url, new_tab=True) if url else None
+            if admin:
                 if not path.is_file():
                     up = ui.upload(label=i18n.get('admin.upload'), auto_upload=True, on_upload=lambda e: upload_img(e))
                     up.props('accept="image/*" capture=environment')
@@ -99,5 +101,6 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
     columns = settings.columns
     with ui.dialog(value=True) as dia:
         dia_content()
-        dia.on('hide', lambda: update_row_data(df, data, grid, event_args))
+        if admin:
+            dia.on('hide', lambda: update_row_data(df, data, grid, event_args))
     return dia

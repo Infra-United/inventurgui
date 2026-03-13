@@ -45,16 +45,12 @@ class Warehouse:
         return self.inventory.filter(pl.arange(0, self.count).is_in(Cache.selected(self.name)))
 
     def get_final(self) -> DataFrame | None:
-        changed_amounts = {int(k): v for k, v in Cache.amounts(self.name).items()}
-        df = self.inventory.filter(pl.arange(0, self.count).is_in(changed_amounts)).select(columns["count"])
+        df = self.selected()
         if df.is_empty():
             return None
-        print(df)
-        # For each row_id and associated values
-        """for row_id, values in user_amounts.items():
-            # Create a boolean mask where 'perma_id' matches row_id
-            mask = df.row(by_predicate=(pl.col('index') == row_id))
-            # Update the target column for all matching rows
-            df.loc[mask, columns["count"]] = int(values[0])
-        return df.drop("index", strict=False)
-"""
+        changed_amounts = {int(k): v for k, v in Cache.amounts(self.name).items()}
+        update_df = self.inventory.filter(pl.arange(0, self.count).is_in(changed_amounts))
+        if not update_df.is_empty():
+            df.update(update_df)
+            print(df)
+        return df.drop(["index", i18n.get("cart.of")], strict=False)

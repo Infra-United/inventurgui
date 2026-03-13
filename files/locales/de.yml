@@ -1,4 +1,4 @@
-mail_subject:
+mail:
   request: 'Anfrage'
   update: 'Update'
   delete: 'Gelöscht'
@@ -14,12 +14,13 @@ form:
   month: 'Monat'
   start: 'Abholung'
   end: 'Rückgabe'
+  message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos.'
   update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
 finish:
   are_you_sure: "Bist du sicher?"
   editing_link: "Bearbeitungslink"
   processing: "Wir verarbeiten deine Anfrage - bitte warte einen Moment..."
-  success: "Deine Anfrage wurde erfolgreich an uns gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage mit diesem Link teilen und bearbeiten:"
+  success: "Deine Anfrage wurde erfolgreich an uns und an dich gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage mit diesem Link teilen und bearbeiten:"
   failure: "Etwas ist schiefgelaufen :/ Uns wurde eine Mail mit dem Fehler gesendet, wir melden uns zeitnah bei dir."
   deleted: "Deine Anfrage wurde erfolgreich gelöscht. Bis Bald!"
   copy_link: 'Link kopieren'

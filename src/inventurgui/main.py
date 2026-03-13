@@ -51,8 +51,6 @@ def frontend(warehouses:list[Warehouse], markdown:dict[str, str]):
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files('/images', str(get_path("images")))
-
-    # Run
     ui.run(
         root=lambda: root(warehouses, markdown),
         language=settings.language,

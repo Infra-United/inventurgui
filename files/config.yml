@@ -72,8 +72,8 @@ form:
     name: 'Camp/Organisation' # This key is required
     place: 'Ort'
     donation: 'Geplante Spende'
-    email: 'E-Mail'
-    message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
+    email: 'E-Mail-Adresse'
+  message: 'Deine Nachricht'
   checkbox: # Will create checkboxes at the end of the form for any number of items
     terms: 'Ich habe die Leihbedingungen gelesen.'
   terms: # Show terms to the user in a tab next to the form
