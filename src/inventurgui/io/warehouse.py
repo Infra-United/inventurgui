@@ -15,10 +15,11 @@ class Warehouse:
 
     def __init__(self, name: str, df: DataFrame):
         self.name = name
-        self.inventory = df.with_columns([pl.col(columns["count"]).cast(pl.Int8, strict=False),
-                                          pl.col(columns["weight"]).cast(pl.Int8, strict=False),
-                                          pl.col(columns["count"] * 1).alias(i18n.get("cart.of")),
-                                          pl.lit(self.name).alias(settings.warehouse["label"])],
+        self.inventory = df.with_columns([pl.col(columns["count"]).cast(pl.Int32, strict=False),
+                                          pl.col(columns["category"]).cast(pl.Categorical, strict=False),
+                                          pl.col(columns["weight"]).cast(pl.Float32, strict=False),
+                                          pl.col(columns["count"] * 1).alias(i18n.get("cart.of")).cast(pl.Int32, strict=False),
+                                          pl.lit(self.name).cast(pl.Categorical).alias(settings.warehouse["label"])],
                                          )
         # Move warehouse column to first place
         cols = self.inventory.columns
