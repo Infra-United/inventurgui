@@ -21,10 +21,7 @@ class Warehouse(NamedTuple):
                               pl.col(columns["count"] * 1).alias(i18n.get("cart.of")).cast(pl.Int32, strict=False),
                               pl.lit(name).cast(pl.Categorical).alias(settings.warehouse["label"])],
                              )
-        # Move warehouse column to first place
-        cols = df.columns
-        new_order = [cols[-1]] + cols[:-1]
-        return cls(name=name, inventory=df.select(new_order))
+        return cls(name=name, inventory=df)
 
     @property
     def categories(self) -> list[str]:

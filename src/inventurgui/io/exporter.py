@@ -7,6 +7,7 @@ import polars as pl
 from ezodf import opendoc, Sheet, newdoc, Cell
 from ezodf.document import FlatXMLDocument, PackagedDocument
 from polars import DataFrame
+from xlsxwriter import Workbook
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.dates import convert_dates
@@ -14,6 +15,7 @@ from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
+
 
 #Todo maybe write to excel instead and separate files per year
 
@@ -30,7 +32,7 @@ async def save_request(
 
     # Get Data and write to new sheet
     dfs = [await w.get_final() for w in warehouses]
-    df = pl.concat(df for df in dfs if df is not None)
+    df = pl.concat([df for df in dfs if df is not None], how='align')
     if not data_sheet:
         data_sheet = Sheet(request.get("name"), size=(len(df) + 1, len(df.columns)))
     else:
@@ -183,13 +185,19 @@ def find_row_by_name_or_start(sheet: Sheet, start: str, name: str, name_only) ->
 async def write_download_list(path: Path, warehouses: list[Warehouse]):
     path.unlink(missing_ok=True)
     LOGGER.info(f"Creating download list file @{path}")
-    ods: PackagedDocument = newdoc("ods", str(path))
-    for w in warehouses:
-        df = await w.get_final()
-        if df is None or df.is_empty():
-            continue
-        df.drop([settings.warehouse["label"]])
-        data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
-        ods.sheets += write_data_sheet(df, data_sheet)
-    ods.backup = False
-    ods.save()
+    #ods: PackagedDocument = newdoc("ods", str(path))
+    with Workbook(path) as wb:
+        for w in warehouses:
+            df = await w.get_final()
+            if df is None or df.is_empty():
+                continue
+            LOGGER.debug(f"Creating download list sheet {w.name} @{path}")
+            df.write_excel(workbook=wb,
+                           worksheet=w.name,
+                           autofit=True,
+                           float_precision=1,
+                           table_style="Table Style Medium 4")
+        #data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
+        #ods.sheets += write_data_sheet(df, data_sheet)
+    #ods.backup = False
+    #ods.save()

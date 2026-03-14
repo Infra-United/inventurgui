@@ -14,12 +14,12 @@ from inventurgui.helper.config import settings, EMAIL_REGEX
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
+from inventurgui.io.cache import Cache
+from inventurgui.io.exporter import save_request, delete_request, write_download_list
+from inventurgui.io.mail import send_mail
+from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.safe_url import url_safe
-from inventurgui.io.cache import Cache
-from inventurgui.io.mail import send_mail
-from inventurgui.io.exporter import save_request, delete_request, write_download_list
-from inventurgui.io.warehouse import Warehouse
 
 
 class Form:
@@ -54,7 +54,7 @@ class Form:
             selected_warehouses = [w.name for w in warehouses if Cache.selected(w.name) != []]
             magic_link = get_magic_link()
             await save_request(self.request, warehouses)
-            filename = get_path(f"{settings.organization}-{self.request.get('name')}.ods", "lists")
+            filename = get_path(f"{settings.organization}-{self.request.get('name')}.xlsx", "lists")
             await write_download_list(filename, warehouses)
             await nicegui.run.io_bound(lambda: send_mail(self.request,
                                                          selected_warehouses,
