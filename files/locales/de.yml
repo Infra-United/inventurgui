@@ -4,7 +4,6 @@ mail:
   delete: 'Gelöscht'
   failure: 'Fehler'
 cart:
-  of: "von" # String used in cart to format count as: "{value} {of_total} {total}"
   edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst."
   select_tip: "Bitte wähle erst etwas aus."
   too_many: "So viele haben wir nicht!"

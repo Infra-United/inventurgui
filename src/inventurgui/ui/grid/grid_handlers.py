@@ -27,7 +27,7 @@ def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     row_id = event.args["rowId"]
     new_value = event.args.get("newValue")
     data: dict = event.args["data"]
-    total = data[i18n.get("cart.of")]
+    total = data[settings.columns['total']]
     if new_value > total:
         ui.notify(i18n.get("cart.too_many"), position="center", type="negative", color="secondary")
         return

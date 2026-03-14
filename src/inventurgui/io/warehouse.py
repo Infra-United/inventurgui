@@ -4,7 +4,6 @@ import polars as pl
 from polars import DataFrame
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.i18n import i18n
 from inventurgui.io.cache import Cache
 
 columns = settings.columns
@@ -19,11 +18,13 @@ class Warehouse(NamedTuple):
                               pl.col(columns["category"]).cast(pl.Categorical, strict=False),
                               pl.col(columns["shelf"]).cast(pl.Categorical, strict=False),
                               pl.col(columns["weight"]).cast(pl.Float32, strict=False),
-                              pl.col(columns["count"]).alias(i18n.get("cart.of")).cast(pl.Int32, strict=False),
+                              pl.col(columns["count"]).alias(columns["total"]).cast(pl.Int32, strict=False),
                               ])
         df.insert_column(1, (pl.col(columns['count']) * pl.col(columns['weight'])).alias(columns["total_weight"]))
         df = df.select([c for c in columns.values()])
         df.insert_column(0, (pl.arange(0, df.height)).alias("perma_id"))
+        with pl.Config(tbl_cols=-1):
+            print(df)
         return cls(name=name, inventory=df)
 
     @property

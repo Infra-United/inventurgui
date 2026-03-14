@@ -2,13 +2,12 @@ from functools import wraps
 from typing import Any, Callable
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.i18n import i18n
 
 type colSettings = dict[str, str]
 type colDefFunction = Callable[[colSettings, bool, bool], dict[str, Any]]
 
 def col_defs(cart:bool, admin:bool, columns=settings.columns) -> list[dict[str, Any]]:
-    return [fn(columns, cart, admin) for fn in col_fns.values()]
+    return [col_fns.get(c)(columns, cart, admin) if col_fns.get(c) else {"hide":True} for c in columns.keys()]
 
 col_fns = {}
 
@@ -44,6 +43,7 @@ def image_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
           "<span class='material-icons-outlined' style='font-size:28px'>camera_alt</span>"'''
         if admin else f'''(p) => p.data.{columns['image']} || p.data.{columns['comment']} || p.data.{columns['url']} ? 
         "<span class='material-icons-outlined bg-secondary text-3xl' >info</span>" : null''',
+        "lockPosition": "left",
         "hide": cart,
         "maxWidth": 50,
     }
@@ -87,17 +87,18 @@ def weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
 @register_column("count")
 def count_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
     return {
-            "field": columns["count"],
-            ":valueFormatter": f"(p) => p.data.{i18n.get('cart.of')} > 1 ? p.value + ' {i18n.get('cart.of')} ' "
-                               f"+ p.data.{i18n.get('cart.of')} : p.value" if cart else "",
+            "colId": columns["count"],
+            ":valueGetter": f"(p) => p.data.{columns['count']}",
+            ":valueFormatter": f"(p) => p.data.{columns['total']} > 1 ? p.value + ' {columns['total']} ' "
+                               f"+ p.data.{columns['total']} : p.value" if cart else "",
             "headerName": "",
             "editable": cart or admin,
             "cellDataType": "number",
             "maxWidth": 80 if not cart else None,
             "lockPosition": "left" if cart else "",
             "sort": "desc" if cart else "",
-            "cellClassRules": {"bg-accent": f"data.{i18n.get('cart.of')} > 1",
-                               "text-bold": f"data.{i18n.get('cart.of')} > 1"} if cart else "",
+            "cellClassRules": {"bg-accent": f"data.{columns['total']} > 1",
+                               "text-bold": f"data.{columns['total']} > 1"} if cart else "",
         }
 
 @register_column("pack")

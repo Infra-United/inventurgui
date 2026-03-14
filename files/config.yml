@@ -35,6 +35,7 @@ data:
     category: Kategorie
     object: Objekt
     count: Zahl
+    total: von
     pack: Packung
     weight: kg
     total_weight: Gesamtgewicht
