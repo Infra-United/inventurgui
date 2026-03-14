@@ -1,8 +1,7 @@
-from typing import Generator
+from typing import NamedTuple
 
 import polars as pl
-from nicegui.elements.aggrid import AgGrid
-from polars import DataFrame, Series
+from polars import DataFrame
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
@@ -10,21 +9,22 @@ from inventurgui.io.cache import Cache
 
 columns = settings.columns
 
-class Warehouse:
-    _grid: AgGrid = None
+class Warehouse(NamedTuple):
+    name :str
+    inventory : DataFrame
 
-    def __init__(self, name: str, df: DataFrame):
-        self.name = name
-        self.inventory = df.with_columns([pl.col(columns["count"]).cast(pl.Int32, strict=False),
-                                          pl.col(columns["category"]).cast(pl.Categorical, strict=False),
-                                          pl.col(columns["weight"]).cast(pl.Float32, strict=False),
-                                          pl.col(columns["count"] * 1).alias(i18n.get("cart.of")).cast(pl.Int32, strict=False),
-                                          pl.lit(self.name).cast(pl.Categorical).alias(settings.warehouse["label"])],
-                                         )
+    @classmethod
+    def create(cls, name: str, df: DataFrame):
+        df = df.with_columns([pl.col(columns["count"]).cast(pl.Int32, strict=False),
+                              pl.col(columns["category"]).cast(pl.Categorical, strict=False),
+                              pl.col(columns["weight"]).cast(pl.Float32, strict=False),
+                              pl.col(columns["count"] * 1).alias(i18n.get("cart.of")).cast(pl.Int32, strict=False),
+                              pl.lit(name).cast(pl.Categorical).alias(settings.warehouse["label"])],
+                             )
         # Move warehouse column to first place
-        cols = self.inventory.columns
+        cols = df.columns
         new_order = [cols[-1]] + cols[:-1]
-        self.inventory = self.inventory.select(new_order)
+        return cls(name=name, inventory=df.select(new_order))
 
     @property
     def categories(self) -> list[str]:

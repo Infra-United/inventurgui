@@ -1,6 +1,4 @@
-import asyncio
 import os
-from typing import Tuple
 
 import jwt
 from nicegui import ui, app
@@ -10,32 +8,28 @@ from inventurgui.helper.config import settings, create_default_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path, ensure_directory_structure
 from inventurgui.io.importer import read_inventory
+from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.helper.markdown import read_markdown_files
+from inventurgui.ui.helper.markdown import read_page_files
 from inventurgui.ui.root import root
 
 
-# Helper function to read data and make sure everything is set up correctly on startup
-async def backend() -> Tuple[list[Warehouse], dict[str, str]] :
-    #nc = Nextcloud.singleton()
-    #for key, file in settings.cloud["pull"].items():
-        #await nc.pull_file(key, file)
-    warehouses = read_inventory()
-    create_default_config()
-    ensure_directory_structure([w.name for w in warehouses])
-    markdown = read_markdown_files()
-    # Manage env vars
+# Starts the UI
+def main():
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
-    return warehouses, markdown
-
-# Starts the UI
-def frontend(warehouses:list[Warehouse], markdown:dict[str, str]):
+    create_default_config()
+    warehouses:list[Warehouse] = []
+    pages:dict[str, str] = {}
+    app.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files())
+    app.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())))
+    app.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]))
+    app.timer(settings.refresh_timer, lambda: pages.update(read_page_files()))
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files('/images', str(get_path("images")))
     ui.run(
-        root=lambda: root(warehouses, markdown),
+        root=lambda: root(warehouses, pages),
         language=settings.language,
         uvicorn_logging_level="debug" if ARGS.debug else "info",
         show=False,
@@ -49,5 +43,4 @@ def frontend(warehouses:list[Warehouse], markdown:dict[str, str]):
     LOGGER.debug("Successfully started UI.")
 
 if __name__ in {"__main__", "__mp_main__"}:
-    whs, mds = asyncio.run(backend())
-    frontend(whs, mds)
+    main()

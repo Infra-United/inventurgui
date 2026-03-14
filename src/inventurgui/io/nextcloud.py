@@ -1,16 +1,13 @@
 # read ods file to get inventory data
-import asyncio
-import datetime
 from pathlib import Path
 from typing import Self
 
-from webdav4.client import Client, ClientError
-from dateutil.utils import today
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from webdav4.client import Client
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.paths import get_path
 from inventurgui.helper.logger import LOGGER
+from inventurgui.helper.paths import get_path
 
 
 class NextcloudSettings(BaseSettings):
@@ -42,25 +39,23 @@ class Nextcloud(Client):
         return cls.instance
 
     @staticmethod
-    def get_mod_time(path: Path) -> datetime.datetime:
-        return datetime.datetime.fromtimestamp(path.stat().st_mtime)
-
-    @staticmethod
     def shut_down_if_missing_file(path: Path) -> None:
         if not path.is_file():
             LOGGER.exception(f"\nFile: >>>{path}<<< does not exist.\n Shutting down.")
             exit(1)
 
+    def pull_files(self):
+        for key, file in settings.cloud["pull"].items():
+            self.pull_file(key, file)
+
     def pull_file(self, key:str, file: str) -> None:
-        if key is 'inventory' or 'logo':
+        if key in ['inventory','logo']:
             local = get_path(Path(file).name)
         else:
             local = get_path(Path(file).name, "pages" )
+        print(local)
         remote = "/".join((self.remote_dir, file))
         try:
-            if local.is_file() and self.get_mod_time(local).date() == today().date():
-                LOGGER.info(f"{file} is up to date. Using cached data.")
-                return
             if self.exists(remote):
                 LOGGER.debug(f"Getting Data from {remote}...")
                 self.download_file(remote, local)

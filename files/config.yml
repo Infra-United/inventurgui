@@ -13,6 +13,7 @@ theme:
   dark_mode: True
 cloud:
   dir: "Infra United (Intern)/Inventur"
+  refresh_interval_hours: 24
   pull:
     logo: 'logo.jpeg'
     start: 'lager.md'
