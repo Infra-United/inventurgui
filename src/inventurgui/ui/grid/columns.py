@@ -124,4 +124,5 @@ def total_weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, An
         "field": columns["total_weight"],
         "cellDataType": "number",
         ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
+        "hide": not cart,
         }

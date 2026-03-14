@@ -21,9 +21,7 @@ class Warehouse(NamedTuple):
                               pl.col(columns["count"]).alias(columns["total"]).cast(pl.Int32, strict=False),
                               ])
         df.insert_column(1, (pl.col(columns['count']) * pl.col(columns['weight'])).alias(columns["total_weight"]))
-        df = df.select([c for c in columns.values()])
-        df.insert_column(0, (pl.arange(0, df.height)).alias("perma_id"))
-        return cls(name=name, inventory=df)
+        return cls(name=name, inventory=df.select([c for c in columns.values()]).with_row_index())
 
     @property
     def categories(self) -> list[str]:
@@ -49,5 +47,5 @@ class Warehouse(NamedTuple):
         for row_idx, value in Cache.amounts(self.name).items():
            df[int(row_idx), columns["count"]] = value
         return ((df.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))
-                .drop('perma_id'))
+                .drop('index'))
                 .with_columns((pl.col(columns['count']) * pl.col(columns['weight'])).alias(columns["total_weight"])))

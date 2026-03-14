@@ -12,18 +12,22 @@ from inventurgui.helper.config import settings, URL_REGEX
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
+from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 
 
 def update_row_data(df: DataFrame, data: dict, grid:AgGrid, event_args: dict):
     if not "rowPinned" in event_args:
-        grid.run_row_method(data.get('perma_id'), "setData", data)
-        df.update(pl.from_dict(data), on='perma_id') # TODO handle correctly
+        grid.run_row_method(data.get('index'), "setData", data)
+        df.update(pl.from_dict(data), on='index') # TODO handle correctly
     else:
         print(data)
         ui.notify("pinned") # TODO add new row with data
 
-def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
+async def update_amount(grid: AgGrid, warehouse:Warehouse, event: GenericEventArguments):
+    with suppress(KeyError):
+        if event.args['rowPinned']:
+            return
     row_id = event.args["rowId"]
     new_value = event.args.get("newValue")
     data: dict = event.args["data"]
@@ -31,10 +35,11 @@ def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     if new_value > total:
         ui.notify(i18n.get("cart.too_many"), position="center", type="negative", color="secondary")
         return
-    Cache.amounts(name).update({row_id: int(new_value)})
+    Cache.amounts(warehouse.name).update({row_id: int(new_value)})
     data.update({event.args['colId']: new_value})
     data[settings.columns['total_weight']] = int(new_value) * data[settings.columns['weight']]
-    grid.run_row_method(row_id, "setData", data)
+    await grid.run_row_method(row_id, "setData", data)
+    #grid.options.get("pinnedBottomRowData")[0].update({settings.columns["total_weight"]: await warehouse.total_weight()})
 
 def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
     with suppress(KeyError):
@@ -59,7 +64,7 @@ def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataF
 def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
     admin = authenticate_user()
     async def upload_img(event: UploadEventArguments):
-        path = get_path(f"{name}/{data[settings.columns['object']]}_{data['perma_id']}", "images")
+        path = get_path(f"{name}/{data[settings.columns['object']]}_{data['index']}", "images")
         path.unlink(missing_ok=True)
         await event.file.save(path)
         dia_content()

@@ -4,9 +4,10 @@ from nicegui.observables import ObservableList, ObservableDict
 class Cache:
     def __init__(self, warehouses):
         app.storage.user.indent = True
+        app.storage.user.setdefault("Total", 0)
         app.storage.user.setdefault("notified", None)
         app.storage.user.setdefault(
-            "form", {"dates": None, "name": "", "place": "", "donation": "", "email": "", "message": "", "request": None}
+            "form", {"dates": None, "name": "", "place": "", "donation": "", "email": "", "message": "", "sent": None}
         )
         app.storage.user.setdefault("selected", {})
         app.storage.user.setdefault("added", {})

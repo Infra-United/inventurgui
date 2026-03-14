@@ -6,15 +6,15 @@ from nicegui.elements.drawer import LeftDrawer
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
-from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.grid.grid import create_aggrid
 from inventurgui.ui.helper.magic_link import load_data_from_magic_link
 from inventurgui.ui.helper.reusable_elements import selected_count_badge, next_fab, tabs, tab_panels
+from inventurgui.ui.helper.safe_url import url_safe
 
 
-def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
+async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
     ui.query(".nicegui-sub-pages").classes(replace="bg-dark w-full no-scroll").style(replace="gap:0")
 
     current_id = app.storage.browser["id"]
@@ -45,7 +45,7 @@ def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) 
                 selected_count_badge(w.name)
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
-                create_aggrid(w, cart=True)
+                await create_aggrid(w, cart=True)
     truck_panels.set_value(warehouses[0].name.upper())
     LOGGER.info("Created cart page")
     next_fab(settings.form)

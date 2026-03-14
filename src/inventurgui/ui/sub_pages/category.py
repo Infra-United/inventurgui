@@ -1,18 +1,18 @@
 from nicegui import ui
 from nicegui.elements.drawer import LeftDrawer
 
-from inventurgui.ui.grid.grid import create_aggrid
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
+from inventurgui.ui.grid.grid import create_aggrid
 from inventurgui.ui.helper.reusable_elements import next_fab
 
 
-def category_page(category: str, warehouse: Warehouse, ld:LeftDrawer) -> None:
+async def category_page(category: str, warehouse: Warehouse, ld:LeftDrawer) -> None:
     # Create One grid for each unique Category in the first Column
     ld.show()
     ui.page_title(f"{warehouse.name}/{category}")
     LOGGER.debug(f"Creating Grid for {warehouse.name}/{category}...")
-    create_aggrid(warehouse, category, cart=False)
+    await create_aggrid(warehouse, category, cart=False)
     next_fab(settings.cart)
     LOGGER.info(f"Created grid for: {warehouse.name}/{category}")

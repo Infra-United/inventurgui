@@ -12,6 +12,7 @@ def options(cart:bool, admin:bool) -> dict:
                 "selectAll": "filtered",
                 "checkboxes": True,
                 "headerCheckbox": True,
+                ":isRowSelectable": "(r) => r.isRowPinned"
             }
             if not cart and not admin
             else "",
@@ -28,5 +29,5 @@ def options(cart:bool, admin:bool) -> dict:
             "enterNavigatesVerticallyAfterEdit": True,
             "singleClickEdit": True,
             "stopEditingWhenCellsLoseFocus": True,
-            ":getRowId": "(p) => p.data.perma_id.toString()",
+            ":getRowId": f"(p) => p.data.index.toString()",
         }
