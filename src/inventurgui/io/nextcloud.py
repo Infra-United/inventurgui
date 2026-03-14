@@ -71,5 +71,4 @@ class Nextcloud(Client):
 
     def push_file(self, file: Path) -> None:
         self.upload_file(get_path(file.name), "/".join((self.remote_dir, file.name)), overwrite=True)
-        print(self.info("/".join((self.remote_dir, file.name))))
         LOGGER.info(f"Successfully pushed {file.name} to remote directory.")
