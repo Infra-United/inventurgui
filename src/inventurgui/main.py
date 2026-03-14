@@ -19,12 +19,16 @@ def main():
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     create_default_config()
-    warehouses:list[Warehouse] = []
-    pages:dict[str, str] = {}
-    app.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files())
-    app.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())))
-    app.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]))
-    app.timer(settings.refresh_timer, lambda: pages.update(read_page_files()))
+    if ARGS.reload:
+        #Nextcloud.singleton().pull_files()
+        warehouses:list[Warehouse] = [w for w in read_inventory()]
+        ensure_directory_structure([w.name for w in warehouses])
+        pages:dict[str, str] = {k:v for k, v in read_page_files()}
+    else:
+        app.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files())
+        app.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())))
+        app.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]))
+        app.timer(settings.refresh_timer, lambda: pages.update({k:v for k, v in read_page_files()}))
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files('/images', str(get_path("images")))

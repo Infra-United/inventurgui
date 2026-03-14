@@ -1,3 +1,5 @@
+from typing import Generator
+
 from nicegui import ui
 from nicegui.elements.markdown import Markdown
 
@@ -11,12 +13,11 @@ def render_markdown(text:str) -> Markdown:
         "p-10 pt-5 mx-auto text-justify hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
     )
 
-def read_page_files() -> dict[str, str]:
-    pages = {}
-
-    def read_markdown(page_conf: dict[str, str]) -> None:
+def read_page_files() -> Generator[tuple[str, str], None, None]:
+    start_pages = (p for p in settings.start.values())
+    for page_conf in *start_pages, settings.form.get("terms"), settings.warehouse:
         if isinstance(page_conf, str) or not page_conf.get("display"):
-            return
+            continue
         label = page_conf.get("label")
         path = get_path(page_conf.get("path"), "pages")
         try:
@@ -30,10 +31,5 @@ def read_page_files() -> dict[str, str]:
                 f"<br>If you started the program for the first time i may have fetched the page by now."
                 f"<br>In that case a page reload might also fix the problem."
             )
-        pages.update({label: text})
-
-    for values in settings.start.values():
-        read_markdown(values)
-    read_markdown(settings.form.get("terms"))
-    read_markdown(settings.warehouse)
-    return pages
+        if text is not None:
+            yield label, text
