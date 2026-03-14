@@ -7,7 +7,7 @@ import inventurgui
 
 dirs = ["users", "images", "locales", "lists", "pages"]
 
-def ensure_dirs(warehouse_names:list[str]):
+def ensure_directory_structure(warehouse_names:list[str]):
     for d in dirs:
         d = get_path(d)
         if not d.exists():

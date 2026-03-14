@@ -10,7 +10,7 @@ def render_markdown(text:str) -> Markdown:
         "p-10 pt-5 mx-auto text-justify hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
     )
 
-def get_markdown() -> dict[str, str]:
+def read_markdown_files() -> dict[str, str]:
     markdown = {}
 
     def read_markdown(page_conf: dict[str, str]) -> None:

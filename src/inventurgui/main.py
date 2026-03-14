@@ -2,45 +2,28 @@ import asyncio
 import os
 from typing import Tuple
 
-import ezodf
 import jwt
-import polars as pl
 from nicegui import ui, app
-from polars.exceptions import NoDataError
 
 from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings, create_default_config
 from inventurgui.helper.logger import LOGGER
-from inventurgui.helper.paths import get_path, ensure_dirs
+from inventurgui.helper.paths import get_path, ensure_directory_structure
+from inventurgui.io.importer import read_inventory
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.helper.markdown import get_markdown
+from inventurgui.ui.helper.markdown import read_markdown_files
 from inventurgui.ui.root import root
 
 
-# Helper function to make sure everything is set up correctly on startup
+# Helper function to read data and make sure everything is set up correctly on startup
 async def backend() -> Tuple[list[Warehouse], dict[str, str]] :
     #nc = Nextcloud.singleton()
     #for key, file in settings.cloud["pull"].items():
         #await nc.pull_file(key, file)
-    # Read Inventory File
-    warehouses = []
-    inventory = get_path(settings.data["path"])
-    LOGGER.debug(f"Reading Data from {inventory}...")
-    for sheet_num, sheet in enumerate(ezodf.opendoc(inventory).sheets):
-        if sheet_num >= settings.data["sheets"]:
-            continue
-        try:
-            LOGGER.debug(f"Reading sheet {sheet.name}...")
-            df = pl.read_ods(source=inventory, sheet_name=sheet.name, drop_empty_cols=False)
-            warehouses.append(Warehouse(name=sheet.name, df=df))
-        except NoDataError:
-            LOGGER.warning(f"No data found in sheet {sheet.name}. Please check if this is intended.")
-    # Create default config
+    warehouses = read_inventory()
     create_default_config()
-    # Ensure Filesystem Structure
-    ensure_dirs([w.name for w in warehouses])
-    # Read .md files
-    markdown = get_markdown()
+    ensure_directory_structure([w.name for w in warehouses])
+    markdown = read_markdown_files()
     # Manage env vars
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
