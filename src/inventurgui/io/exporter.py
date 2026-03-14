@@ -185,11 +185,10 @@ def find_row_by_name_or_start(sheet: Sheet, start: str, name: str, name_only) ->
 async def write_download_list(path: Path, warehouses: list[Warehouse]):
     path.unlink(missing_ok=True)
     LOGGER.info(f"Creating download list file @{path}")
-    #ods: PackagedDocument = newdoc("ods", str(path))
     with Workbook(path) as wb:
         for w in warehouses:
             df = await w.get_final()
-            if df is None or df.is_empty():
+            if df is None:
                 continue
             LOGGER.debug(f"Creating download list sheet {w.name} @{path}")
             df.write_excel(workbook=wb,
@@ -197,7 +196,3 @@ async def write_download_list(path: Path, warehouses: list[Warehouse]):
                            autofit=True,
                            float_precision=1,
                            table_style="Table Style Medium 4")
-        #data_sheet = Sheet(w.name, size=(len(df) + 1, len(df.columns)))
-        #ods.sheets += write_data_sheet(df, data_sheet)
-    #ods.backup = False
-    #ods.save()

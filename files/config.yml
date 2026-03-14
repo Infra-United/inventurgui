@@ -31,15 +31,16 @@ data:
   path: "IU_Inventur.ods"
   sheets: 3
   columns:
+    shelf: Regal
     category: Kategorie
-    image: Bild
-    url: Link
-    comment: Kommentar
     object: Objekt
-    weight: kg
-    total_weight: Gesamtgewicht
     count: Zahl
     pack: Packung
+    weight: kg
+    total_weight: Gesamtgewicht
+    comment: Kommentar
+    url: Link
+    image: Bild
 start:
   label: 'Start'
   icon: 'home'

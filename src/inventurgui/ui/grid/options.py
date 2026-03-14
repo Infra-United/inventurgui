@@ -28,5 +28,5 @@ def options(cart:bool, admin:bool) -> dict:
             "enterNavigatesVerticallyAfterEdit": True,
             "singleClickEdit": True,
             "stopEditingWhenCellsLoseFocus": True,
-            ":getRowId": "p.data.perma_id.toString()",
+            ":getRowId": "(p) => p.data.perma_id.toString()",
         }

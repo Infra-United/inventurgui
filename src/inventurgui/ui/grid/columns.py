@@ -8,7 +8,7 @@ type colSettings = dict[str, str]
 type colDefFunction = Callable[[colSettings, bool, bool], dict[str, Any]]
 
 def col_defs(cart:bool, admin:bool, columns=settings.columns) -> list[dict[str, Any]]:
-    return [col_fns.get(c)(columns, cart, admin) if col_fns.get(c) else {"hide":True} for c in columns.keys()]
+    return [fn(columns, cart, admin) for fn in col_fns.values()]
 
 col_fns = {}
 
@@ -62,7 +62,7 @@ def object_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
         else {"text-bold": "x", "tracking-wider": "x"},
     }
 
-@register_column("type")
+# Not used at the moment
 def description_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
     return  {
         "colId": columns["type"],
@@ -75,14 +75,12 @@ def description_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any
 @register_column("weight")
 def weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
     return {
-            "colId": columns["weight"],
-            ":valueGetter": f"(p) => p.data.{columns['weight']} ? p.data.{columns['weight']} * p.data.{columns['count']} : null"
-            if cart else f"(p) => p.data.{columns['weight']}",
+            "field": columns["weight"],
             ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
             # ":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             #":colId": f"(p) => p.data.{config['weight']}.reduce((acc, x) => acc + (x || 0), 0);",
             #":headerValueGetter": f"(p) => p.location === 'header' ? p.column.colId : null;",
-            "headerName": columns["total_weight"] + f"" if cart else f"[kg/{columns["pack"]}]",
+            "headerName": f"[kg/{columns["pack"]}]",
             "cellDataType": "number",
     }
 
@@ -106,6 +104,7 @@ def count_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
 def pack_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
     return {"field": columns["pack"], "lockPosition": "left" if cart else "", 'sortable': False}
 
+# Not Used at the moment
 def delete_col() -> dict[str, Any]:
     return {
             "colId": 'add_delete',
@@ -116,3 +115,12 @@ def delete_col() -> dict[str, Any]:
                   "<span class='material-icons-outlined' style='font-size:28px'>delete</span>"''',
             "maxWidth": 60
     }
+
+@register_column("total_weight")
+def total_weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
+    return {
+        "colId": columns["total_weight"],
+        "field": columns["total_weight"],
+        "cellDataType": "number",
+        ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
+        }
