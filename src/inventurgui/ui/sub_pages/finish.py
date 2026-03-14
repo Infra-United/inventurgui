@@ -2,13 +2,16 @@ from nicegui import ui, app
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
-from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.io.cache import Cache
+from inventurgui.io.warehouse import Warehouse
+from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.reusable_elements import back_fab
 
 
-async def finish_page():
+async def finish_page(warehouses:list[Warehouse]):
     ui.page_title(f"{settings.finish['label']}")
+    for warehouse in warehouses:
+        await warehouse.get_final()
     with ui.tab_panel("finish").classes("w-full h-dvh m-0"):
         with ui.column(align_items="center").classes("mx-auto my-auto text-center"):
             md = ui.markdown("Test")

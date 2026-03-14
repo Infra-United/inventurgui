@@ -23,8 +23,6 @@ class Warehouse(NamedTuple):
         df.insert_column(1, (pl.col(columns['count']) * pl.col(columns['weight'])).alias(columns["total_weight"]))
         df = df.select([c for c in columns.values()])
         df.insert_column(0, (pl.arange(0, df.height)).alias("perma_id"))
-        with pl.Config(tbl_cols=-1):
-            print(df)
         return cls(name=name, inventory=df)
 
     @property
@@ -43,11 +41,7 @@ class Warehouse(NamedTuple):
         return self.inventory.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))
 
     async def get_final(self) -> DataFrame | None:
-        df = self.selected()
-        if df.is_empty():
-            return None
-        changed_amounts = {int(k): v for k, v in Cache.amounts(self.name).items()}
-        update_df = self.inventory.filter(pl.arange(0, self.inventory.height).is_in(changed_amounts))
-        if not update_df.is_empty():
-            df.update(update_df)
-        return df.drop('perma_id')
+        df = self.inventory
+        for row_idx, values in Cache.amounts(self.name).items():
+           df[int(row_idx), columns["count"]] = values[0]
+        return df.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name))).drop('perma_id')
