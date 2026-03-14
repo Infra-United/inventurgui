@@ -18,7 +18,7 @@ from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
 from inventurgui.io.mail import send_mail
-from inventurgui.io.request import save_request, delete_request, write_download_list
+from inventurgui.io.export import save_request, delete_request, write_download_list
 from inventurgui.io.warehouse import Warehouse
 
 
