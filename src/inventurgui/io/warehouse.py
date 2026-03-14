@@ -40,8 +40,14 @@ class Warehouse(NamedTuple):
     def selected(self) -> DataFrame:
         return self.inventory.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))
 
-    async def get_final(self) -> DataFrame | None:
+    async def total_weight(self) -> float:
+        df = await self.get_final()
+        return df.select(columns["total_weight"]).sum().item()
+
+    async def get_final(self) -> DataFrame:
         df = self.inventory
-        for row_idx, values in Cache.amounts(self.name).items():
-           df[int(row_idx), columns["count"]] = values[0]
-        return df.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name))).drop('perma_id')
+        for row_idx, value in Cache.amounts(self.name).items():
+           df[int(row_idx), columns["count"]] = value
+        return ((df.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))
+                .drop('perma_id'))
+                .with_columns((pl.col(columns['count']) * pl.col(columns['weight'])).alias(columns["total_weight"])))

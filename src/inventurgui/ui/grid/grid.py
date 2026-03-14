@@ -1,17 +1,19 @@
+import polars as pl
 from nicegui import ui
 from nicegui.elements.aggrid import AgGrid
 from nicegui.ui import aggrid
+from polars import DataFrame
 
-import polars as pl
-
-from inventurgui.ui.grid.options import options
 from inventurgui.helper.config import settings
-from inventurgui.ui.grid.grid_handlers import handle_select, handle_click, update_amount
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
+from inventurgui.ui.grid.grid_handlers import handle_select, handle_click, update_amount
+from inventurgui.ui.grid.options import options
 
 """This module implements functions to create AG Grids which display the data."""
+
+columns = settings.columns
 
 def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
@@ -24,7 +26,6 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
     Returns:
         AgGrid: The AG Grid that results from the given Arguments.
     """
-    columns = settings.columns
     admin = authenticate_user()
 
     # Styling
@@ -44,24 +45,24 @@ def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = F
 
     # Create Grid with given Data
     grid = aggrid.from_polars(df, options=options(cart, admin), html_columns=[0],  theme='alpine').classes("h-dvh")
+    #grid.options.update({"pinnedBottomRowData": f"[Gesamtgewicht: {warehouse.total_weight()}]"})
 
+    register_event_handlers(grid, warehouse.name, df, cart, admin)
+    return grid
+
+def register_event_handlers(grid: AgGrid, name:str, df:DataFrame, cart:bool, admin:bool):
+    """Register the event handlers for the given grid."""
     # Handle events
-    grid.on("rowSelected",lambda e: handle_select(warehouse.name, e, grid))
+    grid.on("rowSelected", lambda e: handle_select(name, e, grid))
     if not cart:
-        grid.on("cellClicked", lambda event: handle_click(warehouse.name, grid, event, df))
+        grid.on("cellClicked", lambda event: handle_click(name, grid, event, df))
         if not admin:
-            for row in Cache.selected(warehouse.name):
+            for row in Cache.selected(name):
                 grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     if cart:
-        for row in Cache.amounts(warehouse.name):
-            grid.on(
-                "firstDataRendered",
-                lambda r=row: grid.run_row_method(
-                    r, "setDataValue", columns["count"], Cache.amounts(warehouse.name).get(r)[0]
-                ),
-            )
-        grid.on("cellEditRequest", lambda event: update_amount(grid, warehouse.name, event))
+        for row, value in Cache.amounts(name).items():
+            grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setDataValue", columns["count"], value))
+        grid.on("cellEditRequest", lambda event: update_amount(grid, name, event))
 
     grid.on("gridSizeChanged", lambda: grid.run_grid_method("autoSizeAllColumns"), trailing_events=True)
-    #ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)
-    return grid
+    # ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)

@@ -31,8 +31,9 @@ def update_amount(grid: AgGrid, name: str, event: GenericEventArguments):
     if new_value > total:
         ui.notify(i18n.get("cart.too_many"), position="center", type="negative", color="secondary")
         return
-    Cache.amounts(name).update({row_id: [int(new_value), int(total)]})
+    Cache.amounts(name).update({row_id: int(new_value)})
     data.update({event.args['colId']: new_value})
+    data[settings.columns['total_weight']] = int(new_value) * data[settings.columns['weight']]
     grid.run_row_method(row_id, "setData", data)
 
 def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):

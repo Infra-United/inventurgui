@@ -1,10 +1,9 @@
-from nicegui import app, ui
+from nicegui import app
 from nicegui.observables import ObservableList, ObservableDict
 
 class Cache:
     def __init__(self, warehouses):
         app.storage.user.indent = True
-        app.storage.user.setdefault("Total", 0)
         app.storage.user.setdefault("notified", None)
         app.storage.user.setdefault(
             "form", {"dates": None, "name": "", "place": "", "donation": "", "email": "", "message": "", "request": None}
