@@ -25,6 +25,8 @@ def main():
         ensure_directory_structure([w.name for w in warehouses])
         pages:dict[str, str] = {k:v for k, v in read_page_files()}
     else:
+        warehouses:list[Warehouse] = []
+        pages:dict[str, str] = {}
         app.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files())
         app.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())))
         app.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]))
