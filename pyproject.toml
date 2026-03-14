@@ -17,6 +17,7 @@ dependencies = [
     "ezodf>=0.3.2",
     "webdav4>=0.11.0",
     "lxml>=6.0.2",
+    "adbc-driver-sqlite>=1.10.0",
 ]
 
 [tool.hatch.build.targets.wheel]
