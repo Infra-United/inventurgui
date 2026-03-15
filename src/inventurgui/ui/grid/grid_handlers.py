@@ -8,12 +8,13 @@ from nicegui.elements.aggrid import AgGrid
 from nicegui.events import GenericEventArguments, UploadEventArguments
 from polars import DataFrame
 
-from inventurgui.helper.config import settings, URL_REGEX
+from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
+from inventurgui.ui.helper.validators import URL_REGEX
 
 
 def update_row_data(df: DataFrame, data: dict, grid:AgGrid, event_args: dict):
