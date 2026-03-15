@@ -112,7 +112,7 @@ def init_overview_sheet(request: dict[str, str | dict[str, str]], year: str):
     return sheet
 
 
-def write_overview(sheet: Sheet, request: dict[str, str | dict[str, str]], row_number: int) -> None:
+def write_overview(sheet: Sheet, request: dict[str, str | float | dict[str, str]], row_number: int) -> None:
     # Write to overview
     LOGGER.debug("Writing request to overview sheet...")
     start, end, month, year = convert_dates(request.get("dates"))
@@ -127,6 +127,12 @@ def write_overview(sheet: Sheet, request: dict[str, str | dict[str, str]], row_n
                 continue
             case "message" | "finish" | "download":
                 continue
+            case "request" | "update" | "delete":
+                if value:
+                    cell: Cell = sheet.get_cell((row_number, count))
+                    readable_dt = f"{datetime.datetime.fromtimestamp(value):{settings.date_format} {settings.time_format}}"
+                    cell.set_value(str(readable_dt))
+                    count += 1
             case _:
                 cell: Cell = sheet.get_cell((row_number, count))
                 cell.set_value(str(value) if value else "")
