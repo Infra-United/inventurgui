@@ -31,8 +31,7 @@ async def update_amount(grid: AgGrid, warehouse:Warehouse, event: GenericEventAr
     row_id = event.args["rowId"]
     new_value = event.args.get("newValue")
     data: dict = event.args["data"]
-    total = data[settings.columns['total']]
-    if new_value > total:
+    if new_value > data[settings.columns['total']]:
         ui.notify(i18n.get("cart.too_many"), position="center", type="negative", color="secondary")
         return
     Cache.amounts(warehouse.name).update({row_id: int(new_value)})
@@ -57,7 +56,9 @@ def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
         grid.run_row_method(row_id, 'setSelected', False)
 
 def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataFrame):
-    if event.args['colId'] == settings.columns['image']:
+    columns = settings.columns
+    data = event.args['data']
+    if any([data[columns['image']], data[columns['comment']], data[columns['url']]]) and event.args['colId'] == columns['image']:
         info_popup(name, event.args, df, grid)
     else:
         handle_select(name, event, grid) if not authenticate_user() else None
