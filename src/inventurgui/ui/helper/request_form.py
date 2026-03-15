@@ -33,9 +33,14 @@ class Form:
 
     def validate(self) -> bool:
         with suppress(NameError):
-            if any([not i.validate() for i in self.inputs]) or self.dates.value is None:
+            if any([not i.validate() for i in self.inputs]):
+                ui.notify(i18n.get("form.please_fill_field"))
                 return False
             elif any([not c.value for c in self.checks]):
+                ui.notify(i18n.get("form.please_check_boxes"))
+                return False
+            elif self.dates.value is None:
+                ui.notify(i18n.get("form.please_provide_date"))
                 return False
             else:
                 return True
@@ -54,8 +59,7 @@ class Form:
                 delete.bind_visibility_from(self.request, "request")
                 delete.props("text-color=secondary rounded").classes("p-3 bg-red text-lg")
                 submit = ui.button(icon="outgoing_mail")
-                submit.on_click(lambda: submit_form(self.request, warehouses) if self.validate()
-                                else ui.notify(i18n.get("form.invalid"), type='negative'))
+                submit.on_click(lambda: submit_form(self.request, warehouses) if self.validate() else None)
                 submit.props("text-color=secondary rounded")
                 submit.classes("p-3 text-lg")
 
@@ -66,7 +70,6 @@ class Form:
                 dates.move(column)
                 dates.props[":options"] = f'date => date >= "{datetime.date.today():%Y/%m/%d}"'
                 dates.bind_value(self.request, "dates")
-                dates.on_value_change(lambda: self.validate())
 
             with ui.column().classes("items-stretch max-sm:col-span-2"):
                 for key, value in settings.form.get("input").items():

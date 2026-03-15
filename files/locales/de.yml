@@ -9,14 +9,15 @@ cart:
   select_tip: "Bitte wähle erst etwas aus."
   too_many: "So viele haben wir nicht!"
 form:
-  please_fill_field: 'Bitte fülle dieses Feld aus.'
+  please_fill_field: 'Bitte fülle alle Felder aus.'
+  please_check_boxes: 'Bitte hake die Kästchen ab.'
+  please_provide_date: 'Bitte gib ein Abhol- und ein Rückgabe-Datum an indem du auf beide Daten nacheinander klickst. Wenn du am gleichen Tag zurückgibst musst du zweimal auf den gleichen Tag klicken.'
   email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
-  invalid: "Das Formular ist nicht korrekt ausgefüllt. Bitte überprüfe dies."
   month: 'Monat'
   start: 'Abholung'
   end: 'Rückgabe'
-  message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos.'
-  update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter.'
+  message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
+  update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter'
 finish:
   are_you_sure: "Bist du sicher?"
   editing_link: "Bearbeitungslink"
