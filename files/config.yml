@@ -78,8 +78,8 @@ form:
     email: 'E-Mail-Adresse'
   message: 'Deine Nachricht'
   checkbox: # Will create checkboxes at the end of the form for any number of items
-    terms: 'Ich habe die Leihbedingungen gelesen.'
-    mails: 'Ich möchte ein bis zwei Mal im Jahr den IU Newsletter bekommen.'
+    terms: 'Ich habe die Leihbedingungen gelesen. *'
+    mails: 'Ich bin einverstanden ein bis zwei Mal im Jahr den IU Newsletter zu bekommen. *'
   terms: # Show terms to the user in a tab next to the form
     display: true # Set this to false if you don't need this
     label: 'Leihbedingungen'
