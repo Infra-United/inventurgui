@@ -2,10 +2,11 @@ from nicegui import ui, app
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
-from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
+from inventurgui.ui.helper.safe_url import url_safe
+from inventurgui.ui.helper.theme import Theme
 from inventurgui.ui.layout import header, left_drawer, footer
 from inventurgui.ui.sub_pages.cart import cart_page
 from inventurgui.ui.sub_pages.category import category_page
@@ -14,7 +15,6 @@ from inventurgui.ui.sub_pages.form import form_page
 from inventurgui.ui.sub_pages.login import login_page
 from inventurgui.ui.sub_pages.start import start_page
 from inventurgui.ui.sub_pages.warehouse import warehouse_page
-from inventurgui.ui.helper.theme import Theme
 
 """The root page that constructs the layout and is only loaded on when requesting / ."""
 
@@ -32,6 +32,8 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str]):
         window.onresize = emitSize;
         </script>
     """)
+    ui.add_head_html(
+        '<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>')
 
     # Set colors
     Theme(settings.theme).set_colors()

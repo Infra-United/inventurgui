@@ -3,20 +3,17 @@ from nicegui import ui, app
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.io.cache import Cache
-from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.reusable_elements import back_fab
 
 
-async def finish_page(warehouses:list[Warehouse]):
+async def finish_page():
     ui.page_title(f"{settings.finish['label']}")
-    for warehouse in warehouses:
-        await warehouse.get_final()
     with ui.tab_panel("finish").classes("w-full h-dvh m-0"):
-        with ui.column(align_items="center").classes("mx-auto my-auto text-center"):
-            md = ui.markdown("Test")
-            md.bind_content_from(Cache.form(), "finish")
-            md.classes("pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180")
+        with ui.column(align_items="center").classes("mx-auto my-auto text-center items-center"):
+            ui.html(f'<dotlottie-wc src="https://lottie.host/34a039b7-f604-4b38-87f8-ef98cc1cb2e2/U80Me40Lc3.lottie" style="width: 300px;height: 300px" autoplay  loop></dotlottie-wc>', sanitize=False)
+            md = ui.markdown().bind_content_from(Cache.form(), "finish")
+            md.classes("pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180") if md.content else None
             if Cache.form().get("deleted"):
                 ui.timer(5, lambda: (app.storage.user.clear(), ui.navigate.to("/"), ui.navigate.reload()))
                 return
