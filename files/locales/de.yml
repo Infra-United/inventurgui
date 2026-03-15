@@ -28,7 +28,7 @@ finish:
   deleted: "Deine Anfrage wurde erfolgreich gelöscht. Bis Bald!"
   copy_link: 'Link kopieren'
   download_button: 'Liste Herunterladen'
-  download_tip: 'Du kannst eine Liste deiner Ladung hier herunterladen:'
+  download_tip: 'Du kannst eine Liste deiner Ladung hier herunterladen (Sie wurde auch an die Mail angehängt):'
 admin:
   edits: "Meine Veränderungen"
   upload: "Bild Hochladen"
