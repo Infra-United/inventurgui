@@ -11,6 +11,7 @@ cart:
 form:
   please_fill_field: 'Bitte fülle dieses Feld aus.'
   email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
+  invalid: "Das Formular ist nicht korrekt ausgefüllt. Bitte überprüfe dies."
   month: 'Monat'
   start: 'Abholung'
   end: 'Rückgabe'
