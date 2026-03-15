@@ -5,7 +5,6 @@ from nicegui.ui import aggrid
 from polars import DataFrame
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.i18n import i18n
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
@@ -46,10 +45,6 @@ async def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bo
 
     # Create Grid with given Data
     grid = aggrid.from_polars(df, options=options(cart, admin), html_columns=[0]).classes("h-dvh")
-    grid.options.update({"pinnedBottomRowData": [{'index': i18n.get("cart.total"),
-                                                  columns['object']: i18n.get("cart.total"),
-                                                  columns["total_weight"]: await warehouse.total_weight()}
-                                                 ]} if cart else "")
     register_event_handlers(grid, warehouse, df, cart, admin)
     return grid
 
@@ -67,4 +62,5 @@ def register_event_handlers(grid: AgGrid, warehouse:Warehouse, df:DataFrame, car
             grid.on("firstDataRendered", lambda r=row, v=value: grid.run_row_method(r, "setDataValue", columns["count"], v))
         grid.on("cellEditRequest", lambda event: update_amount(grid, warehouse, event))
 
+    grid.on("gridReady", lambda: grid.run_grid_method("sizeColumnsToFit"), trailing_events=True)
     ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 768 else None, trailing_events=True)

@@ -2,7 +2,6 @@ from functools import wraps
 from typing import Any, Callable
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.i18n import i18n
 
 type colSettings = dict[str, str]
 type colDefFunction = Callable[[colSettings, bool, bool], dict[str, Any]]
@@ -59,7 +58,7 @@ def object_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
         "suppressSizeToFit": False,
         "floatingFilter": not cart,
         "sort": "asc" if not cart else '',
-        "cellClassRules": {"text-primary": f"value != '{i18n.get("cart.total")}'", "text-bold": "x", "tracking-wider": "x"}
+        "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"}
     }
 
 # Not used at the moment
@@ -76,7 +75,7 @@ def description_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any
 def weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
     return {
             "field": columns["weight"],
-            ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
+            ":valueFormatter": f"(p) => p.value != null ? p.value + ' kg' : null",
             # ":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
             #":colId": f"(p) => p.data.{config['weight']}.reduce((acc, x) => acc + (x || 0), 0);",
             #":headerValueGetter": f"(p) => p.location === 'header' ? p.column.colId : null;",

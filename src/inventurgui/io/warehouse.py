@@ -17,7 +17,7 @@ class Warehouse(NamedTuple):
         df = df.with_columns([pl.col(columns["count"]).cast(pl.Int32, strict=False),
                               pl.col(columns["category"]).cast(pl.Categorical, strict=False),
                               pl.col(columns["shelf"]).cast(pl.Categorical, strict=False),
-                              pl.col(columns["weight"]).cast(pl.Float32, strict=False),
+                              pl.col(columns["weight"]).cast(pl.Float64, strict=False),
                               pl.col(columns["count"]).alias(columns["total"]).cast(pl.Int32, strict=False),
                               ])
         df.insert_column(1, (pl.col(columns['count']) * pl.col(columns['weight'])).alias(columns["total_weight"]))
@@ -38,9 +38,9 @@ class Warehouse(NamedTuple):
     def selected(self) -> DataFrame:
         return self.inventory.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))
 
-    async def total_weight(self) -> float:
+    async def total_weight(self) -> int:
         df = await self.get_final()
-        return df.select(columns["total_weight"]).sum().item()
+        return df.select(columns["total_weight"]).sum().cast(pl.Int64).item()
 
     async def get_final(self) -> DataFrame:
         df = self.inventory

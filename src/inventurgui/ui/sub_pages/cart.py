@@ -10,7 +10,7 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.grid.grid import create_aggrid
 from inventurgui.ui.helper.magic_link import load_data_from_magic_link
-from inventurgui.ui.helper.reusable_elements import selected_count_badge, next_fab, tabs, tab_panels
+from inventurgui.ui.helper.reusable_elements import badge, next_fab, tabs, tab_panels
 from inventurgui.ui.helper.safe_url import url_safe
 
 
@@ -40,8 +40,9 @@ async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
         if selected.is_empty():
             continue
         with truck_tabs:
-            with ui.tab(w.name.upper(), icon=settings.cart["tab_icon"]):
-                selected_count_badge(w.name)
+            with ui.tab(w.name.upper()).props('alert="primary" alert-icon="local_shipping"'):
+                Cache.set_weight(w.name, await w.total_weight())
+                badge("").bind_text_from(app.storage.user["weight"], w.name, backward=lambda v: f"{float(v)/1000:.2f} t" if v > 1000 else f"{v} kg")
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
                 await create_aggrid(w, cart=True)

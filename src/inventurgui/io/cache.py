@@ -14,6 +14,7 @@ class Cache:
         app.storage.user.setdefault("deleted", {})
         app.storage.user.setdefault("edited", {})
         app.storage.user.setdefault("amounts", {})
+        app.storage.user.setdefault("weight", {})
         for warehouse in warehouses:
             app.storage.user['selected'].update({warehouse.name: []}) if not self.selected(warehouse.name) else None
             app.storage.user['added'].update({warehouse.name: []}) if not self.added(warehouse.name) else None
@@ -52,6 +53,14 @@ class Cache:
     @classmethod
     def selected(cls, name: str) -> ObservableList:
         return app.storage.user['selected'].get(name)
+
+    @classmethod
+    def weight(cls, name):
+        return app.storage.user["weight"].get(name)
+
+    @classmethod
+    def set_weight(cls, name, weight:float):
+        app.storage.user["weight"][name] = weight
 
     @classmethod
     def auth_token(cls) -> str | None:

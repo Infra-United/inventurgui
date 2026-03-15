@@ -2,13 +2,12 @@ from nicegui import ui, app
 from nicegui.elements.tabs import Tabs
 
 from inventurgui.helper.i18n import i18n
-from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.ui.auth import authenticate_user
+from inventurgui.ui.helper.safe_url import url_safe
 
 
-def selected_count_badge(warehouse_name:str):
-    badge = ui.badge("0", color="primary", text_color="secondary").props().classes("text-bold ml-2")
-    return badge.bind_text_from(app.storage.user.get("selected"), warehouse_name, backward=lambda v: str(len(v)))
+def badge(text:str):
+    return ui.badge(text, color="primary", text_color="secondary").props().classes("text-bold ml-2 py-1")
 
 def tabs():
     return (

@@ -39,7 +39,7 @@ async def update_amount(grid: AgGrid, warehouse:Warehouse, event: GenericEventAr
     with suppress(TypeError):
         data[settings.columns['total_weight']] = int(new_value) * data[settings.columns['weight']]
     await grid.run_row_method(row_id, "setData", data)
-    #grid.options.get("pinnedBottomRowData")[0].update({settings.columns["total_weight"]: await warehouse.total_weight()})
+    Cache.set_weight(warehouse.name, await warehouse.total_weight())
 
 def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
     with suppress(KeyError):

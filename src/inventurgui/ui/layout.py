@@ -1,14 +1,14 @@
-from nicegui import ui
+from nicegui import ui, app
 from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
-from inventurgui.ui.helper.safe_url import url_safe, reverse_url
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
-from inventurgui.ui.helper.reusable_elements import selected_count_badge
+from inventurgui.ui.helper.reusable_elements import badge
+from inventurgui.ui.helper.safe_url import url_safe, reverse_url
 
 
 def header(ld: LeftDrawer|None = None):
@@ -19,7 +19,6 @@ def header(ld: LeftDrawer|None = None):
     with (ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center")):
         img = ui.image(source=get_path(settings.favicon)).classes("h-full m-0 p-0 w-[56px]")
         img.on('click', lambda: ui.navigate.to("/"))
-        img.force_reload()
         ui.label(str(settings.title).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
         main_menu(ld, classes="stretch h-full")
 
@@ -92,7 +91,7 @@ def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, pr
             expansion.set_value(True if name == path_warehouse else True if name == warehouses[0].name else False)
             with expansion.add_slot("header"):
                 with ui.label(name.upper()).classes("py-3 w-full"):
-                    selected_count_badge(warehouse.name)
+                    badge("0").bind_text_from(app.storage.user["selected"], warehouse.name, backward=lambda v: len(v))
             if len(warehouse.categories) == 2:
                 ui.on('resize',
                       lambda e, x=expansion: x.on('click', lambda r=e: ld.hide() if r.args['width'] < 1024 else None))
