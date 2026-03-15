@@ -5,6 +5,7 @@ domain: 'localhost:8080'
 port: 8080
 language: 'de' # The language to use on Quasar UI Components
 date_format: '%d.%m.%y' # The format for dates - see https://strftime.org/
+time_format: '%H:%M' # The format for times - see https://strftime.org/
 theme:
   primary: '#e89769'
   secondary: '#37474f'
