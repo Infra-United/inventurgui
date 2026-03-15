@@ -88,7 +88,7 @@ class Form:
                     e.bind_value(self.request, "message")
                     e.move(grid)  # Moves editor
 
-            with ui.column().classes("max-sm:col-span-2"):
+            with ui.column().classes("max-sm:col-span-2 pb-10"):
                 if not self.request.get("request"):
                     for value in settings.form.get("checkbox").values():
                         c = ui.checkbox(value)
