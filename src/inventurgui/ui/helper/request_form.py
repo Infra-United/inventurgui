@@ -62,10 +62,10 @@ class Form:
                 submit.props("text-color=secondary rounded")
                 submit.classes("p-3 text-lg")
 
-            with ui.column().classes("mx-auto max-sm:col-span-2") as column:
+            with ui.column().classes("max-sm:col-span-2") as column:
                 dates_label = ui.label(f"{i18n.get('form.start')} - {i18n.get('form.end')}".upper())
                 dates_label.classes("w-full pt-2 text-center tracking-widest")
-                dates = self.dates.classes("p-0").props("range minimal flat")
+                dates = self.dates.classes("w-full h-full p-0").props("range minimal flat")
                 dates.move(column)
                 dates.props[":options"] = f'date => date >= "{datetime.date.today():%Y/%m/%d}"'
                 dates.bind_value(self.request, "dates")
