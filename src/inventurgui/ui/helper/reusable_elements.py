@@ -2,8 +2,8 @@ from nicegui import ui, app
 from nicegui.elements.tabs import Tabs
 
 from inventurgui.helper.i18n import i18n
-from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.helper.safe_url import url_safe
+from inventurgui.ui.auth import authenticate_user
 
 
 def selected_count_badge(warehouse_name:str):
@@ -24,7 +24,7 @@ def next_fab(next_page: dict[str, str]):
     props: str = "text-color=secondary"
     if admin := authenticate_user():
         next_page = {'icon': 'save', 'label': (i18n.get('admin.save'))}
-    with ui.page_sticky(position="bottom-right", x_offset=30, y_offset=45).classes("z-999"):
+    with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_next", direction="up").props(f"{props} active-icon='hourglass_top'")
         if admin:
             fab.on('click', lambda: ui.notify('saving...')) # TODO handle save
@@ -46,7 +46,7 @@ def next_fab(next_page: dict[str, str]):
 
 def back_fab(last_page: dict[str, str]):
     props: str = "text-color=primary"
-    with ui.page_sticky(position="bottom-left", x_offset=30, y_offset=30).classes("z-999"):
+    with ui.page_sticky(position="bottom-left", x_offset=30, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_before", direction="up", color="secondary").props(f"{props}")
         fab.on("click", lambda: ui.navigate.to(url_safe(f"/{last_page.get('label')}?id={app.storage.browser['id']}")))
         fab.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
