@@ -3,7 +3,6 @@ from inventurgui.ui.grid.columns import default_col_defs, col_defs
 
 def options(cart:bool, admin:bool) -> dict:
     return {
-        "theme": 'alpine',
         "selectionColumnDef": {"hide": cart, "maxWidth": 35, "sortable": True},
         "columnDefs": col_defs(cart, admin),
         "defaultColDef": default_col_defs(),

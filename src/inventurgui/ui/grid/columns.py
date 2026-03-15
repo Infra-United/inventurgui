@@ -81,6 +81,7 @@ def weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
             #":headerValueGetter": f"(p) => p.location === 'header' ? p.column.colId : null;",
             "headerName": f"[kg/{columns["pack"]}]",
             "cellDataType": "number",
+            ":hide": "Quasar.Screen.lt.sm" if not cart else "",
     }
 
 @register_column("count")
@@ -102,7 +103,11 @@ def count_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
 
 @register_column("pack")
 def pack_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
-    return {"field": columns["pack"], "lockPosition": "left" if cart else "", 'sortable': False}
+    return {"field": columns["pack"],
+            "lockPosition": "left" if cart else "",
+            'sortable': False,
+            #":hide": "Quasar.Screen.lt.sm" if not cart else "",
+            }
 
 # Not Used at the moment
 def delete_col() -> dict[str, Any]:
