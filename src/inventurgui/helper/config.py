@@ -8,8 +8,6 @@ from inventurgui.cli import ARGS
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 
-EMAIL_REGEX = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
-URL_REGEX = r"(?P<url>https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*))"
 config_file: Path = get_path(ARGS.config_file)
 default_config_file: Path = get_path("default_config.yml")
 
@@ -30,6 +28,7 @@ class Settings(BaseSettings):
     port: int = 8080
     language: str = 'en'
     date_format: str = '%m/%d/%Y'
+    time_format: str = '%H:%M'
     theme: dict[str, str|bool] = {
             'primary': '#e89769',
             'secondary': '#37474f',

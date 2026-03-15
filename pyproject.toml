@@ -19,6 +19,7 @@ dependencies = [
     "lxml>=6.0.2",
     "adbc-driver-sqlite>=1.10.0",
     "xlsxwriter>=3.2.9",
+    "email-validator>=2.3.0",
 ]
 
 [tool.hatch.build.targets.wheel]
