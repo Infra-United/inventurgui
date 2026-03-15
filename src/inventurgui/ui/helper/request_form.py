@@ -1,5 +1,4 @@
 import datetime
-import re
 import socket
 from contextlib import suppress
 
@@ -10,7 +9,7 @@ from nicegui.elements.date import Date
 from nicegui.elements.input import Input
 from nicegui.observables import ObservableDict
 
-from inventurgui.helper.config import settings, EMAIL_REGEX
+from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
@@ -20,6 +19,8 @@ from inventurgui.io.mail import send_mail
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.safe_url import url_safe
+from inventurgui.ui.helper.validators import validate_mail, INPUT_VALIDATION
+from inventurgui.ui.layout import warehouse_menu
 
 
 class Form:
@@ -66,16 +67,14 @@ class Form:
                 dates.bind_value(self.request, "dates")
                 dates.on_value_change(lambda: self.validate())
 
-            email_validation = {i18n.get("form.email_invalid"): lambda v: True if re.match(EMAIL_REGEX, v) else False}
-            input_validation = {i18n.get("form.please_fill_field"): lambda v: len(v) > 0}
             with ui.column().classes("items-stretch max-sm:col-span-2"):
                 for key, value in settings.form.get("input").items():
-                    i = ui.input(value, validation=email_validation if key == "email" else input_validation)
+                    i = ui.input(value, validation=lambda v, k=key: (validate_mail(k, v, self.request) if k == "email" else INPUT_VALIDATION))
                     i.without_auto_validation()
                     i.on('blur', lambda x=i: x.validate())
                     if key == "name" or key == "email":
                         i.bind_enabled_from(self.request, "request", backward=lambda v: not v)
-                    i.bind_value(self.request, key)
+                    i.bind_value(self.request, key) if key != "email" else None
                     self.inputs.append(i)
                 if "message" in settings.form.keys():
                     e = ui.editor(value='',
