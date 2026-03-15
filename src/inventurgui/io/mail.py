@@ -108,7 +108,7 @@ def create_text(ttype:Literal["text", "html"], request: dict[str, str | float | 
             case _:
                 if key in settings.form["input"].keys():
                     add.append(f"{settings.form['input'].get(key)}: {value}")
-    add.append(f"{newline}{newline}{i18n.get('form.message')}: {newline}{newline}{request.get('message')}")
+    add.append(f"{newline}{newline}{settings.form.get('message')}: {newline}{newline}{request.get('message')}")
     add.append(newline)
     if exception:
         add.append(f"{newline}{newline}{[a for a in exception.args]}: {newline}{newline}{traceback.print_exc()}")
