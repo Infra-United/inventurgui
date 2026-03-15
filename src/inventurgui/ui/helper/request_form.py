@@ -4,7 +4,7 @@ import time
 from contextlib import suppress
 
 import nicegui.run
-from nicegui import ui, app
+from nicegui import ui
 from nicegui.elements.checkbox import Checkbox
 from nicegui.elements.date import Date
 from nicegui.elements.input import Input
@@ -21,7 +21,6 @@ from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.ui.helper.validators import validate_mail, INPUT_VALIDATION
-from inventurgui.ui.layout import warehouse_menu
 
 
 class Form:
@@ -142,9 +141,6 @@ async def send_delete(request: ObservableDict, warehouses:list[Warehouse]) -> No
         await nicegui.run.io_bound(lambda: send_mail(request, RequestType.delete))
         await delete_request(request)
         request.update({"finish": i18n.get("finish.deleted"), "request": None})
-        app.storage.user.clear()
-        Cache(warehouses)
-        warehouse_menu.refresh()
         request.update({"finish": i18n.get("finish.success")})
     except Exception as exception:
         request.update({"finish": i18n.get("finish.failure_mail")})
