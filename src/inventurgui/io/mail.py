@@ -1,21 +1,29 @@
 import smtplib
 import ssl
 import traceback
+from datetime import datetime
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.utils import formatdate, make_msgid
+from email.utils import formatdate
+from enum import StrEnum
 from pathlib import Path
 
 from dotenv.variables import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.dates import convert_dates
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
-from inventurgui.helper.dates import convert_dates
 
+
+class RequestType(StrEnum):
+    request = "request"
+    update = "update"
+    delete = "delete"
+    failure = "failure"
 
 class MailServer(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="UTF-8", env_prefix="MAIL_", extra="ignore")
@@ -28,28 +36,31 @@ class MailServer(BaseSettings):
 
 def send_mail(
     request: dict[str, str | dict[str, str]],
-    selected_warehouses: list[str],
-    request_type: Literal["request", "update", "delete", "failure"],
+    request_type: RequestType,
     filename: Path = None,
     exception: Exception = None,
-    magic_link: str = None,
     mail_server: MailServer = MailServer(),
     ) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
     email = request.get("email")
+    user_id = request.get("edit_link").split("=")[-1]
     with smtplib.SMTP_SSL(mail_server.domain, mail_server.port, context=ssl.create_default_context()) as smtp:
         smtp.ehlo()
         smtp.set_debuglevel(1)
         LOGGER.debug("Logging into SMTP Client with credentials...")
         smtp.login(mail_server.user, mail_server.password)
         mail = MIMEMultipart("mixed")
-        mail.add_header("subject", create_subject(request, request_type))
-        mail.add_header("from", f"{email.split('@')[0].capitalize()} <{email}>")
-        mail.add_header("date", formatdate(localtime=True))
-        mail.add_header("Message-ID", make_msgid())
+        mail.add_header("Subject", create_subject(request, request_type))
+        mail.add_header("From", f"{email}")
+        mail.add_header("Date", formatdate(localtime=True))
+        mail.add_header("Message-ID", f"<{user_id}-{request.get(request_type)}@{mail_server.domain}>")
+        if request_type != "request":
+            mail.add_header("In-Reply-To", f"<{user_id}-{request.get(RequestType.request)}@{mail_server.domain}>")
+            mail.add_header("References", f"<{user_id}-{request.get("request")}@{mail_server.domain}>")
         mail.add_header("Return-Path", mail_server.user)
-        mail.add_header("reply-to", f"{email.split('@')[0].capitalize()} <{email}>")
-        mail.attach(MIMEText(to_html(request, selected_warehouses, exception, magic_link), "html"))
+        mail.add_header("Reply-To", f"{email}")
+        #mail.attach(MIMEText(create_text("text", request, exception), "plain"))
+        mail.attach(MIMEText(create_text("html", request, exception), "html"))
         if filename is not None:
             with open(filename, "rb") as attachment:
                 part = MIMEBase("application", "octet-stream")
@@ -59,42 +70,47 @@ def send_mail(
             mail.attach(part)
 
         receiver = [settings.mail["mail_to"], request.get("email")] if not exception else [settings.mail["admin"]]
-        for r in receiver:
-            mail["to"] = r
-            LOGGER.debug(f"Sending E-Mail to {r}...")
-            smtp.ehlo()
-            smtp.sendmail(str(mail_server.user), r, mail.as_string())
+        mail.add_header("To", ", ".join(receiver))
+        LOGGER.debug(f"Sending E-Mail to {receiver}...")
+        smtp.ehlo()
+        smtp.sendmail(str(mail_server.user), receiver, mail.as_string())
         LOGGER.debug("Quitting Connection to SMTP Server...")
         smtp.quit()
 
 
 def create_subject(
-    request: dict[str, str | dict[str, str]], type: Literal["request", "update", "delete", "failure"]
-) -> str:
+    request: dict[str, str | dict[str, str]], rtype: RequestType) -> str:
     start, end, month, year = convert_dates(request.get("dates"))
-    return f"[{i18n.get(f'mail.{type}')}] {request.get('name')} {month} {year}"
+    if rtype == RequestType.update or rtype == RequestType.delete:
+        return f"Re: [{i18n.get(f'mail.{rtype}')}] {request.get('name')} {month} {year}"
+    return f"[{i18n.get(f'mail.{rtype}')}] {request.get('name')} {month} {year}"
 
 
-def to_html(request: dict[str, str | dict[str, str]], selected_warehouses: list[str], exception: Exception, magic_link:str|None) -> str:
-    html = ""
+def create_text(ttype:Literal["text", "html"], request: dict[str, str | float | dict[str, str]], exception: Exception) -> str:
+    newline = "\n" if ttype == "text" else "<br>"
+    add:list[str]= []
     for key, value in request.items():
         match key:
             case "dates":
                 start, end, month, year = convert_dates(request.get("dates"))
-                html += f"</br>{i18n.get('form.start')}: {start}"
-                html += f"</br>{i18n.get('form.end')}: {end}"
+                add.append(f"{i18n.get('form.start')}: {start}")
+                add.append(f"{i18n.get('form.end')}: {end}")
                 continue
             case "message" | "start" | "end":
                 continue
             case "request" | "update" | "delete":
-                html += f"</br>{i18n.get(f"mail.{key}")}: {value}" if value else ""
+                if value:
+                    readable_dt = f"{datetime.fromtimestamp(value):{settings.date_format} {settings.time_format}}"
+                    add.append(f"{i18n.get(f"mail.{key}")}: {readable_dt}")
+            case "edit_link":
+                if not request.get("delete"):
+                    add.append(f"{i18n.get('finish.editing_link')}: <a href={value}>{value}</a>")
             case _:
                 if key in settings.form["input"].keys():
-                    html += f"</br>{settings.form['input'].get(key)}: {value}"
-    html += f"</br></br>{settings.warehouse.get('label')}: {', '.join(selected_warehouses)}"
-    if magic_link:
-        html += f"</br>{i18n.get('finish.editing_link')}: <a href={magic_link}>{magic_link}</a>"
-    html += f"</br></br>{i18n.get('form.message')}:</br></br>{request.get('message')}"
+                    add.append(f"{settings.form['input'].get(key)}: {value}")
+    add.append(f"{newline}{newline}{i18n.get('form.message')}: {newline}{newline}{request.get('message')}")
+    add.append(newline)
     if exception:
-        html += f"</br></br>{exception.args[0]}: <br><br>{traceback.print_exc()}"
-    return html
+        add.append(f"{newline}{newline}{[a for a in exception.args]}: {newline}{newline}{traceback.print_exc()}")
+
+    return newline.join(add)

@@ -1,5 +1,6 @@
 import datetime
 import socket
+import time
 from contextlib import suppress
 
 import nicegui.run
@@ -15,7 +16,7 @@ from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
 from inventurgui.io.exporter import save_request, delete_request, write_download_list
-from inventurgui.io.mail import send_mail
+from inventurgui.io.mail import send_mail, RequestType
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.safe_url import url_safe
@@ -69,12 +70,12 @@ class Form:
 
             with ui.column().classes("items-stretch max-sm:col-span-2"):
                 for key, value in settings.form.get("input").items():
-                    i = ui.input(value, validation=lambda v, k=key: (validate_mail(k, v, self.request) if k == "email" else INPUT_VALIDATION))
+                    i = ui.input(value, validation=(lambda v, k=key: validate_mail(k, v, self.request)) if key == "email" else INPUT_VALIDATION)
                     i.without_auto_validation()
                     i.on('blur', lambda x=i: x.validate())
                     if key == "name" or key == "email":
                         i.bind_enabled_from(self.request, "request", backward=lambda v: not v)
-                    i.bind_value(self.request, key) if key != "email" else None
+                    i.bind_value(self.request, key) if key != "email" else i.set_value(self.request.get(key))
                     self.inputs.append(i)
                 if "message" in settings.form.keys():
                     e = ui.editor(value='',
@@ -86,9 +87,10 @@ class Form:
                     e.move(grid)  # Moves editor
 
             with ui.column().classes("max-sm:col-span-2"):
-                for value in settings.form.get("checkbox").values():
-                    c = ui.checkbox(value)
-                    self.checks.append(c)
+                if not self.request.get("request"):
+                    for value in settings.form.get("checkbox").values():
+                        c = ui.checkbox(value)
+                        self.checks.append(c)
 
             # Move so it is available as variable above
             submit_column.move(grid)
@@ -101,29 +103,28 @@ async def submit_form(request: ObservableDict, warehouses: list[Warehouse]) -> N
     is_update = True if request.get("request") else False
     request.update({"finish": i18n.get("finish.processing")})
     ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
+    magic_link = get_magic_link()
+    request.update({"edit_link": magic_link})
     request.update(
-        {"request": datetime.date.today().strftime(settings.date_format)}
+        {"request": time.time()}
         if not request.get("request")
-        else {"update": datetime.date.today().strftime(settings.date_format)}
+        else {"update": time.time()}
     )
     try:
-        selected_warehouses = [w.name for w in warehouses if Cache.selected(w.name) != []]
-        magic_link = get_magic_link()
         await save_request(request, warehouses)
         filename = get_path(f"{settings.organization}-{request.get('name')}.xlsx", "lists")
         await write_download_list(filename, warehouses)
         await nicegui.run.io_bound(lambda: send_mail(request,
-                                                     selected_warehouses,
-                                                     request_type="update" if is_update else "request",
+                                                     request_type=RequestType.update if is_update else RequestType.request,
                                                      filename=filename,
-                                                     magic_link=magic_link))
+                                                    ))
         request.update({"download": str(filename)})
         request.update({"finish": i18n.get("finish.success")})
     except Exception as exception:
         request.update({"finish": i18n.get("finish.failure_mail")})
         try:
             await nicegui.run.io_bound(
-                lambda: send_mail(request, selected_warehouses, request_type="failure", exception=exception))
+                lambda: send_mail(request, request_type=RequestType.failure, exception=exception))
             request.update({"finish": i18n.get("finish.failure_success")})
         except socket.gaierror as exception:
             request.update({"finish": i18n.get("finish.mail_exception")})
@@ -134,17 +135,18 @@ async def send_delete(request: ObservableDict, warehouses:list[Warehouse]) -> No
     request.update({"finish": i18n.get("finish.processing")})
     ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
     try:
-        request.update({"delete": datetime.date.today().strftime(settings.date_format)})
-        selected_warehouses = [w.name for w in warehouses if Cache.selected(w.name) != []]
-        await nicegui.run.io_bound(lambda: send_mail(request, selected_warehouses, request_type="delete"))
+        request.update({"delete": time.time()})
+        await nicegui.run.io_bound(lambda: send_mail(request, RequestType.delete))
         await delete_request(request)
         request.update({"finish": i18n.get("finish.deleted"), "request": None})
         app.storage.user.clear()
         Cache(warehouses)
+        warehouse_menu.refresh()
+        request.update({"finish": i18n.get("finish.success")})
     except Exception as exception:
         request.update({"finish": i18n.get("finish.failure_mail")})
         try:
-            await nicegui.run.io_bound(lambda: send_mail(request, selected_warehouses, request_type="failure", exception=exception))
+            await nicegui.run.io_bound(lambda: send_mail(request, request_type=RequestType.failure, exception=exception))
             request.update({"finish": i18n.get("finish.failure_success")})
         except socket.gaierror as exception:
             request.update({"finish": i18n.get("finish.mail_exception")})
