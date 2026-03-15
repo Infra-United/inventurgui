@@ -32,7 +32,6 @@ async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
         app.storage.user.update({"notified": True})
 
     ui.page_title(f"{settings.cart['label']}")
-    ld.hide()
     truck_tabs = tabs()
     truck_panels = tab_panels(truck_tabs)
     LOGGER.debug("Creating Cart page...")

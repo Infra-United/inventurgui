@@ -10,7 +10,6 @@ from inventurgui.ui.helper.reusable_elements import next_fab
 
 async def category_page(category: str, warehouse: Warehouse, ld:LeftDrawer) -> None:
     # Create One grid for each unique Category in the first Column
-    ld.show()
     ui.page_title(f"{warehouse.name}/{category}")
     LOGGER.debug(f"Creating Grid for {warehouse.name}/{category}...")
     await create_aggrid(warehouse, category, cart=False)
