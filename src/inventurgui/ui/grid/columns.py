@@ -2,6 +2,7 @@ from functools import wraps
 from typing import Any, Callable
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.i18n import i18n
 
 type colSettings = dict[str, str]
 type colDefFunction = Callable[[colSettings, bool, bool], dict[str, Any]]
@@ -55,11 +56,10 @@ def object_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
         "filter": not cart,
         "wrapText": True,
         "autoHeight": True,
+        "suppressSizeToFit": False,
         "floatingFilter": not cart,
         "sort": "asc" if not cart else '',
-        "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"}
-        if not cart
-        else {"text-bold": "x", "tracking-wider": "x"},
+        "cellClassRules": {"text-primary": f"value != '{i18n.get("cart.total")}'", "text-bold": "x", "tracking-wider": "x"}
     }
 
 # Not used at the moment
@@ -125,4 +125,5 @@ def total_weight_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, An
         "cellDataType": "number",
         ":valueFormatter": f"(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
         "hide": not cart,
+        "cellClassRules": {"text-bold": "x", "tracking-wider": "x"}
         }
