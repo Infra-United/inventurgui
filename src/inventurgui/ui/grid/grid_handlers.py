@@ -21,7 +21,6 @@ def update_row_data(df: DataFrame, data: dict, grid:AgGrid, event_args: dict):
         grid.run_row_method(data.get('index'), "setData", data)
         df.update(pl.from_dict(data), on='index') # TODO handle correctly
     else:
-        print(data)
         ui.notify("pinned") # TODO add new row with data
 
 async def update_amount(grid: AgGrid, warehouse:Warehouse, event: GenericEventArguments):

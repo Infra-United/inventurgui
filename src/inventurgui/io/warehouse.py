@@ -14,6 +14,8 @@ class Warehouse(NamedTuple):
 
     @classmethod
     def create(cls, name: str, df: DataFrame):
+        #with pl.Config(tbl_cols=-1):
+        #    print(df.filter(pl.col(columns["object"]).str.contains("regal")))
         df = df.with_columns([pl.col(columns["count"]).cast(pl.Int32, strict=False),
                               pl.col(columns["category"]).cast(pl.Categorical, strict=False),
                               pl.col(columns["shelf"]).cast(pl.Categorical, strict=False),

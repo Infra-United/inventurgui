@@ -53,7 +53,6 @@ class Nextcloud(Client):
             local = get_path(Path(file).name)
         else:
             local = get_path(Path(file).name, "pages" )
-        print(local)
         remote = "/".join((self.remote_dir, file))
         try:
             if self.exists(remote):
