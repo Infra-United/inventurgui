@@ -7,7 +7,7 @@ class Cache:
         app.storage.user.setdefault("Total", 0)
         app.storage.user.setdefault("notified", None)
         app.storage.user.setdefault(
-            "form", {"dates": None, "name": "", "place": "", "donation": "", "email": "", "message": "", "sent": None}
+            "form", {"dates": None, "name": "", "place": "", "donation": "", "email": "", "message": "", "request": None}
         )
         app.storage.user.setdefault("selected", {})
         app.storage.user.setdefault("added", {})
