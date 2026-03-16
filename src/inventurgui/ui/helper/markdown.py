@@ -14,9 +14,8 @@ def render_markdown(text:str) -> Markdown:
     )
 
 def read_page_files() -> Generator[tuple[str, str], None, None]:
-    start_pages = (p for p in settings.start.values())
-    for page_conf in *start_pages, settings.form.get("terms"), settings.warehouse:
-        if isinstance(page_conf, str) or not page_conf.get("display"):
+    for page_conf in [settings.start, settings.help, settings.form.get("terms"), settings.warehouse]:
+        if not isinstance(page_conf, dict) or page_conf.get("display") is None:
             continue
         label = page_conf.get("label")
         path = get_path(page_conf.get("path"), "pages")

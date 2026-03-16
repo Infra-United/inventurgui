@@ -57,12 +57,16 @@ def main_menu(
     if authenticate_user():
         requests_btn: Button = ui.button(settings.requests["label"], icon=settings.requests["icon"])
         requests_btn.classes(classes).props(props)
-        requests_btn.on_click(lambda: ui.navigate.to(f"/{settings.requests["label"]}"))
+        requests_btn.on_click(lambda: ui.navigate.to(f"/{url_safe(settings.requests["label"])}"))
     ui.space().classes("max-sm:hidden")
     if authenticate_user():
         for label in ["settings", "logout"]:
             btn: Button = ui.button(icon=label).classes(classes).props(props)
-            btn.on_click(lambda l=label: ui.navigate.to(f"/{l}"))
+            btn.on_click(lambda l=label: ui.navigate.to(f"/{url_safe(l)}"))
+    elif settings.help.get("display"):
+        help_btn: Button = ui.button(settings.help["label"], icon=settings.help["icon"]).classes(classes).props(
+            props)
+        help_btn.on_click(lambda: ui.navigate.to(f"/{url_safe(settings.help["label"])}"))
 
 
 @ui.refreshable

@@ -8,6 +8,7 @@ from inventurgui.helper.config import settings, create_default_config
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path, ensure_directory_structure
 from inventurgui.io.importer import read_inventory
+from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.markdown import read_page_files
 from inventurgui.ui.root import root
@@ -19,7 +20,7 @@ def main():
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     create_default_config()
     if ARGS.reload:
-        #Nextcloud.singleton().pull_files()
+        Nextcloud.singleton().pull_files()
         warehouses:list[Warehouse] = [w for w in read_inventory()]
         ensure_directory_structure([w.name for w in warehouses])
         pages:dict[str, str] = {k:v for k, v in read_page_files()}

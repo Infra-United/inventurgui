@@ -73,22 +73,17 @@ class Settings(BaseSettings):
     @property
     def columns(self) -> dict[str, str]:
         return self.data['columns']
-    start: dict[str, str|dict[str, str|bool]] = {
+    start: dict[str, str | bool] = {
         'label': 'Start',
         'icon': 'home',
-        'about': {
-            'display': True,
-            'label': 'About Us',
-            'icon': 'info',
-            'path': 'about.md',
-        },
-        'help': {
-            'display': True,
-            'label': 'Help',
-            'icon': 'help_outline',
-            'path': 'help.md',
-        }
-    }
+        'path': 'about.md'
+    },
+    help: dict[str, str | bool] = {
+        'display': True,
+        'label': 'Help',
+        'icon': 'help_outline',
+        'path': 'help.md',
+    },
     warehouse: dict[str, str|bool] = {
         'label': 'Lager',
         'display': True,

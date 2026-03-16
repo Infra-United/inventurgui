@@ -12,9 +12,9 @@ from inventurgui.ui.sub_pages.cart import cart_page
 from inventurgui.ui.sub_pages.category import category_page
 from inventurgui.ui.sub_pages.finish import finish_page
 from inventurgui.ui.sub_pages.form import form_page
+from inventurgui.ui.sub_pages.help import help_page
 from inventurgui.ui.sub_pages.login import login_page
 from inventurgui.ui.sub_pages.start import start_page
-from inventurgui.ui.sub_pages.warehouse import warehouse_page
 
 """The root page that constructs the layout and is only loaded on when requesting / ."""
 
@@ -54,10 +54,10 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str]):
     pages.add("/", start_page)
     pages.add("/login", login_page)
     pages.add("/logout", login_page)
+    pages.add(f"/{url_safe(settings.help['label'])}", help_page)
     pages.add(f"/{url_safe(settings.cart['label'])}", cart_page)
     pages.add(f"/{url_safe(settings.form['label'])}", form_page)
     pages.add(f"/{url_safe(settings.finish['label'])}", finish_page)
-    pages.add(f"/{url_safe(settings.warehouse['label'])}", warehouse_page)
 
     # Register category sub_pages
     for warehouse in warehouses:

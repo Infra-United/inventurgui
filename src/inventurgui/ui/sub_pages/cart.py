@@ -11,7 +11,6 @@ from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.grid.grid import create_aggrid
 from inventurgui.ui.helper.magic_link import load_data_from_magic_link
 from inventurgui.ui.helper.reusable_elements import badge, next_fab, tabs, tab_panels
-from inventurgui.ui.helper.safe_url import url_safe
 
 
 async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
@@ -25,7 +24,7 @@ async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
     if Cache.total() == 0:
         ui.notify(i18n.get("cart.select_tip"), type="warning", position="center", color="primary", textColor="dark")
         time.sleep(1)
-        ui.navigate.to(f"/{url_safe(settings.warehouse['label'])}")
+        ui.navigate.to(f"/")
         return
     if not Cache.notified() and Cache.total() != 0:
         ui.notify(i18n.get("cart.edit_tip"), position="center", color="primary", textColor="dark")
