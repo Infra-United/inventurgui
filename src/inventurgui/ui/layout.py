@@ -1,14 +1,16 @@
 from nicegui import ui, app
 from nicegui.elements.button import Button
-from nicegui.elements.drawer import LeftDrawer
+from nicegui.elements.drawer import LeftDrawer, RightDrawer
+from nicegui.elements.expansion import Expansion
+from nicegui.elements.toggle import Toggle
+from slugify import slugify
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import get_path
 from inventurgui.io.warehouse import Warehouse
+from inventurgui.io.wiki import WikiChapter, MenuItem
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.helper.reusable_elements import badge
-from inventurgui.ui.helper.safe_url import url_safe, reverse_url
 
 
 def header(ld: LeftDrawer|None = None):
@@ -38,13 +40,16 @@ def footer(ld: LeftDrawer):
 
 
 def left_drawer(warehouses: list[Warehouse]) -> LeftDrawer:
-    with ui.left_drawer(bordered=True).classes("gap-0 p-0 items-stretch").props("width=250") as ld:
-        classes: str = "text-center text-gray-200 py-1 m-0 font-bold subpixel-antialiased tracking-widest"
-        props: str = "unelevated square"
+    with ui.left_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as ld:
         ui.space().classes("sm:hidden")
-        warehouse_menu(warehouses, ld, classes, props)
+        drawer_menu(warehouses, settings.warehouse, ld)
     return ld
 
+def right_drawer(wiki_menu: list[WikiChapter]) -> RightDrawer:
+    with ui.right_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as rd:
+        ui.space().classes("sm:hidden")
+        drawer_menu([c for c in wiki_menu], settings.help, rd)
+    return rd
 
 @ui.refreshable
 def main_menu(
@@ -57,60 +62,62 @@ def main_menu(
     if authenticate_user():
         requests_btn: Button = ui.button(settings.requests["label"], icon=settings.requests["icon"])
         requests_btn.classes(classes).props(props)
-        requests_btn.on_click(lambda: ui.navigate.to(f"/{url_safe(settings.requests["label"])}"))
+        requests_btn.on_click(lambda: ui.navigate.to(f"/{slugify(settings.requests["label"])}"))
     ui.space().classes("max-sm:hidden")
     if authenticate_user():
         for label in ["settings", "logout"]:
             btn: Button = ui.button(icon=label).classes(classes).props(props)
-            btn.on_click(lambda l=label: ui.navigate.to(f"/{url_safe(l)}"))
+            btn.on_click(lambda l=label: ui.navigate.to(f"/{slugify(l)}"))
     elif settings.help.get("display"):
         help_btn: Button = ui.button(settings.help["label"], icon=settings.help["icon"]).classes(classes).props(
             props)
-        help_btn.on_click(lambda: ui.navigate.to(f"/{url_safe(settings.help["label"])}"))
+        help_btn.on_click(lambda: ui.navigate.to(f"/{slugify(settings.help["label"])}"))
 
 
 @ui.refreshable
-def warehouse_menu(warehouses: list[Warehouse], ld: LeftDrawer, classes: str, props: str):
+def drawer_menu(menu_items: list[MenuItem], config:dict[str, str], ld: LeftDrawer | RightDrawer):
     """
     See https://github.com/zauberzeug/nicegui/discussions/5566 for some documentation.
     """
-    path_category = reverse_url(ui.context.client.sub_pages_router.current_path.split("/")[-1])
-    path_warehouse = reverse_url(ui.context.client.sub_pages_router.current_path.split("/")[-2])
+    classes: str = "text-center text-gray-200 m-0 p-0 subpixel-antialiased tracking-widest"
+    def parse_uri(e: Expansion, t:Toggle):
+        path_1 =  ui.context.client.sub_pages_router.current_path.split("/")[-1]
+        path_2 =  ui.context.client.sub_pages_router.current_path.split("/")[-2]
+        if path_2.upper() == e.text:
+            e.open()
+            t.set_value(path_1)
+        else:
+            e.open() if e.text == menu_items[0].name.upper() else e.close()
+
+
     #t = ui.tree([{'id': w.name, 'label': w.name.upper(), 'children': [{'id': c, 'label': c.upper()} for c in w.categories]} for w in warehouses])
     #t.props(f'{props} accordion no-connectors no-selection-unset selected-color=accent').classes(classes)
     #t.on_select(lambda e: (ui.notify(e.value), t.expand(e.value)))
-    with ui.row().classes("flex bg-primary row w-full px-20 py-3 mb-1"):
-        ui.icon(settings.warehouse["icon"], size="20px", color="secondary").classes(classes)
-        ui.label(settings.warehouse["label"].upper()).classes(classes).classes("text-secondary")
+    with ui.row().classes("flex bg-primary row  w-full px-20 py-3 mb-1"):
+        ui.icon(config["icon"], size="20px", color="secondary").classes(classes)
+        ui.label(config["label"].upper()).classes(classes).classes("text-secondary")
 
-    for warehouse in warehouses:
-        name = warehouse.name
-        with ui.expansion(group="menu").classes(classes) as expansion:
-            expansion.props(f"{props} header-class='bg-secondary' hide-expand-icon")
-            expansion.on_value_change(
-                lambda v, e=expansion: e.props.update(
+    for item in menu_items:
+        children = [slugify(i) for i in item.children]
+        with ui.expansion(text=item.name.upper(), group=config['label']).classes(classes) as exp:
+            if isinstance(item, Warehouse):
+                with exp.add_slot("header"):
+                    with ui.label(item.name.upper()).classes("py-3 w-full"):
+                        badge("0").bind_text_from(app.storage.user["selected"], item.name, backward=lambda v: len(v))
+
+            exp.props(f"header-class='bg-secondary' popup hide-expand-icon")
+            exp.on_value_change(
+                lambda v, e=exp: e.props.update(
                     {"header-class": "bg-accent"} if v.value else {"header-class": "bg-secondary"}
                 )
             )
-            expansion.set_value(True if name == path_warehouse else True if name == warehouses[0].name else False)
-            with expansion.add_slot("header"):
-                with ui.label(name.upper()).classes("py-3 w-full"):
-                    badge("0").bind_text_from(app.storage.user["selected"], warehouse.name, backward=lambda v: len(v))
-            if len(warehouse.categories) == 2:
-                ui.on('resize',
-                      lambda e, x=expansion: x.on('click', lambda r=e: ld.hide() if r.args['width'] < 1024 else None))
-                continue
-            categories = warehouse.categories
-            categories[0] = i18n.get('admin.edits') if authenticate_user() else categories[0]
-            toggle = ui.toggle(categories)
-            toggle.set_value(path_category)
-            expansion.on("click", lambda t=toggle: t.set_value(path_category))
-            expansion.on(
-                "click", lambda l=url_safe(name): ui.navigate.to(f"/{l}/{url_safe(settings.warehouse['everything'])}")
-            )
-            expansion.on("click", lambda e=expansion: e.open())
+            toggle = ui.toggle(children)
+            parse_uri(exp, toggle)
+            exp.on("click", lambda i=item: ui.navigate.to(f"/{slugify(i.name)}/{slugify(settings.warehouse['everything'])}"))
+            exp.on("click", lambda t=toggle: t.set_value(slugify(settings.warehouse['everything'])))
+            exp.on("click", lambda e=exp: e.open())
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
-            toggle.on_value_change(lambda v, w=warehouse: ui.navigate.to(f"/{url_safe(w.name)}/{url_safe(v.value)}"))
+            toggle.on_value_change(lambda v, w=item: ui.navigate.to(f"/{slugify(w.name)}/{v.value}"))
             ui.on('resize', lambda e, t=toggle: t.on_value_change(lambda r=e: ld.hide() if r.args['width'] < 1024 else None), trailing_events=True)
 
 

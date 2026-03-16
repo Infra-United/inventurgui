@@ -1,12 +1,12 @@
 from nicegui import json, app, ui
+from slugify import slugify
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.paths import get_path
-from inventurgui.ui.helper.safe_url import url_safe
 
 
 def get_magic_link() -> str:
-    return f"https://{settings.domain}/{url_safe(settings.cart['label'])}?id={app.storage.browser['id']}"
+    return f"https://{settings.domain}/{slugify(settings.cart['label'])}?id={app.storage.browser['id']}"
 
 
 def load_data_from_magic_link(new_id: str) -> None:

@@ -2,14 +2,15 @@ import os
 import time
 
 from nicegui import ui, app
+
 from inventurgui.ui.auth import create_jwt
-from inventurgui.ui.layout import main_menu, warehouse_menu
+from inventurgui.ui.layout import main_menu, drawer_menu
 
 
 def login_page():
     app.storage.user.update({"auth_token": None})
     main_menu.refresh()
-    warehouse_menu.refresh()
+    drawer_menu.refresh()
 
     with ui.tab_panel('default').classes('m-0 w-full h-dvh text-secondary decoration-primary'):
         with ui.card().classes('mx-auto my-auto'):
@@ -21,7 +22,7 @@ def login_page():
             token = create_jwt()
             app.storage.user.update({"auth_token": token})
             main_menu.refresh()
-            warehouse_menu.refresh()
+            drawer_menu.refresh()
             ui.navigate.to("/")
         else:
             time.sleep(1)

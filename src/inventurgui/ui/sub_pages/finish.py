@@ -6,7 +6,7 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
 from inventurgui.ui.helper.reusable_elements import back_fab
-from inventurgui.ui.layout import warehouse_menu
+from inventurgui.ui.layout import drawer_menu
 
 
 async def finish_page(warehouses:list[Warehouse]):
@@ -19,7 +19,7 @@ async def finish_page(warehouses:list[Warehouse]):
             md.classes("pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180") if md.content else None
             if Cache.form().get("delete"):
                 return ui.timer(5, lambda: (app.storage.user.clear(), Cache(warehouses),
-                                     warehouse_menu.refresh(), ui.navigate.to("/")))
+                                            drawer_menu.refresh(), ui.navigate.to("/")))
             magic_link = get_magic_link()
             ui.label(f"{i18n.get("finish.editing_link")}:".upper()).classes("w-full antialiasing text-base/6 tracking-wider")
             ui.link(magic_link, target=magic_link)

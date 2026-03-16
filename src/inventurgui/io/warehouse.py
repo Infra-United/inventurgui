@@ -1,14 +1,16 @@
-from typing import NamedTuple
+from dataclasses import dataclass
 
 import polars as pl
 from polars import DataFrame
 
 from inventurgui.helper.config import settings
 from inventurgui.io.cache import Cache
+from inventurgui.io.wiki import MenuItem
 
 columns = settings.columns
 
-class Warehouse(NamedTuple):
+@dataclass
+class Warehouse(MenuItem):
     name :str
     inventory : DataFrame
 
@@ -29,13 +31,20 @@ class Warehouse(NamedTuple):
     def categories(self) -> list[str]:
         try:
             c: list[str] = sorted(self.inventory[settings.columns["category"]].unique())
+            if len(c) == 1:
+                c[0] = settings.warehouse["everything"]
+            else:
+                c.insert(1, settings.warehouse["everything"])
         except (AttributeError, TypeError):
             raise AttributeError("It seems like you have used a category that is not sortable."
                              "\nPlease review the categories used in the category column of the inventory file."
                              "\nCheck for empty cells, and stuff like numbers, non-ascii-characters, etc.")
         c.insert(0, settings.warehouse["selection"])
-        c.insert(1, settings.warehouse["everything"])
         return c
+
+    @property
+    def children(self) -> list[str]:
+        return self.categories
 
     def selected(self) -> DataFrame:
         return self.inventory.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))

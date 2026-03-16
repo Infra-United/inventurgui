@@ -1,9 +1,9 @@
 from nicegui import ui, app
 from nicegui.elements.tabs import Tabs
+from slugify import slugify
 
 from inventurgui.helper.i18n import i18n
 from inventurgui.ui.auth import authenticate_user
-from inventurgui.ui.helper.safe_url import url_safe
 
 
 def badge(text:str):
@@ -12,7 +12,7 @@ def badge(text:str):
 def tabs():
     return (
         ui.tabs()
-        .classes("bg-secondary h-[56px] w-full scroll font-bold subpixel-antialiased tracking-widest m-0 p-0")
+        .classes("bg-secondary text-gray-200 h-[56px] w-full scroll font-bold subpixel-antialiased tracking-widest m-0 p-0")
         .props("height=56px active-bg-color=accent inline-label mobile-arrows stretch")
     )
 
@@ -28,7 +28,7 @@ def next_fab(next_page: dict[str, str]):
         if admin:
             fab.on('click', lambda: ui.notify('saving...')) # TODO handle save
         else:
-            fab.on("click", lambda: ui.navigate.to(url_safe(f"/{next_page.get('label')}?id={app.storage.browser['id']}")))
+            fab.on("click", lambda: ui.navigate.to(f"/{slugify(next_page.get('label'))}?id={app.storage.browser['id']}"))
         fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
         with fab.add_slot("label"):
@@ -47,7 +47,7 @@ def back_fab(last_page: dict[str, str]):
     props: str = "text-color=primary"
     with ui.page_sticky(position="bottom-left", x_offset=30, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_before", direction="up", color="secondary").props(f"{props}")
-        fab.on("click", lambda: ui.navigate.to(url_safe(f"/{last_page.get('label')}?id={app.storage.browser['id']}")))
+        fab.on("click", lambda: ui.navigate.to(slugify(f"/{last_page.get('label')}?id={app.storage.browser['id']}")))
         fab.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
         fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)

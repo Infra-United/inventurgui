@@ -10,7 +10,7 @@ from inventurgui.helper.paths import get_path
 
 def render_markdown(text:str) -> Markdown:
     return ui.markdown(text).classes(
-        "p-10 pt-5 mx-auto text-justify hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
+        "p-10 pt-5 mx-auto text-justify wrap-break-word hyphens-none lg:text-base/6 md:text-sm/5 sm:antialiasing text-gray-300 max-w-180"
     )
 
 def read_page_files() -> Generator[tuple[str, str], None, None]:

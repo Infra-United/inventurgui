@@ -8,10 +8,11 @@ from inventurgui.ui.grid.grid import create_aggrid
 from inventurgui.ui.helper.reusable_elements import next_fab
 
 
-async def category_page(category: str, warehouse: Warehouse, ld:LeftDrawer) -> None:
+async def category_page(category: str|None, warehouse: Warehouse, ld:LeftDrawer) -> None:
     # Create One grid for each unique Category in the first Column
-    ui.page_title(f"{warehouse.name}/{category}")
-    LOGGER.debug(f"Creating Grid for {warehouse.name}/{category}...")
+    path = f"{warehouse.name}/{category}" if category else warehouse.name
+    ui.page_title(path)
+    LOGGER.debug(f"Creating Grid for {path}...")
     await create_aggrid(warehouse, category, cart=False)
     next_fab(settings.cart)
-    LOGGER.info(f"Created grid for: {warehouse.name}/{category}")
+    LOGGER.info(f"Created Grid for: {path}")

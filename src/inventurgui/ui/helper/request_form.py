@@ -9,6 +9,7 @@ from nicegui.elements.checkbox import Checkbox
 from nicegui.elements.date import Date
 from nicegui.elements.input import Input
 from nicegui.observables import ObservableDict
+from slugify import slugify
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
@@ -19,7 +20,6 @@ from inventurgui.io.exporter import save_request, delete_request, write_download
 from inventurgui.io.mail import send_mail, RequestType
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
-from inventurgui.ui.helper.safe_url import url_safe
 from inventurgui.ui.helper.validators import validate_mail, INPUT_VALIDATION
 
 
@@ -104,7 +104,7 @@ class Form:
 async def submit_form(request: ObservableDict, warehouses: list[Warehouse]) -> None:
     is_update = True if request.get("request") else False
     request.update({"finish": i18n.get("finish.processing")})
-    ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
+    ui.navigate.to(f"/{slugify(settings.finish['label'])}")
     magic_link = get_magic_link()
     request.update({"edit_link": magic_link})
     request.update(
@@ -135,7 +135,7 @@ async def submit_form(request: ObservableDict, warehouses: list[Warehouse]) -> N
 
 async def send_delete(request: ObservableDict, warehouses:list[Warehouse]) -> None:
     request.update({"finish": i18n.get("finish.processing")})
-    ui.navigate.to(f"/{url_safe(settings.finish['label'])}")
+    ui.navigate.to(f"/{slugify(settings.finish['label'])}")
     try:
         request.update({"delete": time.time()})
         await nicegui.run.io_bound(lambda: send_mail(request, RequestType.delete))

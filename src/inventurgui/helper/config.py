@@ -55,9 +55,11 @@ class Settings(BaseSettings):
         'mail_to': 'hello@example.org',
         'admin': 'admin@example.org'
     }
-    data:dict[str, str|int|dict[str, str]] = {
+    data:dict[str, str|int|list[str]|dict[str, str]] = {
         'path': "inventory.ods",
-        'sheets': 1,
+        'warehouses': [
+            ""
+        ],
         'columns': {
             'category': 'Category',
             'image': 'Image',
