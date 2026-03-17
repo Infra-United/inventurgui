@@ -20,6 +20,7 @@ def main():
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     create_default_config()
+    #TODO fix first-time startup issue, but also prevent double-load - maybe use ui.timer?
     if ARGS.reload:
         #Nextcloud.singleton().pull_files()
         warehouses:list[Warehouse] = [w for w in read_inventory()]

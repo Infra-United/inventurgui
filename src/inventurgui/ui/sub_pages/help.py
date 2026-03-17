@@ -4,7 +4,7 @@ from nicegui.elements.drawer import RightDrawer, LeftDrawer
 from inventurgui.helper.logger import LOGGER
 
 
-def wiki_page(name:str, html:str, ld:LeftDrawer, rd:RightDrawer, style:str):
+async def wiki_page(name:str, html:str, ld:LeftDrawer, rd:RightDrawer, style:str):
     ld.hide()
     ui.page_title(name)
     LOGGER.debug(f"Creating wiki page {name}...")
