@@ -32,12 +32,11 @@ class WikiChapter(MenuItem):
     def children(self) -> list[str]:
         return list(self.pages.keys())
 
-async def pull_wiki():
+def pull_wiki():
     file = get_path(settings.help['path'], "pages")
     url = settings.help['url']
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url)
+        response = httpx.Client().get(url)
         with open(file, "w+") as f:
             f.write(response.text)
     except httpx.HTTPError as e:

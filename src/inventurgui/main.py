@@ -33,9 +33,9 @@ def main():
         app.timer(settings.refresh_timer, lambda: pull_wiki())
         app.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files())
         app.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())))
-        app.timer(settings.refresh_timer, lambda: wiki.update(read_wiki()))
         app.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]))
         app.timer(settings.refresh_timer, lambda: pages.update({k:v for k, v in read_page_files()}))
+        app.timer(settings.refresh_timer, lambda: wiki.update(read_wiki()))
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files('/images', str(get_path("images")))
