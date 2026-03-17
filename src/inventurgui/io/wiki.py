@@ -4,6 +4,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Generator, Protocol
 
+import httpx
 from slugify import slugify
 
 from inventurgui.helper.config import settings
@@ -32,15 +33,13 @@ class WikiChapter(MenuItem):
         return list(self.pages.keys())
 
 async def pull_wiki(url:str, file:Path):
-    """try:
+    try:
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
-        with open(path, "w+") as f:
+        with open(file, "w+") as f:
             f.write(response.text)
     except httpx.HTTPError as e:
-        LOGGER.warning(f"Error fetching {filename} from {url}: \n\nException:{e}\n\n")
-    """
-
+        LOGGER.warning(f"Error fetching {file.name} from {url}: \n\nException:{e}\n\n")
 
 def read_wiki(path:Path) -> dict[str, str | list[WikiChapter]]:
     try:
