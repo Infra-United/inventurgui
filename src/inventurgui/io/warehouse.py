@@ -8,6 +8,7 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.wiki import MenuItem
 
 columns = settings.columns
+WAREHOUSE_ROOT = settings.warehouse["label"]
 
 @dataclass
 class Warehouse(MenuItem):
@@ -32,9 +33,9 @@ class Warehouse(MenuItem):
         try:
             c: list[str] = sorted(self.inventory[settings.columns["category"]].unique())
             if len(c) == 1:
-                c[0] = settings.warehouse["everything"]
+                c[0] = self.name
             else:
-                c.insert(1, settings.warehouse["everything"])
+                c.insert(1, self.name)
         except (AttributeError, TypeError):
             raise AttributeError("It seems like you have used a category that is not sortable."
                              "\nPlease review the categories used in the category column of the inventory file."

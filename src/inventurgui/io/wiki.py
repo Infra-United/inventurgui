@@ -4,8 +4,12 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Generator, Protocol
 
+from slugify import slugify
+
+from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 
+WIKI_ROOT = WIKI_ROOT = slugify(settings.help['label'])
 
 class MenuItem(Protocol):
     name: str
@@ -16,16 +20,16 @@ class MenuItem(Protocol):
 @dataclasses.dataclass
 class WikiChapter(MenuItem):
     name: str = None
-    pages: list[str] = None
+    pages: dict[str, str] = None
 
     @classmethod
-    def create(cls, chapter_dict: dict[str, list[str]]) -> Generator[WikiChapter, None, None]:
+    def create(cls, chapter_dict: dict[str, dict[str, str]]) -> Generator[WikiChapter, None, None]:
         for name, pages in chapter_dict.items():
             yield WikiChapter(name=name, pages=pages)
 
     @property
     def children(self) -> list[str]:
-        return self.pages
+        return list(self.pages.keys())
 
 async def pull_wiki(url:str, file:Path):
     """try:
@@ -38,20 +42,34 @@ async def pull_wiki(url:str, file:Path):
     """
 
 
-def read_wiki(path:Path) -> dict[str, str | dict[str,str] | list[WikiChapter]]:
+def read_wiki(path:Path) -> dict[str, str | list[WikiChapter]]:
     try:
         with (open(path, "r") as f):
             content = str(f.read())
             style = content[content.index("<style>"):content.index("</style>")] + "</style>"
-            menu_start = content.index('<ul class="contents">')
-            menu_end = content.index('<div class="page-break"></div>', menu_start)
-            menu = parse_menu(content[menu_start:menu_end])
-            pages = content[menu_end:-1].split('<div class="page-break"></div>')
-            return {"style": fix_styles(style), "pages":get_page_ids(pages), "menu": menu}
+            pages = content[content.index("<div"):-1].split('<div class="page-break"></div>')
+            return {'style': fix_styles(style), 'root': wiki_home(pages[0]), 'chapters': parse_menu(pages)}
     except FileNotFoundError:
         LOGGER.exception(f"File {path.name} not found.")
         raise FileNotFoundError
 
+def wiki_home(home:str) -> str:
+    home = home.replace("4.8em", "")
+    menu_start = home.index('ul class="contents">')
+    menu_lines = home[menu_start:-1].splitlines()
+    for idx, line in enumerate(menu_lines):
+        with suppress(ValueError, IndexError):
+            to_replace = line[line.index("#"):line.rindex('"')]
+            if to_replace.startswith("#chapter"):
+                chapter_slug = slugify(line.split(">")[-3].rstrip("</a"))
+                replacement = f"/{WIKI_ROOT}/{chapter_slug}"
+            elif to_replace.startswith("#page"):
+                replacement = f"/{WIKI_ROOT}/{chapter_slug}/{slugify(line.split(">")[-3].rstrip("</a"))}"
+            else:
+                continue
+            menu_lines[idx] = line.replace(to_replace, replacement)
+    home = home.replace(home[menu_start:-1], "\n".join(menu_lines))
+    return home
 
 def fix_styles(style:str):
     style = style.replace("color:#222", f"color:#fff")
@@ -61,30 +79,20 @@ def fix_styles(style:str):
     return  style.replace("background-color:#f8f8f8", "background-color:#37474f")
 
 
-def get_page_ids(pages:list[str]) -> dict[str, str]:
-    pages_with_ids = {}
-    for page in pages:
-        with suppress(ValueError):
-            start = page.index('>', page.index("id")) + 1
-            page_id = (page[start:page.index('<', start)])
-            pages_with_ids.update({page_id: html.unescape(page)})
-    return pages_with_ids
-
-
-def parse_menu(menu:str) -> list[WikiChapter]:
+def parse_menu(pages:list[str]) -> list[WikiChapter]:
     """
-    Parses the table of contents html-string to a string that can be evaluated to python objects.
-    :param menu: The html-string containing the table of contents
-    :return: the string that can be evaluated to a python object
+    Parses the table of contents from a list of page-html-strings.
+    :param pages: The list of html-strings containing the pages
+    :return: a list of WikiChapters
     """
-    menu_lines: list[str] = html.unescape(menu).splitlines()
-    chapters:dict[str, list[str]] = {}
+    chapters:dict[str, dict[str, str]] = {}
     chapter_name = ""
-    for idx, line in enumerate(menu_lines):
-        with suppress(ValueError):
-            if line[line.index('#')+1:line.rindex('"')].startswith("chapter"):
-                chapter_name = line.split(">")[-3].rstrip("</a")
-                chapters.update({chapter_name: []})
-            if line[line.index('#')+1:line.rindex('"')].startswith("page"):
-                chapters.get(chapter_name).append(line.split(">")[-3].rstrip("</a"))
+    for page in pages[1:-1]:
+        id_line = html.unescape(page[page.index('<h1 id="') + 8: page.index('</h1')])
+        if id_line.startswith("chapter"):
+            chapter_name = id_line.split(">")[-1].rstrip("</h1")
+            chapters.update({chapter_name: {chapter_name: page}})
+        if id_line.startswith("page"):
+            page_name = id_line.split(">")[-1].rstrip("</h1")
+            chapters.get(chapter_name).update({page_name: page})
     return [i for i in WikiChapter.create(chapters)]

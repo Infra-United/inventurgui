@@ -36,7 +36,7 @@ async def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bo
     ui.add_body_html(f"<style>.ag-row-pinned .ag-cell  {background('secondary')}</style>")
 
     # Data
-    if category == settings.warehouse.get("everything"):
+    if category == warehouse.name:
         df = warehouse.inventory
     elif category == settings.warehouse.get("selection") or category is None and cart:
         df = warehouse.selected()
@@ -63,4 +63,4 @@ def register_event_handlers(grid: AgGrid, warehouse:Warehouse, df:DataFrame, car
         grid.on("cellEditRequest", lambda event: update_amount(grid, warehouse, event))
 
     #grid.on("gridReady", lambda: grid.run_grid_method("sizeColumnsToFit"), trailing_events=True)
-    ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 640 else None, trailing_events=True)
+    #ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 640 else None, trailing_events=True)
