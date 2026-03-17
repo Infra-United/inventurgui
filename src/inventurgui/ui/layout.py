@@ -114,7 +114,4 @@ def drawer_menu(menu_items: list[MenuItem], config:dict[str, str], drawer: LeftD
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
             toggle.on_value_change(lambda v, i=item: ui.navigate.to(f"/{menu_root}/{slugify(i.name)}/{slugify(v.value)}"))
             toggle.on_value_change(lambda: other_drawer.hide())
-            #ui.on('resize', lambda e, t=toggle: t.on_value_change(lambda r=e: drawer.hide() if r.args['width'] < 1024 else None), trailing_events=True)
-
-
 

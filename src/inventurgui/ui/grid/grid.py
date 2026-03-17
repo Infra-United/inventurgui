@@ -61,6 +61,4 @@ def register_event_handlers(grid: AgGrid, warehouse:Warehouse, df:DataFrame, car
         for row, value in Cache.amounts(warehouse.name).items():
             grid.on("firstDataRendered", lambda r=row, v=value: grid.run_row_method(r, "setDataValue", columns["count"], v))
         grid.on("cellEditRequest", lambda event: update_amount(grid, warehouse, event))
-
-    #grid.on("gridReady", lambda: grid.run_grid_method("sizeColumnsToFit"), trailing_events=True)
-    #ui.on('resize', lambda e: grid.run_grid_method("sizeColumnsToFit") if e.args['width'] > 640 else None, trailing_events=True)
+    grid.on("gridReady", lambda: grid.run_grid_method("sizeColumnsToFit"), trailing_events=True)
