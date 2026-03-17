@@ -10,7 +10,6 @@ from inventurgui.ui.helper.reusable_elements import next_fab
 
 async def category_page(category: str|None, warehouse: Warehouse, ld:LeftDrawer, rd:RightDrawer) -> None:
     # Create One grid for each unique Category in the first Column
-    ld.show()
     rd.hide()
     path = f"{warehouse.name}/{category}" if category else warehouse.name
     ui.page_title(path)

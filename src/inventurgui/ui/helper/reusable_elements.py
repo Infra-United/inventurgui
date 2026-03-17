@@ -47,7 +47,7 @@ def back_fab(last_page: dict[str, str]):
     props: str = "text-color=primary"
     with ui.page_sticky(position="bottom-left", x_offset=30, y_offset=18).classes("z-999"):
         fab = ui.fab(icon="navigate_before", direction="up", color="secondary").props(f"{props}")
-        fab.on("click", lambda: ui.navigate.to(slugify(f"/{last_page.get('label')}?id={app.storage.browser['id']}")))
+        fab.on("click", lambda: ui.navigate.to(f"/{slugify(last_page.get('label'))}?id={app.storage.browser['id']}"))
         fab.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
         fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
