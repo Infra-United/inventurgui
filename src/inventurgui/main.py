@@ -39,7 +39,6 @@ def main():
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files('/images', str(get_path("images")))
-    app.add_static_files(f'/static', str(get_path("html", "pages")))
     ui.run(
         root=lambda: root(warehouses, pages, wiki),
         language=settings.language,
