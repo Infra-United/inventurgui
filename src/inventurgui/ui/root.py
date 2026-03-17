@@ -8,7 +8,7 @@ from inventurgui.io.warehouse import Warehouse, WAREHOUSE_ROOT
 from inventurgui.io.wiki import WikiChapter, WIKI_ROOT
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.helper.theme import Theme
-from inventurgui.ui.layout import header, create_drawers, footer
+from inventurgui.ui.layout import create_layout
 from inventurgui.ui.sub_pages.cart import cart_page
 from inventurgui.ui.sub_pages.category import category_page
 from inventurgui.ui.sub_pages.finish import finish_page
@@ -47,7 +47,7 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str], wiki:dict[str, str
     storage = Cache(warehouses)
 
     # Create Main Layout
-    ld, rd = create_drawers(warehouses, wiki.get('chapters'))
+    ld, rd = create_layout(warehouses, wiki.get('chapters'))
 
     # Register Pages
     user_id = app.storage.browser["id"]
@@ -75,6 +75,3 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str], wiki:dict[str, str
         pages.add(f"/{WIKI_ROOT}/{slugify(chapter.name)}", lambda c=chapter: wiki_page(c.name, c.pages.get(c.name), ld, rd, wiki.get('style')))
         for name, html in chapter.pages.items():
             pages.add(f"/{WIKI_ROOT}/{slugify(chapter.name)}/{slugify(name)}", lambda n=name, h=html: wiki_page(n, h, ld, rd, wiki.get('style')))
-
-    header(ld, rd)
-    footer(ld, rd)

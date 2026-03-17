@@ -2,13 +2,14 @@ from dataclasses import dataclass
 
 import polars as pl
 from polars import DataFrame
+from slugify import slugify
 
 from inventurgui.helper.config import settings
 from inventurgui.io.cache import Cache
 from inventurgui.io.wiki import MenuItem
 
 columns = settings.columns
-WAREHOUSE_ROOT = settings.warehouse["label"]
+WAREHOUSE_ROOT = slugify(settings.warehouse["label"])
 
 @dataclass
 class Warehouse(MenuItem):

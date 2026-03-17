@@ -48,7 +48,8 @@ def read_wiki(path:Path) -> dict[str, str | list[WikiChapter]]:
             content = str(f.read())
             style = content[content.index("<style>"):content.index("</style>")] + "</style>"
             pages = content[content.index("<div"):-1].split('<div class="page-break"></div>')
-            return {'style': fix_styles(style), 'root': wiki_home(pages[0]), 'chapters': parse_menu(pages)}
+            pages[0] =  wiki_home(pages[0])
+            return {'style': fix_styles(style), 'root':pages[0] , 'chapters': parse_menu(pages)}
     except FileNotFoundError:
         LOGGER.exception(f"File {path.name} not found.")
         raise FileNotFoundError
@@ -56,7 +57,7 @@ def read_wiki(path:Path) -> dict[str, str | list[WikiChapter]]:
 def wiki_home(home:str) -> str:
     home = home.replace("4.8em", "")
     menu_start = home.index('ul class="contents">')
-    menu_lines = home[menu_start:-1].splitlines()
+    menu_lines = home[menu_start:].splitlines()
     for idx, line in enumerate(menu_lines):
         with suppress(ValueError, IndexError):
             to_replace = line[line.index("#"):line.rindex('"')]
@@ -68,7 +69,8 @@ def wiki_home(home:str) -> str:
             else:
                 continue
             menu_lines[idx] = line.replace(to_replace, replacement)
-    home = home.replace(home[menu_start:-1], "\n".join(menu_lines))
+    #home = home.replace(home[menu_start:-1], "\n".join(menu_lines))
+    home = home[:menu_start-1]
     return home
 
 def fix_styles(style:str):
@@ -87,11 +89,13 @@ def parse_menu(pages:list[str]) -> list[WikiChapter]:
     """
     chapters:dict[str, dict[str, str]] = {}
     chapter_name = ""
-    for page in pages[1:-1]:
+    for idx, page in enumerate(pages[1:-1]):
+        page = page.replace("background-color:#f1c40f", f"background-color:#607d8b")
+        page = page.replace("background-color:rgb(241,196,15)", f"background-color:#607d8b")
         id_line = html.unescape(page[page.index('<h1 id="') + 8: page.index('</h1')])
         if id_line.startswith("chapter"):
             chapter_name = id_line.split(">")[-1].rstrip("</h1")
-            chapters.update({chapter_name: {chapter_name: page}})
+            chapters.update({chapter_name: {chapter_name: pages[0] if idx == 0 else page}})
         if id_line.startswith("page"):
             page_name = id_line.split(">")[-1].rstrip("</h1")
             chapters.get(chapter_name).update({page_name: page})
