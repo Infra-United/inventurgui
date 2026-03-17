@@ -1,7 +1,6 @@
 import dataclasses
 import html
 from contextlib import suppress
-from pathlib import Path
 from typing import Generator, Protocol
 
 import httpx
@@ -9,8 +8,9 @@ from slugify import slugify
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
+from inventurgui.helper.paths import get_path
 
-WIKI_ROOT = WIKI_ROOT = slugify(settings.help['label'])
+WIKI_ROOT = slugify(settings.help['label'])
 
 class MenuItem(Protocol):
     name: str
@@ -32,7 +32,9 @@ class WikiChapter(MenuItem):
     def children(self) -> list[str]:
         return list(self.pages.keys())
 
-async def pull_wiki(url:str, file:Path):
+async def pull_wiki():
+    file = get_path(settings.help['path'], "pages")
+    url = settings.help['url']
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
@@ -41,16 +43,17 @@ async def pull_wiki(url:str, file:Path):
     except httpx.HTTPError as e:
         LOGGER.warning(f"Error fetching {file.name} from {url}: \n\nException:{e}\n\n")
 
-def read_wiki(path:Path) -> dict[str, str | list[WikiChapter]]:
+def read_wiki() -> dict[str, str | list[WikiChapter]]:
+    file = get_path(settings.help['path'], "pages")
     try:
-        with (open(path, "r") as f):
+        with (open(file, "r") as f):
             content = str(f.read())
             style = content[content.index("<style>"):content.index("</style>")] + "</style>"
             pages = content[content.index("<div"):-1].split('<div class="page-break"></div>')
             pages[0] =  wiki_home(pages[0])
             return {'style': fix_styles(style), 'root':pages[0] , 'chapters': parse_menu(pages)}
     except FileNotFoundError:
-        LOGGER.exception(f"File {path.name} not found.")
+        LOGGER.exception(f"File {file.name} not found.")
         raise FileNotFoundError
 
 def wiki_home(home:str) -> str:

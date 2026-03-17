@@ -10,7 +10,7 @@ from inventurgui.helper.paths import get_path, ensure_directory_structure
 from inventurgui.io.importer import read_inventory
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.io.wiki import read_wiki, pull_wiki
+from inventurgui.io.wiki import read_wiki, pull_wiki, WikiChapter
 from inventurgui.ui.helper.markdown import read_page_files
 from inventurgui.ui.root import root
 
@@ -25,16 +25,17 @@ def main():
         warehouses:list[Warehouse] = [w for w in read_inventory()]
         ensure_directory_structure([w.name for w in warehouses])
         pages:dict[str, str] = {k:v for k, v in read_page_files()}
-        wiki = read_wiki(get_path(settings.help['path'], "pages"))
+        wiki = read_wiki()
     else:
         warehouses:list[Warehouse] = []
         pages:dict[str, str] = {}
+        wiki:dict[str, str | list[WikiChapter]] = {}
+        app.timer(settings.refresh_timer, lambda: pull_wiki())
         app.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files())
         app.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())))
+        app.timer(settings.refresh_timer, lambda: wiki.update(read_wiki()))
         app.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]))
         app.timer(settings.refresh_timer, lambda: pages.update({k:v for k, v in read_page_files()}))
-        app.timer(settings.refresh_timer, lambda: pull_wiki(settings.help['url'], settings.help['path']))
-        wiki = read_wiki(get_path(settings.help['path'], "pages"))
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files('/images', str(get_path("images")))
