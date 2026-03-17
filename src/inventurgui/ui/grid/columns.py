@@ -55,7 +55,7 @@ def object_col(columns:colSettings, cart:bool, admin:bool) -> dict[str, Any]:
         "filter": not cart,
         "wrapText": True,
         "autoHeight": True,
-        "suppressSizeToFit": False,
+        ":suppressSizeToFit": "Quasar.Screen.lt.sm",
         "floatingFilter": not cart,
         "sort": "asc" if not cart else '',
         "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"}

@@ -19,7 +19,6 @@ def options(cart:bool, admin:bool) -> dict:
         "autoSizePadding": 1,
         "autoSizeStrategy": {
             'type': 'fitCellContents',
-            'scaleUpToFitGridWidth': False,
         },
         "suppressRowHoverHighlight": cart,
         "undoRedoCellEditing": True,
