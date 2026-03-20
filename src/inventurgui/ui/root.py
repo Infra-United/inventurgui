@@ -52,7 +52,7 @@ def root(
 
     # Create Main Layout
     ld, rd = create_layout(warehouses, wiki.get("chapters") if wiki else None)
-    print(markdown.keys())
+
     # Register Pages
     user_id = app.storage.browser["id"]
     pages = ui.sub_pages(
@@ -75,19 +75,19 @@ def root(
     pages.add(f"/{slugify(settings.finish['label'])}", finish_page)
 
     # Register category sub_pages
-    pages.add(f"/{WAREHOUSE_ROOT}", lambda: category_page(warehouses[0].name, warehouses[0], ld, rd))
+    pages.add(f"/{WAREHOUSE_ROOT}", lambda: category_page(warehouses[0].name, warehouses[0], rd))
     for warehouse in warehouses:
         warehouse = warehouse
         name = slugify(warehouse.name)
         for category in warehouse.categories:
             pages.add(
                 f"/{WAREHOUSE_ROOT}/{name}/{slugify(category)}",
-                lambda w=warehouse, c=category: category_page(c, w, ld, rd),
+                lambda w=warehouse, c=category: category_page(c, w, rd),
             )
         if authenticate_user():
             pages.add(
                 f"/{WAREHOUSE_ROOT}/{name}/{slugify(i18n.get('admin.edits'))}",
-                lambda w=warehouse, c=i18n.get("admin.edits"): category_page(c, w, ld, rd),
+                lambda w=warehouse, c=i18n.get("admin.edits"): category_page(c, w, rd),
             )
 
     # Register wiki sub_pages

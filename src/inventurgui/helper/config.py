@@ -55,23 +55,25 @@ class Settings(BaseSettings):
     def refresh_timer(self) -> float:
         return self.cloud["refresh_interval_hours"] * 3600
 
-    mail: dict[str, str] = {"mail_to": "hello@example.org", "admin": "admin@example.org"}
     data: dict[str, str | int | list[str] | dict[str, str]] = {
         "path": "inventory.ods",
         "warehouses": [""],
         "columns": {
             "shelf": "Shelf",
             "category": "Category",
-            "image": "Image",
-            "comment": "Comment",
             "object": "Name",
-            "weight": "Weight",
-            "total_weight": "Total Weight",
             "count": "Amount",
             "total": "of",
             "pack": "Package",
+            "weight": "Weight",
+            "total_weight": "Total Weight",
+            "comment": "Comment",
+            "image": "Image",
+            "url": "url",
         },
     }
+
+    mail: dict[str, str] = {"mail_to": "hello@example.org", "admin": "admin@example.org"}
 
     @property
     def columns(self) -> dict[str, str]:
