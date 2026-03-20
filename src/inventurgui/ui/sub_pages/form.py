@@ -10,6 +10,8 @@ from inventurgui.ui.helper.markdown import render_markdown
 from inventurgui.ui.helper.request_form import Form
 from inventurgui.ui.helper.reusable_elements import back_fab, tabs, tab_panels
 
+# TODO check why the formatting is incorrect with default_conf
+
 
 async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], md: dict[str, str], args: PageArguments) -> None:
     form: dict[str, str | dict[str, str]] = settings.form
