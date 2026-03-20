@@ -1,5 +1,6 @@
-from logging import debug, exception
+from logging import debug, exception, warning
 from pathlib import Path
+from typing import Self
 
 import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict, YamlConfigSettingsSource
@@ -43,10 +44,9 @@ class Settings(BaseSettings):
         "refresh_interval_hours": 24,
         "pull": {
             "logo": "logo.jpeg",
-            "how_to": "how_to.md",
             "help": "help.md",
             "terms": "terms.md",
-            "about": "about.md",
+            "start": "start.md",
             "inventory": "inventory.ods",
         },
     }
@@ -60,14 +60,15 @@ class Settings(BaseSettings):
         "path": "inventory.ods",
         "warehouses": [""],
         "columns": {
+            "shelf": "Shelf",
             "category": "Category",
             "image": "Image",
             "comment": "Comment",
             "object": "Name",
-            "desc": "Description",
             "weight": "Weight",
             "total_weight": "Total Weight",
             "count": "Amount",
+            "total": "of",
             "pack": "Package",
         },
     }
@@ -76,15 +77,14 @@ class Settings(BaseSettings):
     def columns(self) -> dict[str, str]:
         return self.data["columns"]
 
-    start: dict[str, str | bool] = ({"label": "Start", "icon": "home", "path": "about.md"},)
-    help: dict[str, str | bool] = (
-        {
-            "display": True,
-            "label": "Help",
-            "icon": "help_outline",
-            "path": "help.md",
-        },
-    )
+    start: dict[str, str | bool] = {"label": "Start", "icon": "home", "path": "about.md"}
+    help: dict[str, str | bool] = {
+        "display": True,
+        "wiki": False,
+        "label": "Help",
+        "icon": "help_outline",
+        "path": "help.md",
+    }
     warehouse: dict[str, str | bool] = {
         "label": "Lager",
         "display": True,
@@ -125,36 +125,38 @@ class Settings(BaseSettings):
         "icon": "drafts",
     }
 
+    @classmethod
+    def load_config(cls) -> Self:
+        debug(f"Loading config from {config_file}...")
+        try:
+            with open(config_file, "r") as file:
+                return Settings(**yaml.load(file, yaml.SafeLoader))
+        except FileNotFoundError:
+            warning("File not Found - Loading default-config:", config_file)
+        except yaml.YAMLError as e:
+            exception("Error in config file: \n" + e.args[0]), file.close()
+        with open(default_config_file, "r") as file:
+            return Settings(**yaml.load(file, yaml.SafeLoader))
 
-def load_config() -> dict:
-    debug(f"Loading config from {config_file}...")
-    try:
-        with open(config_file, "r") as file:
-            return yaml.load(file, yaml.SafeLoader)
-    except FileNotFoundError:
-        exception("File not Found:", config_file), exit(1)
-    except yaml.YAMLError as e:
-        exception("Error in config file: \n" + e.args[0]), file.close(), exit(1)
+    def dump_config(self) -> None:
+        debug(f"Dumping config to {config_file}...")
+        try:
+            with open(config_file, "w") as file:
+                yaml.dump(self.model_dump(), file, yaml.SafeDumper)
+        except FileNotFoundError:
+            exception("File not Found:", config_file), exit(1)
+        except yaml.YAMLError as e:
+            exception("Error in config: \n" + e.args[0]), file.close(), exit(1)
+
+    @classmethod
+    def create_default_config(cls) -> None:
+        LOGGER.debug(f"Dumping default config to {default_config_file}...")
+        if default_config_file.is_file():
+            default_config_file.unlink()
+        with open(default_config_file, "w") as file:
+            file.write(yaml.dump(Settings().model_dump(), Dumper=yaml.SafeDumper, sort_keys=False))
+        LOGGER.info(f"Successfully wrote default config to {default_config_file}.")
 
 
-def dump_config(config: dict) -> None:
-    debug(f"Dumping config to {config_file}...")
-    try:
-        with open(config_file, "w") as file:
-            yaml.dump(config.__dict__, file, yaml.SafeDumper)
-    except FileNotFoundError:
-        exception("File not Found:", config_file), exit(1)
-    except yaml.YAMLError as e:
-        exception("Error in config: \n" + e.args[0]), file.close(), exit(1)
-
-
-def create_default_config() -> None:
-    LOGGER.debug(f"Dumping default config to {default_config_file}...")
-    if default_config_file.is_file():
-        default_config_file.unlink()
-    with open(default_config_file, "w") as file:
-        file.write(yaml.dump(Settings().model_dump(), Dumper=yaml.SafeDumper, sort_keys=False))
-    LOGGER.info(f"Successfully wrote default config to {default_config_file}.")
-
-
-settings = Settings(**load_config())
+Settings.create_default_config()
+settings = Settings.load_config()

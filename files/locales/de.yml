@@ -4,7 +4,6 @@ mail:
   delete: 'Gelöscht'
   failure: 'Fehler'
 cart:
-  total: "Gesamt (🔄 aktualisiert):"
   edit_tip: "Belade die Fahrzeuge - Passe die Mengen an indem du auf sie klickst.\n Beachte dabei das Gesamtgewicht."
   select_tip: "Bitte wähle erst etwas aus."
   too_many: "So viele haben wir nicht!"

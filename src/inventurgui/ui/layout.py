@@ -15,38 +15,41 @@ from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.helper.reusable_elements import badge
 
 
-def create_layout(warehouses: list[Warehouse], wiki_menu: list[WikiChapter]) -> Tuple[LeftDrawer, RightDrawer]:
+def create_layout(
+    warehouses: list[Warehouse], wiki_menu: list[WikiChapter] | None
+) -> Tuple[LeftDrawer, RightDrawer | None]:
     # Drawers
     with ui.left_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as ld:
         ui.space().classes("sm:hidden")
-    with ui.right_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as rd:
-        ui.space().classes("sm:hidden")
-        drawer_menu([c for c in wiki_menu], settings.help, rd, ld)
+    if wiki_menu:
+        with ui.right_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as rd:
+            ui.space().classes("sm:hidden")
+            drawer_menu([c for c in wiki_menu], settings.help)
     with ld:
-        drawer_menu(warehouses, settings.warehouse, ld, rd)
+        drawer_menu(warehouses, settings.warehouse)
 
     # Header
     with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
         img = ui.image(source=get_path(settings.favicon)).classes("h-full m-0 p-0 w-[56px]")
         img.on("click", lambda: ui.navigate.to("/"))
         ui.label(str(settings.title).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
-        main_menu(ld, rd, classes="stretch h-full")
+        main_menu(ld, rd if wiki_menu else None, classes="stretch h-full")
 
     # Footer is only shown on small screens
     with ui.footer(fixed=True).classes("sm:hidden p-0 gap-0 h-[56px]"):
         main_menu(
             ld,
-            rd,
+            rd if wiki_menu else None,
             props='label="" unelevated no-wrap text-color=dark square',
             classes="flex-auto stretch h-full",
         )
-    return ld, rd
+    return ld, rd if wiki_menu else None
 
 
 @ui.refreshable
 def main_menu(
     ld: LeftDrawer,
-    rd: RightDrawer,
+    rd: None | RightDrawer,
     classes: str = "stretch",
     props: str = "unelevated no-wrap text-color=secondary square",
 ) -> None:
@@ -65,7 +68,9 @@ def main_menu(
             btn: Button = ui.button(icon=label).classes(classes).props(props)
             btn.on_click(lambda l=label: ui.navigate.to(f"/{slugify(l)}"))
     elif settings.help.get("display"):
-        help_btn: Button = ui.button(settings.help["label"], icon=settings.help["icon"], on_click=lambda: rd.show())
+        help_btn: Button = ui.button(
+            settings.help["label"], icon=settings.help["icon"], on_click=lambda: rd.show() if rd else None
+        )
         help_btn.classes(classes).props(props)
         help_btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.help['label'])}"), drawer_menu.refresh()))
 
@@ -74,8 +79,6 @@ def main_menu(
 def drawer_menu(
     menu_items: list[MenuItem],
     config: dict[str, str],
-    drawer: LeftDrawer | RightDrawer,
-    other_drawer: LeftDrawer | RightDrawer,
 ):
     """
     See https://github.com/zauberzeug/nicegui/discussions/5566 for some documentation.
@@ -130,4 +133,3 @@ def drawer_menu(
             toggle.on_value_change(
                 lambda v, i=item: ui.navigate.to(f"/{menu_root}/{slugify(i.name)}/{slugify(v.value)}")
             )
-            toggle.on_value_change(lambda: other_drawer.hide())

@@ -20,7 +20,9 @@ from inventurgui.ui.sub_pages.start import start_page
 """The root page that constructs the layout and is only loaded on when requesting / ."""
 
 
-def root(warehouses: list[Warehouse], markdown: dict[str, str], wiki: dict[str, str | list[WikiChapter]]) -> None:
+def root(
+    warehouses: list[Warehouse], markdown: dict[str, str], wiki: None | dict[str, str | list[WikiChapter]] = None
+) -> None:
     ui.add_head_html("""
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <script>
@@ -49,8 +51,8 @@ def root(warehouses: list[Warehouse], markdown: dict[str, str], wiki: dict[str, 
     storage = Cache(warehouses)
 
     # Create Main Layout
-    ld, rd = create_layout(warehouses, wiki.get("chapters"))
-
+    ld, rd = create_layout(warehouses, wiki.get("chapters") if wiki else None)
+    print(markdown.keys())
     # Register Pages
     user_id = app.storage.browser["id"]
     pages = ui.sub_pages(
@@ -61,7 +63,7 @@ def root(warehouses: list[Warehouse], markdown: dict[str, str], wiki: dict[str, 
             "user_id": user_id,
             "storage": storage,
             "md": markdown,
-            "style": wiki.get("style"),
+            "style": wiki.get("style") if wiki else None,
         },
         show_404=False,
     )
@@ -89,14 +91,15 @@ def root(warehouses: list[Warehouse], markdown: dict[str, str], wiki: dict[str, 
             )
 
     # Register wiki sub_pages
-    pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.get("root"), ld, rd, wiki.get("style")))
-    for chapter in wiki.get("chapters"):
-        pages.add(
-            f"/{WIKI_ROOT}/{slugify(chapter.name)}",
-            lambda c=chapter: wiki_page(c.name, c.pages.get(c.name), ld, rd, wiki.get("style")),
-        )
-        for name, html in chapter.pages.items():
+    if wiki:
+        pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.get("root"), ld, markdown, wiki.get("style")))
+        for chapter in wiki.get("chapters"):
             pages.add(
-                f"/{WIKI_ROOT}/{slugify(chapter.name)}/{slugify(name)}",
-                lambda n=name, h=html: wiki_page(n, h, ld, rd, wiki.get("style")),
+                f"/{WIKI_ROOT}/{slugify(chapter.name)}",
+                lambda c=chapter: wiki_page(c.name, c.pages.get(c.name), ld, markdown, wiki.get("style")),
             )
+            for name, html in chapter.pages.items():
+                pages.add(
+                    f"/{WIKI_ROOT}/{slugify(chapter.name)}/{slugify(name)}",
+                    lambda n=name, h=html: wiki_page(n, h, ld, markdown, wiki.get("style")),
+                )
