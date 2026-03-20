@@ -10,7 +10,7 @@ from inventurgui.helper.paths import get_path, ensure_directory_structure
 from inventurgui.io.importer import read_inventory
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.io.wiki import read_wiki, pull_wiki, WikiChapter
+from inventurgui.io.wiki import read_wiki
 from inventurgui.ui.helper.markdown import read_page_files
 from inventurgui.ui.root import root
 
@@ -19,25 +19,14 @@ from inventurgui.ui.root import root
 def main():
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
-    # TODO fix first-time startup issue, but also prevent double-load - maybe use ui.timer?
     display_wiki = settings.help["wiki"]
-    if ARGS.reload:
-        # Nextcloud.singleton().pull_files()
-        warehouses: list[Warehouse] = [w for w in read_inventory()]
-        ensure_directory_structure([w.name for w in warehouses])
-        pages: dict[str, str] = {k: v for k, v in read_page_files()}
-        if display_wiki:
-            wiki = read_wiki()
-    else:
-        warehouses: list[Warehouse] = []
-        pages: dict[str, str] = {}
-        wiki: dict[str, str | list[WikiChapter]] = {}
-        app.timer(settings.refresh_timer, lambda: pull_wiki() if display_wiki else None)
-        app.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files())
-        app.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())))
-        app.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]))
-        app.timer(settings.refresh_timer, lambda: pages.update({k: v for k, v in read_page_files()}))
-        app.timer(settings.refresh_timer, lambda: wiki.update(read_wiki()) if display_wiki else None)
+    if not ARGS.reload:
+        Nextcloud.singleton().pull_files()
+    warehouses: list[Warehouse] = [w for w in read_inventory()]
+    ensure_directory_structure([w.name for w in warehouses])
+    pages: dict[str, str] = {k: v for k, v in read_page_files()}
+    if display_wiki:
+        wiki = read_wiki()
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files("/images", str(get_path("images")))
