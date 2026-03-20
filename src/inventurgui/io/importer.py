@@ -19,4 +19,3 @@ def read_inventory() -> Generator[Warehouse, None, None]:
             yield Warehouse.create(name, df)
         except NoDataError:
             LOGGER.warning(f"No data found in sheet {name}. Please check if this is intended.")
-

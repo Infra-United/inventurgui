@@ -15,7 +15,8 @@ from inventurgui.ui.grid.options import options
 
 columns = settings.columns
 
-async def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bool = False) -> AgGrid:
+
+async def create_aggrid(warehouse: Warehouse, category: str | None = None, cart: bool = False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
 
     Args:
@@ -31,6 +32,7 @@ async def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bo
     # Styling
     def background(color: str):
         return f"""{{background-color: {settings.theme[color]}}}"""
+
     ui.add_body_html(f"<style>.ag-row-selected .ag-cell  {background('secondary')}</style>")
     ui.add_body_html(f"<style>.ag-row-hover .ag-cell  {background('accent')}</style>")
     ui.add_body_html(f"<style>.ag-row-pinned .ag-cell  {background('secondary')}</style>")
@@ -44,11 +46,12 @@ async def create_aggrid(warehouse: Warehouse, category:str|None = None, cart: bo
         df = warehouse.inventory.filter(pl.col(columns["category"]) == category)
 
     # Create Grid with given Data
-    grid = aggrid.from_polars(df, options=options(cart, admin), html_columns=[0], theme='alpine').classes("h-dvh")
+    grid = aggrid.from_polars(df, options=options(cart, admin), html_columns=[0], theme="alpine").classes("h-dvh")
     register_event_handlers(grid, warehouse, df, cart, admin)
     return grid
 
-def register_event_handlers(grid: AgGrid, warehouse:Warehouse, df:DataFrame, cart:bool, admin:bool):
+
+def register_event_handlers(grid: AgGrid, warehouse: Warehouse, df: DataFrame, cart: bool, admin: bool):
     """Register the event handlers for the given grid."""
     # Handle events
     grid.on("rowSelected", lambda e: handle_select(warehouse.name, e, grid))
@@ -59,6 +62,8 @@ def register_event_handlers(grid: AgGrid, warehouse:Warehouse, df:DataFrame, car
                 grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     if cart:
         for row, value in Cache.amounts(warehouse.name).items():
-            grid.on("firstDataRendered", lambda r=row, v=value: grid.run_row_method(r, "setDataValue", columns["count"], v))
+            grid.on(
+                "firstDataRendered", lambda r=row, v=value: grid.run_row_method(r, "setDataValue", columns["count"], v)
+            )
         grid.on("cellEditRequest", lambda event: update_amount(grid, warehouse, event))
     grid.on("gridReady", lambda: grid.run_grid_method("sizeColumnsToFit"), trailing_events=True)

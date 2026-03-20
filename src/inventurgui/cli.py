@@ -20,7 +20,7 @@ def get_args() -> Namespace:
     # Add arguments to argparser
     argparser.add_argument("-c", dest="config_file", help="specify path to config, defaults to config.yml")
     argparser.add_argument("-r", "--reload", dest="reload", help="enable reloader", action="store_true")
-    argparser.add_argument( "-d", "--dev", dest="debug", help="set the log level to debug", action="store_true")
+    argparser.add_argument("-d", "--dev", dest="debug", help="set the log level to debug", action="store_true")
     argparser.set_defaults(config_file="config.yml")
     # Parse args to dictionary
     args: Namespace = argparser.parse_args()

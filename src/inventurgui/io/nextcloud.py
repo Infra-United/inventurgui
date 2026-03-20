@@ -48,11 +48,11 @@ class Nextcloud(Client):
         for key, file in settings.cloud["pull"].items():
             self.pull_file(key, file)
 
-    def pull_file(self, key:str, file: str) -> None:
-        if key in ['inventory','logo']:
+    def pull_file(self, key: str, file: str) -> None:
+        if key in ["inventory", "logo"]:
             local = get_path(Path(file).name)
         else:
-            local = get_path(Path(file).name, "pages" )
+            local = get_path(Path(file).name, "pages")
         remote = "/".join((self.remote_dir, file))
         try:
             if self.exists(remote):

@@ -25,6 +25,7 @@ class RequestType(StrEnum):
     delete = "delete"
     failure = "failure"
 
+
 class MailServer(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="UTF-8", env_prefix="MAIL_", extra="ignore")
 
@@ -40,7 +41,7 @@ def send_mail(
     filename: Path = None,
     exception: Exception = None,
     mail_server: MailServer = MailServer(),
-    ) -> None:
+) -> None:
     LOGGER.debug("Connecting to SMTP Server...")
     email = request.get("email")
     user_id = request.get("edit_link").split("=")[-1]
@@ -56,10 +57,10 @@ def send_mail(
         mail.add_header("Message-ID", f"<{user_id}-{request.get(request_type)}@{mail_server.domain}>")
         if request_type != "request":
             mail.add_header("In-Reply-To", f"<{user_id}-{request.get(RequestType.request)}@{mail_server.domain}>")
-            mail.add_header("References", f"<{user_id}-{request.get("request")}@{mail_server.domain}>")
+            mail.add_header("References", f"<{user_id}-{request.get('request')}@{mail_server.domain}>")
         mail.add_header("Return-Path", mail_server.user)
         mail.add_header("Reply-To", f"{email}")
-        #mail.attach(MIMEText(create_text("text", request, exception), "plain"))
+        # mail.attach(MIMEText(create_text("text", request, exception), "plain"))
         mail.attach(MIMEText(create_text("html", request, exception), "html"))
         if filename is not None:
             with open(filename, "rb") as attachment:
@@ -78,17 +79,18 @@ def send_mail(
         smtp.quit()
 
 
-def create_subject(
-    request: dict[str, str | dict[str, str]], rtype: RequestType) -> str:
+def create_subject(request: dict[str, str | dict[str, str]], rtype: RequestType) -> str:
     start, end, month, year = convert_dates(request.get("dates"))
     if rtype == RequestType.update or rtype == RequestType.delete:
         return f"Re: [{i18n.get(f'mail.{rtype}')}] {request.get('name')} {month} {year}"
     return f"[{i18n.get(f'mail.{rtype}')}] {request.get('name')} {month} {year}"
 
 
-def create_text(ttype:Literal["text", "html"], request: dict[str, str | float | dict[str, str]], exception: Exception) -> str:
+def create_text(
+    ttype: Literal["text", "html"], request: dict[str, str | float | dict[str, str]], exception: Exception
+) -> str:
     newline = "\n" if ttype == "text" else "<br>"
-    add:list[str]= []
+    add: list[str] = []
     for key, value in request.items():
         match key:
             case "dates":
@@ -101,7 +103,7 @@ def create_text(ttype:Literal["text", "html"], request: dict[str, str | float | 
             case "request" | "update" | "delete":
                 if value:
                     readable_dt = f"{datetime.fromtimestamp(value):{settings.date_format} {settings.time_format}}"
-                    add.append(f"{i18n.get(f"mail.{key}")}: {readable_dt}")
+                    add.append(f"{i18n.get(f'mail.{key}')}: {readable_dt}")
             case "edit_link":
                 if not request.get("delete"):
                     add.append(f"{i18n.get('finish.editing_link')}: <a href={value}>{value}</a>")

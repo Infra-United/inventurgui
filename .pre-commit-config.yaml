@@ -5,14 +5,14 @@ default_install_hook_types:
   - post-rewrite
 repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.5
+    rev: 0.10.12
     hooks:
       # Run uv sync to sync dependencies
       - id: uv-sync
       # Update the uv lockfile
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.2
+    rev: v0.15.7
     hooks:
       # Run the linter.
       - id: ruff-check

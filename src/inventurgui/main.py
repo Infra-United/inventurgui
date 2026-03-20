@@ -20,26 +20,26 @@ def main():
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     create_default_config()
-    #TODO fix first-time startup issue, but also prevent double-load - maybe use ui.timer?
+    # TODO fix first-time startup issue, but also prevent double-load - maybe use ui.timer?
     if ARGS.reload:
-        #Nextcloud.singleton().pull_files()
-        warehouses:list[Warehouse] = [w for w in read_inventory()]
+        # Nextcloud.singleton().pull_files()
+        warehouses: list[Warehouse] = [w for w in read_inventory()]
         ensure_directory_structure([w.name for w in warehouses])
-        pages:dict[str, str] = {k:v for k, v in read_page_files()}
+        pages: dict[str, str] = {k: v for k, v in read_page_files()}
         wiki = read_wiki()
     else:
-        warehouses:list[Warehouse] = []
-        pages:dict[str, str] = {}
-        wiki:dict[str, str | list[WikiChapter]] = {}
+        warehouses: list[Warehouse] = []
+        pages: dict[str, str] = {}
+        wiki: dict[str, str | list[WikiChapter]] = {}
         app.timer(settings.refresh_timer, lambda: pull_wiki())
         app.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files())
         app.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())))
         app.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]))
-        app.timer(settings.refresh_timer, lambda: pages.update({k:v for k, v in read_page_files()}))
+        app.timer(settings.refresh_timer, lambda: pages.update({k: v for k, v in read_page_files()}))
         app.timer(settings.refresh_timer, lambda: wiki.update(read_wiki()))
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
-    app.add_static_files('/images', str(get_path("images")))
+    app.add_static_files("/images", str(get_path("images")))
     ui.run(
         root=lambda: root(warehouses, pages, wiki),
         language=settings.language,
@@ -50,9 +50,10 @@ def main():
         title=settings.title,
         favicon=get_path(settings.favicon),
         port=settings.port,
-        storage_secret=storage_secret if storage_secret else '12341232312',
+        storage_secret=storage_secret if storage_secret else "12341232312",
     )
     LOGGER.debug("Successfully started UI.")
+
 
 if __name__ in {"__main__", "__mp_main__"}:
     main()

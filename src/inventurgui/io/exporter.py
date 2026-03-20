@@ -17,7 +17,8 @@ from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 
 
-#Todo maybe write to excel instead and separate files per year
+# Todo maybe write to excel instead and separate files per year
+
 
 async def save_request(
     request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], update: bool = False
@@ -32,7 +33,7 @@ async def save_request(
 
     # Get Data and write to new sheet
     dfs = [await w.get_final() for w in warehouses]
-    df = pl.concat([df for df in dfs if df is not None], how='align')
+    df = pl.concat([df for df in dfs if df is not None], how="align")
     if not data_sheet:
         data_sheet = Sheet(request.get("name"), size=(len(df) + 1, len(df.columns)))
     else:
@@ -48,6 +49,7 @@ async def save_request(
     ods.save()
     LOGGER.info(f"Successfully wrote to sheet {data_sheet.name} @ {path}")
     Nextcloud.singleton().push_file(path)
+
 
 async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
     path = get_path(settings.cloud["push"]["requests"])
@@ -130,7 +132,9 @@ def write_overview(sheet: Sheet, request: dict[str, str | float | dict[str, str]
             case "request" | "update" | "delete":
                 if value:
                     cell: Cell = sheet.get_cell((row_number, count))
-                    readable_dt = f"{datetime.datetime.fromtimestamp(value):{settings.date_format} {settings.time_format}}"
+                    readable_dt = (
+                        f"{datetime.datetime.fromtimestamp(value):{settings.date_format} {settings.time_format}}"
+                    )
                     cell.set_value(str(readable_dt))
                     count += 1
             case _:
@@ -197,8 +201,6 @@ async def write_download_list(path: Path, warehouses: list[Warehouse]):
             if df is None:
                 continue
             LOGGER.debug(f"Creating download list sheet {w.name} @{path}")
-            df.write_excel(workbook=wb,
-                           worksheet=w.name,
-                           autofit=True,
-                           float_precision=1,
-                           table_style="Table Style Medium 4")
+            df.write_excel(
+                workbook=wb, worksheet=w.name, autofit=True, float_precision=1, table_style="Table Style Medium 4"
+            )

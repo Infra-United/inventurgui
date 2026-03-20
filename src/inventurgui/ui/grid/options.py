@@ -1,7 +1,7 @@
 from inventurgui.ui.grid.columns import default_col_defs, col_defs
 
 
-def options(cart:bool, admin:bool) -> dict:
+def options(cart: bool, admin: bool) -> dict:
     return {
         "selectionColumnDef": {"hide": cart, "maxWidth": 35, "sortable": True},
         "columnDefs": col_defs(cart, admin),
@@ -12,13 +12,13 @@ def options(cart:bool, admin:bool) -> dict:
             "selectAll": "filtered",
             "checkboxes": True,
             "headerCheckbox": True,
-            ":isRowSelectable": "(r) => r.isRowPinned"
+            ":isRowSelectable": "(r) => r.isRowPinned",
         }
         if not cart and not admin
         else "",
         "autoSizePadding": 1,
         "autoSizeStrategy": {
-            'type': 'fitCellContents',
+            "type": "fitCellContents",
         },
         "suppressRowHoverHighlight": cart,
         "undoRedoCellEditing": True,
@@ -29,5 +29,5 @@ def options(cart:bool, admin:bool) -> dict:
         "enterNavigatesVerticallyAfterEdit": True,
         "singleClickEdit": True,
         "stopEditingWhenCellsLoseFocus": True,
-        ":getRowId": f"(p) => p.data.index.toString()",
+        ":getRowId": "(p) => p.data.index.toString()",
     }

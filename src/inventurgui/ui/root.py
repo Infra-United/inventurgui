@@ -19,7 +19,8 @@ from inventurgui.ui.sub_pages.start import start_page
 
 """The root page that constructs the layout and is only loaded on when requesting / ."""
 
-def root(warehouses:list[Warehouse], markdown:dict[str, str], wiki:dict[str, str | list[WikiChapter]]) -> None:
+
+def root(warehouses: list[Warehouse], markdown: dict[str, str], wiki: dict[str, str | list[WikiChapter]]) -> None:
     ui.add_head_html("""
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <script>
@@ -34,7 +35,8 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str], wiki:dict[str, str
         </script>
     """)
     ui.add_head_html(
-        '<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>')
+        '<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>'
+    )
 
     # Set colors
     Theme(settings.theme).set_colors()
@@ -47,11 +49,22 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str], wiki:dict[str, str
     storage = Cache(warehouses)
 
     # Create Main Layout
-    ld, rd = create_layout(warehouses, wiki.get('chapters'))
+    ld, rd = create_layout(warehouses, wiki.get("chapters"))
 
     # Register Pages
     user_id = app.storage.browser["id"]
-    pages = ui.sub_pages(data={"warehouses": warehouses, "ld": ld, "rd": rd, "user_id": user_id, "storage": storage, 'md':markdown, 'style': wiki.get("style")}, show_404=False)
+    pages = ui.sub_pages(
+        data={
+            "warehouses": warehouses,
+            "ld": ld,
+            "rd": rd,
+            "user_id": user_id,
+            "storage": storage,
+            "md": markdown,
+            "style": wiki.get("style"),
+        },
+        show_404=False,
+    )
     pages.add("/", start_page)
     pages.add("/login", login_page)
     pages.add("/logout", login_page)
@@ -65,13 +78,25 @@ def root(warehouses:list[Warehouse], markdown:dict[str, str], wiki:dict[str, str
         warehouse = warehouse
         name = slugify(warehouse.name)
         for category in warehouse.categories:
-            pages.add(f"/{WAREHOUSE_ROOT}/{name}/{slugify(category)}", lambda w=warehouse, c=category: category_page(c, w, ld, rd))
+            pages.add(
+                f"/{WAREHOUSE_ROOT}/{name}/{slugify(category)}",
+                lambda w=warehouse, c=category: category_page(c, w, ld, rd),
+            )
         if authenticate_user():
-            pages.add(f"/{WAREHOUSE_ROOT}/{name}/{slugify(i18n.get('admin.edits'))}", lambda w=warehouse, c=i18n.get('admin.edits'): category_page(c, w, ld, rd))
+            pages.add(
+                f"/{WAREHOUSE_ROOT}/{name}/{slugify(i18n.get('admin.edits'))}",
+                lambda w=warehouse, c=i18n.get("admin.edits"): category_page(c, w, ld, rd),
+            )
 
     # Register wiki sub_pages
-    pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.get('root'), ld, rd, wiki.get('style')))
-    for chapter in wiki.get('chapters'):
-        pages.add(f"/{WIKI_ROOT}/{slugify(chapter.name)}", lambda c=chapter: wiki_page(c.name, c.pages.get(c.name), ld, rd, wiki.get('style')))
+    pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.get("root"), ld, rd, wiki.get("style")))
+    for chapter in wiki.get("chapters"):
+        pages.add(
+            f"/{WIKI_ROOT}/{slugify(chapter.name)}",
+            lambda c=chapter: wiki_page(c.name, c.pages.get(c.name), ld, rd, wiki.get("style")),
+        )
         for name, html in chapter.pages.items():
-            pages.add(f"/{WIKI_ROOT}/{slugify(chapter.name)}/{slugify(name)}", lambda n=name, h=html: wiki_page(n, h, ld, rd, wiki.get('style')))
+            pages.add(
+                f"/{WIKI_ROOT}/{slugify(chapter.name)}/{slugify(name)}",
+                lambda n=name, h=html: wiki_page(n, h, ld, rd, wiki.get("style")),
+            )

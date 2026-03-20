@@ -24,7 +24,7 @@ async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
     if Cache.total() == 0:
         ui.notify(i18n.get("cart.select_tip"), type="warning", position="center", color="primary", textColor="dark")
         time.sleep(1)
-        ui.navigate.to(f"/")
+        ui.navigate.to("/")
         return
     if not Cache.notified() and Cache.total() != 0:
         ui.notify(i18n.get("cart.edit_tip"), position="center", color="primary", textColor="dark")
@@ -41,7 +41,11 @@ async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
         with truck_tabs:
             with ui.tab(w.name.upper()).props('alert="primary" alert-icon="local_shipping"'):
                 Cache.set_weight(w.name, await w.total_weight())
-                badge("").bind_text_from(app.storage.user["weight"], w.name, backward=lambda v: f"{float(v)/1000:.2f} t" if v > 1000 else f"{v} kg")
+                badge("").bind_text_from(
+                    app.storage.user["weight"],
+                    w.name,
+                    backward=lambda v: f"{float(v) / 1000:.2f} t" if v > 1000 else f"{v} kg",
+                )
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
                 await create_aggrid(w, cart=True)

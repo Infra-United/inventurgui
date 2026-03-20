@@ -17,31 +17,33 @@ from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.helper.validators import URL_REGEX
 
 
-def update_row_data(df: DataFrame, data: dict, grid:AgGrid, event_args: dict):
-    if not "rowPinned" in event_args:
-        grid.run_row_method(data.get('index'), "setData", data)
-        df.update(pl.from_dict(data), on='index') # TODO handle correctly
+def update_row_data(df: DataFrame, data: dict, grid: AgGrid, event_args: dict):
+    if "rowPinned" not in event_args:
+        grid.run_row_method(data.get("index"), "setData", data)
+        df.update(pl.from_dict(data), on="index")  # TODO handle correctly
     else:
-        ui.notify("pinned") # TODO add new row with data
+        ui.notify("pinned")  # TODO add new row with data
 
-async def update_amount(grid: AgGrid, warehouse:Warehouse, event: GenericEventArguments):
+
+async def update_amount(grid: AgGrid, warehouse: Warehouse, event: GenericEventArguments):
     with suppress(KeyError):
-        if event.args['rowPinned']:
+        if event.args["rowPinned"]:
             return
     row_id = event.args["rowId"]
     new_value = event.args.get("newValue")
     data: dict = event.args["data"]
-    if new_value > data[settings.columns['total']]:
+    if new_value > data[settings.columns["total"]]:
         ui.notify(i18n.get("cart.too_many"), position="center", type="negative", color="secondary")
         return
     Cache.amounts(warehouse.name).update({row_id: int(new_value)})
-    data.update({event.args['colId']: new_value})
+    data.update({event.args["colId"]: new_value})
     with suppress(TypeError):
-        data[settings.columns['total_weight']] = int(new_value) * data[settings.columns['weight']]
+        data[settings.columns["total_weight"]] = int(new_value) * data[settings.columns["weight"]]
     await grid.run_row_method(row_id, "setData", data)
     Cache.set_weight(warehouse.name, await warehouse.total_weight())
 
-def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
+
+def handle_select(name: str, event: GenericEventArguments, grid: AgGrid):
     with suppress(KeyError):
         if event.args["source"] == "api":
             return
@@ -49,22 +51,28 @@ def handle_select(name: str, event: GenericEventArguments, grid:AgGrid):
     if int(row_id) not in Cache.selected(name):
         Cache.selected(name).append(int(row_id))
         app.storage.user["Total"] += 1
-        grid.run_row_method(row_id, 'setSelected', True)
+        grid.run_row_method(row_id, "setSelected", True)
     else:
         Cache.selected(name).remove(int(row_id))
         app.storage.user["Total"] -= 1
-        grid.run_row_method(row_id, 'setSelected', False)
+        grid.run_row_method(row_id, "setSelected", False)
 
-def handle_click(name: str, grid:AgGrid, event: GenericEventArguments, df: DataFrame):
+
+def handle_click(name: str, grid: AgGrid, event: GenericEventArguments, df: DataFrame):
     columns = settings.columns
-    data = event.args['data']
-    if any([data[columns['image']], data[columns['comment']], data[columns['url']]]) and event.args['colId'] == columns['image']:
+    data = event.args["data"]
+    if (
+        any([data[columns["image"]], data[columns["comment"]], data[columns["url"]]])
+        and event.args["colId"] == columns["image"]
+    ):
         info_popup(name, event.args, df, grid)
     else:
         handle_select(name, event, grid) if not authenticate_user() else None
 
-def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
+
+def info_popup(name: str, event_args: dict, df: DataFrame, grid: AgGrid):
     admin = authenticate_user()
+
     async def upload_img(event: UploadEventArguments):
         path = get_path(f"{name}/{data[settings.columns['object']]}_{data['index']}", "images")
         path.unlink(missing_ok=True)
@@ -73,42 +81,45 @@ def info_popup(name: str, event_args: dict, df: DataFrame, grid:AgGrid):
 
     async def delete_img(path: Path):
         path.unlink()
-        data[columns['image']] = ''
+        data[columns["image"]] = ""
         update_row_data(df, data, grid, event_args)
         dia_content()
 
     def dia_content():
-        with (dia.clear(), ui.card().classes("w-100 gap-2 items-center text-justify py-4 text-bold")):
+        with dia.clear(), ui.card().classes("w-100 gap-2 items-center text-justify py-4 text-bold"):
             if data is not None:
                 ui.label(text=f"{data.get(columns['object'])}")
             path = get_path(f"{name}/{data.get(columns['object'])}", "images")
             if path.is_file():
-                img_url = '/images/' + f"{name}/{data.get(columns['object'])}"
+                img_url = "/images/" + f"{name}/{data.get(columns['object'])}"
                 img = ui.interactive_image(img_url)
-                data[columns['image']] = img_url
+                data[columns["image"]] = img_url
             else:
-                match = re.search(URL_REGEX, data[columns['image']]) if data.get(columns['image']) else None
+                match = re.search(URL_REGEX, data[columns["image"]]) if data.get(columns["image"]) else None
                 ui.interactive_image(match.group("url")) if match else None
             md = ui.markdown().classes(
                 "p-5 mx-auto hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180"
             )
-            md.bind_content_from(data, columns['comment'], backward=lambda x: '' if x is None else x)
-            md.bind_visibility(md, 'content')
+            md.bind_content_from(data, columns["comment"], backward=lambda x: "" if x is None else x)
+            md.bind_visibility(md, "content")
             url = data.get(columns.get("url"))
             ui.link(url, url, new_tab=True) if url else None
             if admin:
                 if not path.is_file():
-                    up = ui.upload(label=i18n.get('admin.upload'), auto_upload=True, on_upload=lambda e: upload_img(e))
+                    up = ui.upload(label=i18n.get("admin.upload"), auto_upload=True, on_upload=lambda e: upload_img(e))
                     up.props('accept="image/*" capture=environment')
                 else:
-                    img.force_reload() # To prevent use of cached image instead of newly uploaded one
+                    img.force_reload()  # To prevent use of cached image instead of newly uploaded one
                     with img:
-                        ui.button(icon='delete', on_click=lambda e: delete_img(path)).classes("absolute bottom-0 right-0")
-                ui.editor(value=data.get(columns['comment'])).bind_value_to(data, columns['comment'])
-    data = event_args['data']
+                        ui.button(icon="delete", on_click=lambda e: delete_img(path)).classes(
+                            "absolute bottom-0 right-0"
+                        )
+                ui.editor(value=data.get(columns["comment"])).bind_value_to(data, columns["comment"])
+
+    data = event_args["data"]
     columns = settings.columns
     with ui.dialog(value=True) as dia:
         dia_content()
         if admin:
-            dia.on('hide', lambda: update_row_data(df, data, grid, event_args))
+            dia.on("hide", lambda: update_row_data(df, data, grid, event_args))
     return dia

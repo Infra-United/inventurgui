@@ -15,8 +15,9 @@ async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], md: dict[str, s
     form: dict[str, str | dict[str, str]] = settings.form
 
     ui.page_title(f"{form['label']}")
+
     def set_panel(screen: dict[str, int]):
-        if screen['width'] < 1280:
+        if screen["width"] < 1280:
             with suppress(IndexError):
                 # First tab is open by default
                 form_panels.set_value([t.props.get("label") for t in form_tabs.descendants()][0])
@@ -43,11 +44,10 @@ async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], md: dict[str, s
             with ui.grid(columns=2) as grid:
                 Form().create(warehouses)
                 if terms.get("display"):
-                    render_markdown(md.get(form.get("terms").get('label')))
+                    render_markdown(md.get(form.get("terms").get("label")))
         with ui.tab_panel(form.get("tab_label")).classes("m-0"):
             Form().create(warehouses)
         if terms.get("display"):
             with ui.tab_panel(terms.get("label")).classes("m-0 p-0"):
                 render_markdown(md.get(form.get("terms").get("label")))
     ui.on("resize", lambda e: set_panel(e.args), throttle=1, trailing_events=True)
-

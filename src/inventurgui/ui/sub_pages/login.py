@@ -12,10 +12,12 @@ def login_page():
     main_menu.refresh()
     drawer_menu.refresh()
 
-    with ui.tab_panel('default').classes('m-0 w-full h-dvh text-secondary decoration-primary'):
-        with ui.card().classes('mx-auto my-auto'):
-            pw_in = ui.input('Password', password=True, password_toggle_button=True)
-            ui.button('Log in', ).on('click', lambda:login(pw_in.value)).classes('mx-auto')
+    with ui.tab_panel("default").classes("m-0 w-full h-dvh text-secondary decoration-primary"):
+        with ui.card().classes("mx-auto my-auto"):
+            pw_in = ui.input("Password", password=True, password_toggle_button=True)
+            ui.button(
+                "Log in",
+            ).on("click", lambda: login(pw_in.value)).classes("mx-auto")
 
     async def login(password: str):
         if os.environ["UI_ADMIN_PASSWORD"] == password:
