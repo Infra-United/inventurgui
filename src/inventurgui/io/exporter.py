@@ -23,7 +23,7 @@ from inventurgui.io.warehouse import Warehouse
 async def save_request(
     request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], update: bool = False
 ) -> None:
-    path = get_path(settings.cloud["push"]["requests"])
+    path = get_path(settings.dav["push"]["requests"])
 
     start, end, month, year = convert_dates(request.get("dates"))
     # Get or create doc and overview_sheet
@@ -52,7 +52,7 @@ async def save_request(
 
 
 async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
-    path = get_path(settings.cloud["push"]["requests"])
+    path = get_path(settings.dav["push"]["requests"])
     start, end, month, year = convert_dates(request.get("dates"))
     ods, overview_sheet, data_sheet = get_request_file(request, path, f"20{year}")
     row_number = find_row_by_name_or_start(overview_sheet, start, request.get("name"), name_only=True)

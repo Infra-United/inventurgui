@@ -35,7 +35,7 @@ class Nextcloud(Client):
     @classmethod
     def singleton(cls) -> Self:
         if not cls.instance:
-            cls.instance = Nextcloud(remote_dir=settings.cloud["dir"])
+            cls.instance = Nextcloud(remote_dir=settings.dav["dir"])
         return cls.instance
 
     @staticmethod
@@ -45,7 +45,7 @@ class Nextcloud(Client):
             exit(1)
 
     def pull_files(self):
-        for key, file in settings.cloud["pull"].items():
+        for key, file in settings.dav["pull"].items():
             self.pull_file(key, file)
 
     def pull_file(self, key: str, file: str) -> None:

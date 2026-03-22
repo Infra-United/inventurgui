@@ -39,7 +39,7 @@ class Settings(BaseSettings):
         "dark_page": "#0d1626",
         "dark_mode": True,
     }
-    cloud: dict[str, str | float | dict[str, str]] = {
+    dav: dict[str, str | float | dict[str, str]] = {
         "dir": "InventurGui",
         "refresh_interval_hours": 24,
         "pull": {
@@ -53,7 +53,7 @@ class Settings(BaseSettings):
 
     @property
     def refresh_timer(self) -> float:
-        return self.cloud["refresh_interval_hours"] * 3600
+        return self.dav["refresh_interval_hours"] * 3600
 
     data: dict[str, str | int | list[str] | dict[str, str]] = {
         "path": "inventory.ods",
@@ -72,7 +72,6 @@ class Settings(BaseSettings):
             "url": "url",
         },
     }
-
     mail: dict[str, str] = {"mail_to": "hello@example.org", "admin": "admin@example.org"}
 
     @property
