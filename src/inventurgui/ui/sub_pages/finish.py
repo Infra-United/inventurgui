@@ -29,7 +29,6 @@ async def finish_page(warehouses: list[Warehouse]):
                 "w-full antialiasing text-base/6 tracking-wider"
             )
             ui.link(magic_link, target=magic_link)
-            ui.button(i18n.get("finish.copy_link"), icon="content_copy", on_click=ui.clipboard.write(magic_link))
             ui.markdown(i18n.get("finish.download_tip")).classes(
                 "pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180"
             )

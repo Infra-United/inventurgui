@@ -26,7 +26,6 @@ finish:
   failure_success: "Eine Mail mit dem Fehler wurde an uns gesendet. Wir melden uns zeitnah bei dir."
   mail_exception: "Leider konnte keine automatische Mail versendet werden. Bitte schreibe uns eine Mail an infraunited@autistici.org mit unten stehendem Link."
   deleted: "Deine Anfrage wurde erfolgreich gelöscht. Bis Bald!"
-  copy_link: 'Link kopieren'
   download_button: 'Liste Herunterladen'
   download_tip: 'Du kannst eine Liste deiner Ladung hier herunterladen (Sie wurde auch an die Mail angehängt):'
 admin:
