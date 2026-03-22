@@ -17,17 +17,17 @@ from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 
 
-# Todo maybe write to excel instead and separate files per year
+# Todo maybe write to excel instead
 
 
 async def save_request(
     request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], update: bool = False
 ) -> None:
-    path = get_path(settings.dav["push"]["requests"])
 
     start, end, month, year = convert_dates(request.get("dates"))
+    path = get_path(f"{settings.dav['push']['requests']}-20{year}")
     # Get or create doc and overview_sheet
-    ods, overview_sheet, data_sheet = get_request_file(request, path, f"20{year}")
+    ods, overview_sheet, data_sheet = get_request_file(request, path, year)
     row_number = find_row_by_name_or_start(overview_sheet, start, request.get("name"), name_only=update)
     write_overview(overview_sheet, request, row_number)
 
