@@ -105,13 +105,16 @@ class Settings(BaseSettings):
         "tab_label": "Form",  # The label for the form tab on the page
         "tab_icon": "article",  # The icon for the form tab on the page
         # Form Fields
+        "from": "Pick-Up",
+        "to": "Return",
         "input": {
             "name": "Name",  # This field is required
             "place": "Ort",
             "donation": "Donation",
             "email": "E-Mail",
-            "message": "Your Message - Questions, Notes and important Infos",
+            "messenger": "Messenger-Contact (Signal, etc.)",
         },
+        "message": "Your Message - Questions, Notes and important Infos",
         "checkbox": {"terms": "I have read the terms."},
         "terms": {  # Show terms to the user in a tab next to the form
             "display": True,  # Set this to false if you don't need this
@@ -124,6 +127,7 @@ class Settings(BaseSettings):
     requests: dict[str, str] = {  # Only visible for admins and editors
         "label": "Requests",
         "icon": "drafts",
+        "path": "requests",
     }
 
     @classmethod

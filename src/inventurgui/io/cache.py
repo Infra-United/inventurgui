@@ -6,7 +6,6 @@ class Cache:
     def __init__(self, warehouses):
         app.storage.user.indent = True
         app.storage.user.setdefault("Total", 0)
-        app.storage.user.setdefault("notified", None)
         app.storage.user.setdefault(
             "form",
             {
@@ -16,10 +15,14 @@ class Cache:
                 "donation": "",
                 "email": "",
                 "message": "",
+                "messenger": "",
                 "request": None,
+                "update": None,
                 "finish": None,
+                "edit_link": None,
             },
         )
+        app.storage.user.setdefault("notified", None)
         app.storage.user.setdefault("selected", {})
         app.storage.user.setdefault("added", {})
         app.storage.user.setdefault("deleted", {})

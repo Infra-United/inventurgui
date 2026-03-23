@@ -4,13 +4,15 @@ from pathlib import Path
 from typing import Tuple
 
 import polars as pl
-from ezodf import opendoc, Sheet, newdoc, Cell
+from ezodf import opendoc, Sheet, newdoc
 from ezodf.document import FlatXMLDocument, PackagedDocument
 from polars import DataFrame
 from xlsxwriter import Workbook
+from xlsxwriter.worksheet import Worksheet
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.dates import convert_dates
+from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 from inventurgui.io.nextcloud import Nextcloud
@@ -23,10 +25,34 @@ from inventurgui.io.warehouse import Warehouse
 async def save_request(
     request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], update: bool = False
 ) -> None:
-
     start, end, month, year = convert_dates(request.get("dates"))
-    path = get_path(f"{settings.dav['push']['requests']}-20{year}")
-    # Get or create doc and overview_sheet
+    path = get_path(f"{settings.requests['filename']}-20{year}.xlsx")
+    # Get or create doc and write overview
+
+    # Get Data and write to new sheet
+    dfs = [await w.get_final() for w in warehouses]
+    df = pl.concat([df for df in dfs if df is not None], how="align")
+    with Workbook(path) as wb:
+        if not path.is_file():
+            overview = init_overview_sheet(request, wb.add_worksheet(f"20{year}"))
+            overview_row = 1
+        else:
+            overview = pl.read_excel(path)
+            overview_row: int = overview.select(
+                pl.col(i18n.get("form.start")).is_between(request.get("start"), request.get("end")).index_of(True)
+            ).item()
+        overview_row = overview.height if not overview_row else overview_row
+        write_overview(wb.get_worksheet_by_name(f"20{year}"), request, overview_row)
+        df.write_excel(wb, worksheet=wb.get_worksheet_by_name(request.get("name")), autofit=True)
+
+
+async def save_request_ods(
+    request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], update: bool = False
+) -> None:
+    start, end, month, year = convert_dates(request.get("dates"))
+    path = get_path(f"{settings.requests['filename']}-20{year}")
+
+    # Get or create doc and write overview
     ods, overview_sheet, data_sheet = get_request_file(request, path, year)
     row_number = find_row_by_name_or_start(overview_sheet, start, request.get("name"), name_only=update)
     write_overview(overview_sheet, request, row_number)
@@ -52,8 +78,8 @@ async def save_request(
 
 
 async def delete_request(request: dict[str, str | dict[str, str]]) -> None:
-    path = get_path(settings.dav["push"]["requests"])
     start, end, month, year = convert_dates(request.get("dates"))
+    path = get_path(f"{settings.requests['filename']}-20{year}")
     ods, overview_sheet, data_sheet = get_request_file(request, path, f"20{year}")
     row_number = find_row_by_name_or_start(overview_sheet, start, request.get("name"), name_only=True)
     overview_sheet.delete_rows(row_number)
@@ -88,33 +114,30 @@ def get_request_file(request: dict[str, str], path: Path, year: str) -> Tuple[Pa
     return ods, overview_sheet, data_sheet
 
 
-def init_overview_sheet(request: dict[str, str | dict[str, str]], year: str):
-    form: dict[str, str | dict[str, str]] = settings.form
-    sheet = Sheet(str(year), size=(1, 20))
+def init_overview_sheet(request: dict[str, str | dict[str, str]], sheet: Worksheet):
     # Write Column Headers
     count = 0
     for key in request.keys():
         match key:
             case "dates":
                 for i, val in enumerate(["month", "start", "end"]):
-                    cell = sheet.get_cell((0, i))
-                    cell.set_value(str(form.get(val)))
+                    sheet.write(0, i, str(i18n.get(f"form.{val}")))
                 count += 3
                 continue
             case "message":
                 continue
             case _:
-                if key in form["input"].keys():
-                    c: Cell = sheet[0, count]
-                    c.set_value(f"{form['input'].get(key)}")
+                if key in settings.form["input"].keys():
+                    sheet.write(0, count, f"{settings.form['input'].get(key)}")
                     count += 1
-    sheet[0, count].set_value(str(form.get("sent")))
-    sheet[0, count + 1].set_value(str(form.get("updated")))
-    LOGGER.info(f"Successfully created overview sheet for year {year}.")
+    sheet.write(0, count, str(i18n.get("mail.request")))
+    sheet.write(0, count + 1, str(i18n.get("mail.update")))
+    sheet.write(0, count + 2, str(i18n.get("finish.editing_link")))
+    LOGGER.info("Successfully created overview sheet.")
     return sheet
 
 
-def write_overview(sheet: Sheet, request: dict[str, str | float | dict[str, str]], row_number: int) -> None:
+def write_overview(sheet: Worksheet, request: dict[str, str | float | dict[str, str]], row_number: int) -> None:
     # Write to overview
     LOGGER.debug("Writing request to overview sheet...")
     start, end, month, year = convert_dates(request.get("dates"))
@@ -123,23 +146,21 @@ def write_overview(sheet: Sheet, request: dict[str, str | float | dict[str, str]
         match key:
             case "dates":
                 for i, val in enumerate([month, start, end]):
-                    cell: Cell = sheet.get_cell((row_number, i))
-                    cell.set_value(str(val))
+                    sheet.write(row_number, i, str(val))
                 count += 3
                 continue
             case "message" | "finish" | "download":
                 continue
             case "request" | "update" | "delete":
                 if value:
-                    cell: Cell = sheet.get_cell((row_number, count))
-                    readable_dt = (
-                        f"{datetime.datetime.fromtimestamp(value):{settings.date_format} {settings.time_format}}"
+                    sheet.write(
+                        row_number,
+                        count,
+                        f"{datetime.datetime.fromtimestamp(value):{settings.date_format} {settings.time_format}}",
                     )
-                    cell.set_value(str(readable_dt))
                     count += 1
             case _:
-                cell: Cell = sheet.get_cell((row_number, count))
-                cell.set_value(str(value) if value else "")
+                sheet.write(row_number, count, str(value) if value else "")
                 count += 1
     LOGGER.info(f"Successfully wrote request to overview sheet @ row: {row_number}.")
 

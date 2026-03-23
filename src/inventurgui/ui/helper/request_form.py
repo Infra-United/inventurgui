@@ -69,6 +69,7 @@ class Form:
                 dates.move(column)
                 dates.props[":options"] = f'date => date >= "{datetime.date.today():%Y/%m/%d}"'
                 dates.bind_value(self.request, "dates")
+                dates.on("blur", lambda: self.request.update({"from": dates.value["from"], "to": dates.value["to"]}))
 
             with ui.column().classes("items-stretch max-sm:col-span-2"):
                 for key, value in settings.form.get("input").items():
