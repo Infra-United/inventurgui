@@ -1,0 +1,34 @@
+mail:
+  request: 'Request'
+  update: 'Update'
+  delete: 'Deleted'
+  failure: 'Failure'
+cart:
+  edit_tip: "Load the vehicles - Adjust the amounts by clicking on them.\n Keep an eye on the total weight."
+  select_tip: "Please select something first."
+  too_many: "We don't have that many!"
+form:
+  please_fill_field: 'Please fill all fields.'
+  please_check_boxes: 'Please check the boxes.'
+  please_provide_date: 'Please provide dates for pickup and return by clicking on both dates after one another. If you want to return on same day you have to click it twice'
+  email_invalid: 'This is not a valid email-address.'
+  month: 'Month'
+  start: 'Pick-Up'
+  end: 'Return'
+  message: 'Your message - questions, notes, important info'
+  update_message: 'A short Info what you have changed - that helps us a lot'
+finish:
+  are_you_sure: "Are you sure?"
+  editing_link: "Editing link"
+  processing: "We are processing your request - Please wait a moment..."
+  success: "Your request has been sent successfully - we will reach out to you in a bit. You can review, edit or delete your request with this link anytime:"
+  failure_mail: "Something went wrong :/ A mail with the error is being sent..."
+  failure_success: "A mil with the error has been sent to us. We will reach out to you soon."
+  mail_exception: "Unfortunately no automatic mail has been sent because the mail server is unreachable. Please send a mail to infraunited@autistici.org to notify us that there is an error and include the following link and the data you've entered in the form. Thanks!"
+  deleted: "Your request has been deleted. See you soon!"
+  download_button: 'Download Excel'
+  download_tip: 'You can download an excel file with your loaded items (It has been attached to the email too):'
+admin:
+  edits: "My changes"
+  upload: "Upload an Image"
+  save: "Save"
