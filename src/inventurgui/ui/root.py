@@ -3,7 +3,7 @@ from slugify import slugify
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
-from inventurgui.helper.paths import ensure_directory_structure, get_path
+from inventurgui.helper.paths import ensure_directory_structure
 from inventurgui.io.cache import Cache
 from inventurgui.io.importer import read_inventory
 from inventurgui.io.nextcloud import Nextcloud
@@ -46,7 +46,9 @@ def root(
     ui.add_head_html(
         '<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>'
     )
-    ui.add_head_html(f'<link rel="manifest" href={get_path("manifest.json")} />')
+    ui.add_head_html(f'<link rel="manifest" href="files/manifest.json" />')
+    ui.add_head_html('<script>if("serviceWorker" in navigator) { navigator.serviceWorker.register("/helpers/service_worker.js"); };</script>')
+
 
     # Set timers for refreshing files
     ui.timer(settings.refresh_timer, lambda: pull_wiki() if display_wiki else None, immediate=False)
