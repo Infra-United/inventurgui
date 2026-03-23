@@ -22,6 +22,7 @@ finish:
   editing_link: "Bearbeitungslink"
   processing: "Wir verarbeiten deine Anfrage - bitte warte einen Moment..."
   success: "Deine Anfrage wurde erfolgreich an uns und an dich gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage mit diesem Link teilen und bearbeiten:"
+  updated: "Deine Anfrage wurde erfolgreich geupdated."
   failure_mail: "Etwas ist schiefgelaufen :/ Eine Mail mit dem Fehler wird gesendet...."
   failure_success: "Eine Mail mit dem Fehler wurde an uns gesendet. Wir melden uns zeitnah bei dir."
   mail_exception: "Leider konnte keine automatische Mail versendet werden. Bitte schreibe uns eine Mail an infraunited@autistici.org mit unten stehendem Link."

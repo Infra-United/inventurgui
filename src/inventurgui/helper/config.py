@@ -127,7 +127,7 @@ class Settings(BaseSettings):
     requests: dict[str, str] = {  # Only visible for admins and editors
         "label": "Requests",
         "icon": "drafts",
-        "path": "requests",
+        "filename": "requests",
     }
 
     @classmethod

@@ -31,7 +31,9 @@ class Warehouse(MenuItem):
             ]
         )
         df.insert_column(1, (pl.col(columns["count"]) * pl.col(columns["weight"])).alias(columns["total_weight"]))
-        return cls(name=name, inventory=df.select([c for c in columns.values()]).with_row_index())
+        warehouse = cls(name=name, inventory=df.select([c for c in columns.values()]).with_row_index())
+        warehouse.inventory.insert_column(0, (pl.lit(name)).alias(settings.warehouse["label"]))
+        return warehouse
 
     @property
     def categories(self) -> list[str]:

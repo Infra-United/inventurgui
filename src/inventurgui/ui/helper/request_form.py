@@ -16,7 +16,7 @@ from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
-from inventurgui.io.exporter import save_request, delete_request, write_download_list
+from inventurgui.io.excel import handle_request, write_download_list
 from inventurgui.io.mail import send_mail, RequestType
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
@@ -50,7 +50,7 @@ class Form:
             with ui.card():
                 ui.label(i18n.get("finish.are_you_sure").upper()).classes("w-full pt-2 text-center tracking-widest")
                 delete = ui.button(icon="delete_sweep", color="negative")
-                delete.on_click(lambda: send_delete(self.request, warehouses))
+                delete.on_click(lambda: submit_form(self.request, warehouses, delete=True))
 
         with ui.grid(columns=2).classes("w-full bg-dark pb-10 h-screen flex-column") as grid:
             with ui.row(align_items="end").classes("max-sm:col-span-2 ml-auto pb-10") as submit_column:
@@ -69,7 +69,6 @@ class Form:
                 dates.move(column)
                 dates.props[":options"] = f'date => date >= "{datetime.date.today():%Y/%m/%d}"'
                 dates.bind_value(self.request, "dates")
-                dates.on("blur", lambda: self.request.update({"from": dates.value["from"], "to": dates.value["to"]}))
 
             with ui.column().classes("items-stretch max-sm:col-span-2"):
                 for key, value in settings.form.get("input").items():
@@ -107,50 +106,29 @@ class Form:
             submit.bind_icon_from(self.request, "request", backward=lambda v: "save" if v else "outgoing_mail")
 
 
-async def submit_form(request: ObservableDict, warehouses: list[Warehouse]) -> None:
+async def submit_form(request: ObservableDict, warehouses: list[Warehouse], delete:bool = False) -> None:
     is_update = True if request.get("request") else False
     request.update({"finish": i18n.get("finish.processing")})
     ui.navigate.to(f"/{slugify(settings.finish['label'])}")
     magic_link = get_magic_link()
     request.update({"edit_link": magic_link})
-    request.update({"request": time.time()} if not request.get("request") else {"update": time.time()})
+    request.update({"update": time.time()} if is_update else {"delete": time.time()} if delete else {"request": time.time()})
     try:
-        await save_request(request, warehouses)
+        await handle_request(request, warehouses, delete)
         filename = get_path(f"{settings.organization}-{request.get('name')}.xlsx", "lists")
         await write_download_list(filename, warehouses)
         await nicegui.run.io_bound(
             lambda: send_mail(
                 request,
-                request_type=RequestType.update if is_update else RequestType.request,
+                request_type=RequestType.update if is_update else RequestType.delete if delete else RequestType.request,
                 filename=filename,
             )
         )
         request.update({"download": str(filename)})
-        request.update({"finish": i18n.get("finish.success")})
-    except Exception:
+    except Exception as exception:
         request.update({"finish": i18n.get("finish.failure_mail")})
         try:
-            await nicegui.run.io_bound(
-                lambda: send_mail(request, request_type=RequestType.failure, exception=exception)
-            )
-            request.update({"finish": i18n.get("finish.failure_success")})
-        except socket.gaierror:
-            request.update({"finish": i18n.get("finish.mail_exception")})
-            LOGGER.exception("The mailserver is unreachable. Try again later.")
-
-
-async def send_delete(request: ObservableDict, warehouses: list[Warehouse]) -> None:
-    request.update({"finish": i18n.get("finish.processing")})
-    ui.navigate.to(f"/{slugify(settings.finish['label'])}")
-    try:
-        request.update({"delete": time.time()})
-        await nicegui.run.io_bound(lambda: send_mail(request, RequestType.delete))
-        await delete_request(request)
-        request.update({"finish": i18n.get("finish.deleted"), "request": None})
-        request.update({"finish": i18n.get("finish.success")})
-    except Exception:
-        request.update({"finish": i18n.get("finish.failure_mail")})
-        try:
+            LOGGER.exception(exception)
             await nicegui.run.io_bound(
                 lambda: send_mail(request, request_type=RequestType.failure, exception=exception)
             )
