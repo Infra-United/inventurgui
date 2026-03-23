@@ -107,15 +107,16 @@ def root(
             )
 
     # Register wiki sub_pages
+    md_page = markdown.get(settings.help["label"])
     if wiki:
-        pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.get("root"), ld, markdown, wiki.get("style")))
+        pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.get("root"), ld, md_page, wiki.get("style")))
         for chapter in wiki.get("chapters"):
             pages.add(
                 f"/{WIKI_ROOT}/{slugify(chapter.name)}",
-                lambda c=chapter: wiki_page(c.name, c.pages.get(c.name), ld, markdown, wiki.get("style")),
+                lambda c=chapter: wiki_page(c.name, c.pages.get(c.name), ld, md_page, wiki.get("style")),
             )
             for name, html in chapter.pages.items():
                 pages.add(
                     f"/{WIKI_ROOT}/{slugify(chapter.name)}/{slugify(name)}",
-                    lambda n=name, h=html: wiki_page(n, h, ld, markdown, wiki.get("style")),
+                    lambda n=name, h=html: wiki_page(n, h, ld, md_page, wiki.get("style")),
                 )
