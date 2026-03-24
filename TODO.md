@@ -7,6 +7,7 @@
 - [ ] Use Excel Formatting
 - [x] Fix startup, default_conf, first startup
 - [x] Add PWA installation
+  - [X] Fix path
 - [ ] Fix bottom padding on mobile
 - [ ] Check Admin-Panel
 
