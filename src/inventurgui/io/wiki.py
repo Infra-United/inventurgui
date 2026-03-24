@@ -107,3 +107,17 @@ def parse_menu(pages: list[str]) -> list[WikiChapter]:
             page_name = id_line.split(">")[-1].rstrip("</h1")
             chapters.get(chapter_name).update({page_name: page})
     return [i for i in WikiChapter.create(chapters)]
+
+def compress_images():
+    from PIL import Image
+    src = get_path("images")
+
+    for p in src.glob("*.*"):
+        if p.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+            continue
+        img = Image.open(p)
+        # Save back to the same path, overwriting the original file
+        if p.suffix.lower() in {".jpg", ".jpeg"}:
+            img.save(p, quality=80, optimize=True)
+        else:
+            img.save(p, optimize=True, compress_level=9)
