@@ -30,8 +30,8 @@ def main():
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_files("/images", str(get_path("images")))
-    app.add_static_file(get_path("manifest.json"), "/manifest.json", strict=False)
-    app.add_static_file(get_path("service-worker.js"), "/service-worker.js", strict=False)
+    app.add_static_file(local_file=get_path("manifest.json"), url_path="/manifest.json", strict=False)
+    app.add_static_file(local_file=get_path("service-worker.js"), url_path="/service-worker.js", strict=False)
     ui.run(
         root=lambda: root(warehouses, pages, wiki if display_wiki else None),
         language=settings.language,
