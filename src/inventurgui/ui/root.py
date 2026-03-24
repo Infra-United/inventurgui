@@ -46,8 +46,8 @@ def root(
     ui.add_head_html(
         '<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>'
     )
-    ui.add_head_html('<link rel="manifest" href="/manifest.json">')
-    ui.add_head_html('<script>if("serviceWorker" in navigator) { navigator.serviceWorker.register("/service_worker.js"); };</script>')
+    ui.add_head_html('<link rel="manifest" href="/helpers/manifest.json">')
+    ui.add_head_html('<script>if("serviceWorker" in navigator) { navigator.serviceWorker.register("/helpers/service_worker.js"); };</script>')
 
     # Set timers for refreshing files
     ui.timer(settings.refresh_timer, lambda: pull_wiki() if display_wiki else None, immediate=False)
