@@ -30,7 +30,7 @@ def create_layout(
 
     # Header
     with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
-        img = ui.image(source=get_path(settings.favicon)).classes("h-full m-0 p-0 w-[56px]")
+        img = ui.image(source=get_path(settings.logo)).classes("h-full m-0 p-0 w-[56px]")
         img.on("click", lambda: ui.navigate.to("/"))
         ui.label(str(settings.title).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
         main_menu(ld, rd if wiki_menu else None, classes="stretch h-full")

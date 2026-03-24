@@ -25,7 +25,8 @@ class Settings(BaseSettings):
         return (YamlConfigSettingsSource(settings_cls),)
 
     title: str = "InventurGui"
-    favicon: str = "logo.jpeg"
+    logo: str = "logo.png"
+    favicon: str = "favicon.png"
     organization: str = "example"
     domain: str = "inventur.example.org"
     port: int = 8080

@@ -29,10 +29,11 @@ def main():
         wiki = read_wiki()
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
-    app.add_static_files("/images", str(get_path("images")))
+    app.add_static_files("/images", get_path("images"))
     app.add_static_file(local_file=get_path("manifest.json"), url_path="/helpers/manifest.json", strict=False)
     app.add_static_file(local_file=get_path("service_worker.js"), url_path="/helpers/service_worker.js", strict=False)
-    app.add_static_file(local_file=get_path("logo.png"), url_path="/helpers/logo.png", strict=False)
+    app.add_static_files("/splash", get_path("splash"))
+    app.add_static_files("/icons", get_path("icons"))
     ui.run(
         root=lambda: root(warehouses, pages, wiki if display_wiki else None),
         language=settings.language,
