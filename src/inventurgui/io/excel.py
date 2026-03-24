@@ -31,7 +31,7 @@ async def handle_request(
             else:
                 overview = sheets[f"20{year}"].extend(write_overview(request))
                 overview = overview.unique(name_col, keep='last').sort(pl.col(i18n.get("form.start")))
-        overview.write_excel(wb, worksheet=wb.add_worksheet(f"20{year}"), autofit=True)
+        overview.write_excel(wb, worksheet=wb.add_worksheet(f"20{year}"), autofit=True, header_format={"bold": True})
 
         # Get Data and write to new sheet
         if delete:
@@ -50,9 +50,9 @@ async def handle_request(
         for name in overview.select(pl.col(name_col)).to_series().to_list():
             if ws:= wb.get_worksheet_by_name(name):
                 ws.table_cells.clear()
-                sheets.get(name).write_excel(wb, worksheet=ws, autofit=True, float_precision=1)
+                sheets.get(name).write_excel(wb, worksheet=ws, autofit=True, float_precision=1, header_format={"bold": True})
             else:
-                sheets.get(name).write_excel(wb, worksheet=wb.add_worksheet(name), autofit=True, float_precision=1)
+                sheets.get(name).write_excel(wb, worksheet=wb.add_worksheet(name), autofit=True, float_precision=1, header_format={"bold": True})
 
     LOGGER.info(f"Successfully wrote request to {path}")
     Nextcloud.singleton().push_file(path)
@@ -95,3 +95,4 @@ async def write_download_list(path: Path, warehouses: list[Warehouse]):
             df.write_excel(
                 workbook=wb, worksheet=w.name, autofit=True, float_precision=1, table_style="Table Style Medium 4"
             )
+
