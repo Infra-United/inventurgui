@@ -19,7 +19,7 @@ async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
     current_id = app.storage.browser["id"]
     request_id = args.query_parameters.get("id")
     if current_id != request_id:
-        load_data_from_magic_link(current_id, request_id)
+        load_data_from_magic_link(request_id)
 
     if Cache.total() == 0:
         ui.notify(i18n.get("cart.select_tip"), type="warning", position="center", color="primary", textColor="dark")
