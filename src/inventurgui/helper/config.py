@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     domain: str = "inventur.example.org"
     port: int = 8080
     language: str = "en"
+    locale: str = "en_US.UTF-8"
     date_format: str = "%m/%d/%Y"
     time_format: str = "%H:%M"
     theme: dict[str, str | bool] = {
