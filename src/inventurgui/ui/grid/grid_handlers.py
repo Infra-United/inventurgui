@@ -88,7 +88,7 @@ def dia_content(dia:Dialog, warehouse: Warehouse, data: dict, grid:AgGrid, admin
                 with img:
                     up.on_upload(lambda: img.force_reload())
                     del_btn = ui.button(icon="delete").classes("absolute top-0 right-0")
-                    del_btn.on('click', lambda: delete_img(img.source, data, grid, warehouse))
+                    del_btn.on('click', lambda: delete_img(data, grid, warehouse))
                     del_btn.on('click', lambda: img.force_reload())
         else:
             md = render_markdown().classes(remove="text-justify")

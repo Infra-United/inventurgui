@@ -34,9 +34,9 @@ async def upload_img(warehouse:Warehouse, event: UploadEventArguments, data:dict
     file_extension = event.file.name.split(".")[-1]
     filename = data[settings.columns['object']]
     path = get_img_path(warehouse.name, filename , file_extension)
+    img_url = get_img_url(warehouse.name, filename, file_extension, domain=False)
     await delete_img(data, grid, warehouse)
     await event.file.save(path)
-    img_url = get_img_url(warehouse.name, filename, file_extension, domain=False)
     app.add_static_file(local_file=path, url_path=img_url)
     data[settings.columns["image"]] = get_img_url(warehouse.name, filename,file_extension, domain=True)
     await grid.run_row_method(data.get("index"), "setData", data)
