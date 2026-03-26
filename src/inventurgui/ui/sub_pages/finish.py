@@ -15,23 +15,27 @@ async def finish_page(warehouses: list[Warehouse]):
         with ui.column(align_items="center").classes("mx-auto my-auto text-center items-center"):
             ui.html(
                 '<dotlottie-wc src="https://lottie.host/651035b0-fcbb-45cd-8117-cc6126920b25/wkhNl1xwcz.lottie" '
-                'style="width: 300px;height: 300px" autoplay ></dotlottie-wc>',
+                'style="width: 250px; height: 250px" autoplay ></dotlottie-wc>',
                 sanitize=False,
             )
-            md = ui.markdown().bind_content_from(Cache.form(), "finish", backward=lambda v: v if v else "")
-            md.classes("pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180") if md.content else None
+            classes = "pt-5 hyphens-none text-base/6 antialiasing max-w-180"
+            finish = ui.markdown().bind_content_from(Cache.form(), "finish", backward=lambda v: v if v else "")
+            finish.classes(classes) if finish.content else None
+            ui.markdown().bind_content_from(Cache.form(), "overlap").classes(f"{classes} text-primary")
             if Cache.form().get("delete"):
-                return ui.timer(
-                    5, lambda: (app.storage.user.clear(), Cache(warehouses), drawer_menu.refresh(), ui.navigate.to("/"))
+                ui.notify(i18n.get("finish.deleted"), position='center', color="primary", textColor="dark")
+                app.storage.user.clear()
+                Cache(warehouses)
+                drawer_menu.refresh()
+                ui.navigate.to("/")
+            else:
+                magic_link = get_magic_link()
+                ui.label(f"{i18n.get('finish.editing_link')}:".upper()).classes(
+                    "w-full antialiasing text-base/3 tracking-wider"
                 )
-            magic_link = get_magic_link()
-            ui.label(f"{i18n.get('finish.editing_link')}:".upper()).classes(
-                "w-full antialiasing text-base/6 tracking-wider"
-            )
-            ui.link(magic_link, target=magic_link)
-            ui.markdown(i18n.get("finish.download_tip")).classes(
-                "pt-5 hyphens-none text-base/6 antialiasing text-gray-300 max-w-180"
-            )
-            btn = ui.button(i18n.get("finish.download_button"), icon="download")
-            btn.on_click(lambda: ui.download.file(Cache.form().get("download")))
-            back_fab(settings.form)
+                ui.label(i18n.get('finish.editing_link_tip')).classes(classes)
+                ui.link(magic_link, target=magic_link).classes(classes).classes("text-primary")
+                ui.markdown(i18n.get("finish.download_tip")).classes(classes)
+                btn = ui.button(i18n.get("finish.download_button"), icon="download").classes("bg-secondary")
+                btn.on_click(lambda: ui.download.file(Cache.form().get("download")))
+                back_fab(settings.form)

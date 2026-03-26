@@ -22,9 +22,12 @@ form:
 finish:
   are_you_sure: "Bist du sicher?"
   editing_link: "Bearbeitungslink"
+  editing_link_tip: "Du kannst deine Anfrage mit diesem Link teilen, ansehen, bearbeiten und löschen:"
   processing: "Wir verarbeiten deine Anfrage - bitte warte einen Moment..."
-  success: "Deine Anfrage wurde erfolgreich an uns und an dich gesendet - wir melden uns zeitnah bei dir. Du kannst deine Anfrage mit diesem Link teilen und bearbeiten:"
+  success: "Deine Anfrage wurde erfolgreich an uns und an dich gesendet - wir melden uns zeitnah bei dir."
   updated: "Deine Anfrage wurde erfolgreich geupdated."
+  no_overlap: "Es gibt aktuell keine Überschneidung mit einer anderen Anfage.\n Falls jemand im gleichen Zeitraum anfragt, setzen wir euch ggf. in Verbindung."
+  overlap: "Leider gibt es eine Überschneidung mit einer anderen Anfrage.\n Dinge, die sich überschneiden, sind in deiner Liste rot hinterlegt. Wir schauen, ob es dafür eine Lösung gibt und setzen euch evtl. miteinander in Verbindung. Falls du andere Wege hast, um an diese Dinge zu kommen, sag uns das Bitte."
   failure_mail: "Etwas ist schiefgelaufen :/ Eine Mail mit dem Fehler wird gesendet...."
   failure_success: "Eine Mail mit dem Fehler wurde an uns gesendet. Wir melden uns zeitnah bei dir."
   mail_exception: "Leider konnte keine automatische Mail versendet werden. Bitte schreibe uns eine Mail an infraunited@autistici.org mit unten stehendem Link."

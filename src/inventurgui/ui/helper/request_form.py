@@ -16,7 +16,7 @@ from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 from inventurgui.io.cache import Cache
-from inventurgui.io.excel import handle_request, write_download_list
+from inventurgui.io.excel import handle_request
 from inventurgui.io.mail import send_mail, RequestType
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
@@ -112,19 +112,18 @@ async def submit_form(request: ObservableDict, warehouses: list[Warehouse], dele
     ui.navigate.to(f"/{slugify(settings.finish['label'])}")
     magic_link = get_magic_link()
     request.update({"edit_link": magic_link})
-    request.update({"update": time.time()} if is_update else {"delete": time.time()} if delete else {"request": time.time()})
+    request.update({"update": time.time()} if is_update and not delete else {"delete": time.time()} if delete else {"request": time.time()})
     try:
-        request_data = await handle_request(request, warehouses, delete)
-        filename = get_path(f"{settings.organization}-{request.get('name')}.xlsx", "lists")
-        await write_download_list(filename, request_data)
-        """await nicegui.run.io_bound(
+        dl_path = get_path(f"{settings.organization}-{request.get('name')}.xlsx", "lists")
+        await handle_request(request, warehouses, dl_path, delete)
+        await nicegui.run.io_bound(
             lambda: send_mail(
                 request,
                 request_type=RequestType.update if is_update else RequestType.delete if delete else RequestType.request,
-                filename=filename,
+                filename=dl_path,
             )
-        )"""
-        request.update({"download": str(filename)})
+        )
+        request.update({"download": str(dl_path)})
     except Exception as exception:
         request.update({"finish": i18n.get("finish.failure_mail")})
         try:

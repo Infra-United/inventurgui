@@ -23,4 +23,4 @@ def validate_number(key: str, donation: str, request: ObservableDict):
         request.update({key: int(donation)})
         return None
     except ValueError:
-        return i18n.get("form.donation_invalid")
+        return i18n.get("form.number_invalid")

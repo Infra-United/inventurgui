@@ -1,6 +1,8 @@
 from nicegui import app
 from nicegui.observables import ObservableList, ObservableDict
 
+from inventurgui.helper.i18n import i18n
+
 
 class Cache:
     def __init__(self, warehouses):
@@ -20,6 +22,7 @@ class Cache:
                 "update": None,
                 "finish": None,
                 "edit_link": None,
+                "overlap": i18n.get("finish.no_overlap"),
             },
         )
         app.storage.user.setdefault("notified", None)

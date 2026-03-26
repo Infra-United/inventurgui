@@ -16,7 +16,10 @@ from inventurgui.io.warehouse import Warehouse
 
 
 async def handle_request(
-    request: dict[str, str | dict[str, str]], warehouses: list[Warehouse], delete: bool = False) -> DataFrame:
+    request: dict[str, str | dict[str, str]],
+        warehouses: list[Warehouse],
+        dl_path: Path,
+        delete: bool = False) -> DataFrame:
     start, end, month, year = convert_dates(request.get("dates"), string=False)
     path = get_path(f"{settings.requests['filename']}-20{year}.xlsx")
     sheets = {}
@@ -59,6 +62,16 @@ async def handle_request(
 
     if delete:
         sheets.pop(request.get("name"))  # Needs to happen before writing but after finding overlaps
+    else: # Write excel file for download
+        dl_path.unlink(missing_ok=True)
+        data = sheets.get(request.get("name"))
+        LOGGER.info(f"Creating download list file @{dl_path}")
+        names: list[str] = sorted(data[settings.warehouse["label"]].unique())
+        with Workbook(dl_path) as dl_wb:
+            for name in names:
+                LOGGER.debug(f"Creating download list sheet {name} @{dl_path}")
+                write_sheet(data.filter(pl.col(settings.warehouse["label"]) == name), dl_wb.add_worksheet(name), dl_wb)
+
 
     with (Workbook(path, {'strings_to_numbers': True, 'default_date_format': settings.date_format}) as workbook):
         # Write Overview
@@ -118,16 +131,6 @@ def write_sheet(df: DataFrame, ws: Worksheet, wb: Workbook):
     except Exception as e:
         write_sheet(pl.from_dict(backup), ws, wb)
 
-
-async def write_download_list(path: Path, df:DataFrame):
-    path.unlink(missing_ok=True)
-    LOGGER.info(f"Creating download list file @{path}")
-    names: list[str] = sorted(df[settings.warehouse["label"]].unique())
-    with Workbook(path) as wb:
-        for name in names:
-            LOGGER.debug(f"Creating download list sheet {name} @{path}")
-            write_sheet(df.filter(pl.col(settings.warehouse["label"]) == name), wb.add_worksheet(name), wb)
-
 def find_overlaps(sheets:dict[str, DataFrame], request: dict[str, str | dict[str, str]], delete:bool) -> dict[str, DataFrame]:
     # Check if to requests overlap timewise
     overview = list(sheets.values())[0]
@@ -146,7 +149,6 @@ def find_overlaps(sheets:dict[str, DataFrame], request: dict[str, str | dict[str
 
     # Check if the overlapping requests actually overlap in data
     # (Iterate over a copy because we modify the list in the loop)
-    print(overlap_names)
     for overlap_name in overlap_names[:]:
         # If request already exists and is being updated skip it
         if overlap_name == request.get("name"):
@@ -154,7 +156,6 @@ def find_overlaps(sheets:dict[str, DataFrame], request: dict[str, str | dict[str
                 with suppress(ValueError):
                     overlap_names.remove(overlap_name)
             continue
-        LOGGER.info(f"Found overlapping data for {request.get("name")} in {overlap_name}.")
         other = sheets.get(request.get("name"))
         for name in [overlap_name, request.get("name")]:
             # Add overlap column (Updating existing)
@@ -163,6 +164,8 @@ def find_overlaps(sheets:dict[str, DataFrame], request: dict[str, str | dict[str
             # if there are overlaps
             if df[overlap].any():
                 overlap_names.append(name) if name not in overlap_names else None
+                LOGGER.info(f"Found overlapping data for {request.get("name")} in {overlap_name}.")
+                request.update({"overlap": i18n.get("finish.overlap")})
             else:
                 overlap_names.remove(name) if name in overlap_names else None
                 df = df.drop(overlap, strict=False)
