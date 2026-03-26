@@ -17,3 +17,10 @@ def validate_mail(key: str, email: str, request: ObservableDict):
         return None
     except EmailNotValidError as e:
         return e.args[0]
+
+def validate_number(key: str, donation: str, request: ObservableDict):
+    try:
+        request.update({key: int(donation)})
+        return None
+    except ValueError:
+        return i18n.get("form.donation_invalid")

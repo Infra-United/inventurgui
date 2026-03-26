@@ -12,6 +12,7 @@ form:
   please_check_boxes: 'Please check the boxes.'
   please_provide_date: 'Please provide dates for pickup and return by clicking on both dates after one another. If you want to return on same day you have to click it twice'
   email_invalid: 'This is not a valid email-address.'
+  donation_invalid: "This must be a decimal number."
   month: 'Month'
   start: 'Pick-Up'
   end: 'Return'

@@ -12,6 +12,7 @@ form:
   please_check_boxes: 'Bitte hake die Kästchen ab.'
   please_provide_date: 'Bitte gib ein Abhol- und ein Rückgabe-Datum an indem du auf beide Daten nacheinander klickst. Wenn du am gleichen Tag zurückgibst musst du zweimal auf den gleichen Tag klicken.'
   email_invalid: 'Dies ist keine gültige E-Mail-Adresse.'
+  number_invalid: "Dies muss eine Ganzzahl sein."
   month: 'Monat'
   start: 'Abholung'
   end: 'Rückgabe'

@@ -20,7 +20,7 @@ from inventurgui.io.excel import handle_request, write_download_list
 from inventurgui.io.mail import send_mail, RequestType
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.magic_link import get_magic_link
-from inventurgui.ui.helper.validators import validate_mail, INPUT_VALIDATION
+from inventurgui.ui.helper.validators import validate_mail, INPUT_VALIDATION, validate_number
 
 
 class Form:
@@ -75,7 +75,7 @@ class Form:
                     i = ui.input(
                         value,
                         validation=(lambda v, k=key: validate_mail(k, v, self.request))
-                        if key == "email"
+                        if key == "email" else (lambda v, k=key: validate_number(k, v, self.request)) if key == "donation"
                         else INPUT_VALIDATION,
                     )
                     i.without_auto_validation()
