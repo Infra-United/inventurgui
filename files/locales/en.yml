@@ -16,6 +16,7 @@ form:
   month: 'Month'
   start: 'Pick-Up'
   end: 'Return'
+  overlap: "Overlap"
   message: 'Your message - questions, notes, important info'
   update_message: 'A short Info what you have changed - that helps us a lot'
 finish:

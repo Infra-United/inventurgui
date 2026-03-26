@@ -114,16 +114,16 @@ async def submit_form(request: ObservableDict, warehouses: list[Warehouse], dele
     request.update({"edit_link": magic_link})
     request.update({"update": time.time()} if is_update else {"delete": time.time()} if delete else {"request": time.time()})
     try:
-        await handle_request(request, warehouses, delete)
+        request_data = await handle_request(request, warehouses, delete)
         filename = get_path(f"{settings.organization}-{request.get('name')}.xlsx", "lists")
-        await write_download_list(filename, warehouses)
-        await nicegui.run.io_bound(
+        await write_download_list(filename, request_data)
+        """await nicegui.run.io_bound(
             lambda: send_mail(
                 request,
                 request_type=RequestType.update if is_update else RequestType.delete if delete else RequestType.request,
                 filename=filename,
             )
-        )
+        )"""
         request.update({"download": str(filename)})
     except Exception as exception:
         request.update({"finish": i18n.get("finish.failure_mail")})

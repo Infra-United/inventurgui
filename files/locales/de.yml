@@ -16,6 +16,7 @@ form:
   month: 'Monat'
   start: 'Abholung'
   end: 'Rückgabe'
+  overlap: "Überschneidung"
   message: 'Deine Mail - Fragen, Anmerkungen und wichtige Infos'
   update_message: 'Eine kurze Info was du verändert hast - das macht es uns leichter'
 finish:
