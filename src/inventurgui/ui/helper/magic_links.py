@@ -6,7 +6,7 @@ from inventurgui.helper.paths import get_path
 
 
 def get_magic_link() -> str:
-    return f"https://{settings.domain}/{slugify(settings.cart['label'])}?id={app.storage.browser['id']}"
+    return f"{settings.domain}/{slugify(settings.cart['label'])}?id={app.storage.browser['id']}"
 
 
 def load_data_from_magic_link(new_id: str) -> None:
@@ -18,3 +18,5 @@ def load_data_from_magic_link(new_id: str) -> None:
     except FileNotFoundError:
         ui.notify(f"Sorry, couldn't find data for =id?{new_id}.", type="negative", position="center", text="secondary")
         ui.timer(5, lambda: ui.navigate.to("/"), once=True)
+
+

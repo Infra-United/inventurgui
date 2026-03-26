@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     logo: str = "logo.png"
     favicon: str = "favicon.png"
     organization: str = "example"
-    domain: str = "inventur.example.org"
+    domain: str = "https://inventur.example.org"
     port: int = 8080
     language: str = "en"
     locale: str = "en_US.UTF-8"

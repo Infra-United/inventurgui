@@ -19,7 +19,7 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.excel import handle_request
 from inventurgui.io.mail import send_mail, RequestType
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.ui.helper.magic_link import get_magic_link
+from inventurgui.ui.helper.magic_links import get_magic_link
 from inventurgui.ui.helper.validators import validate_mail, INPUT_VALIDATION, validate_number
 
 

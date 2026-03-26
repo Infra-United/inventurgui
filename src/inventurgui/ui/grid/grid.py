@@ -56,7 +56,7 @@ def register_event_handlers(grid: AgGrid, warehouse: Warehouse, df: DataFrame, c
     # Handle events
     grid.on("rowSelected", lambda e: handle_select(warehouse.name, e, grid))
     if not cart:
-        grid.on("cellClicked", lambda event: handle_click(warehouse.name, grid, event, df))
+        grid.on("cellClicked", lambda event: handle_click(warehouse, grid, event))
         if not admin:
             for row in Cache.selected(warehouse.name):
                 grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))

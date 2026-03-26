@@ -8,7 +8,7 @@ from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 
 
-def render_markdown(text: str) -> Markdown:
+def render_markdown(text: str|None = "") -> Markdown:
     return ui.markdown(text).classes(
         "p-10 pt-5 mx-auto text-justify wrap-break-word hyphens-none lg:text-base/6 md:text-sm/5 sm:antialiasing text-gray-300 max-w-180"
     )
