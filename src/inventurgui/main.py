@@ -1,3 +1,4 @@
+import locale
 import os
 
 import jwt
@@ -19,6 +20,7 @@ from inventurgui.ui.root import root
 def main():
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
+    locale.setlocale(locale.LC_TIME, settings.locale)
     display_wiki = settings.help["wiki"]
     if not ARGS.reload:
         Nextcloud.singleton().pull_files()
