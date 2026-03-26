@@ -28,6 +28,7 @@ async def upload_img(warehouse:Warehouse, event: UploadEventArguments, data:dict
     path.unlink(missing_ok=True)
     await event.file.save(path)
     img_url = get_img_url(warehouse.name, filename, file_extension, domain=False)
+    app.remove_route(img_url)
     app.add_static_file(local_file=path, url_path=img_url)
     data[settings.columns["image"]] = get_img_url(warehouse.name, filename,file_extension, domain=True)
     await grid.run_row_method(data.get("index"), "setData", data)
