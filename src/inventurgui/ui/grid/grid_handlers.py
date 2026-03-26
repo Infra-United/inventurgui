@@ -79,19 +79,17 @@ def dia_content(dia:Dialog, warehouse: Warehouse, data: dict, grid:AgGrid, admin
             with suppress(AttributeError):
                 img_url = re.search(URL_REGEX, data.get(columns["image"])).group("url")
             img =  ui.interactive_image(img_url).classes("max-sm:max-h-70")
-            img.force_reload()
             if admin:
+                up = ui.upload(label=i18n.get("admin.upload"), auto_upload=True)
+                up.on_upload(lambda e: upload_img(warehouse, e, data, grid))
+                up.props('accept="image/*" max-files=1 capture=environment')
+                ui.editor(value=data.get(columns["comment"])).bind_value_to(data, columns["comment"])
                 with img:
+                    up.on_upload(lambda: img.force_reload())
                     del_btn = ui.button(icon="delete").classes("absolute top-0 right-0")
                     del_btn.on('click', lambda: delete_img(img.source, data, grid, warehouse))
-                    del_btn.on('click', lambda: dia_content.refresh())
-        if admin:
-            up = ui.upload(label=i18n.get("admin.upload"), auto_upload=True)
-            up.on_upload(lambda e: upload_img(warehouse, e, data, grid))
-            up.on_upload(lambda: dia_content.refresh())
-            up.props('accept="image/*" max-files=1 capture=environment')
-            ui.editor(value=data.get(columns["comment"])).bind_value_to(data, columns["comment"])
-        else:
+                    del_btn.on('click', lambda: img.force_reload())
+        if not admin:
             md = render_markdown().classes(remove="text-justify")
             md.bind_content_from(data, columns["comment"], backward=lambda x: "" if x is None else x)
             md.bind_visibility(md, "content")
