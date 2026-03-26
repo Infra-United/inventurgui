@@ -35,7 +35,8 @@ async def upload_img(warehouse:Warehouse, event: UploadEventArguments, data:dict
     filename = data[settings.columns['object']]
     path = get_img_path(warehouse.name, filename , file_extension)
     img_url = get_img_url(warehouse.name, filename, file_extension, domain=False)
-    await delete_img(data, grid, warehouse)
+    path.unlink(missing_ok=True)
+    app.remove_route(img_url)
     await event.file.save(path)
     app.add_static_file(local_file=path, url_path=img_url)
     data[settings.columns["image"]] = get_img_url(warehouse.name, filename,file_extension, domain=True)
