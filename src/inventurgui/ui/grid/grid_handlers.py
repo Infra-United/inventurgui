@@ -81,7 +81,7 @@ def dia_content(dia:Dialog, warehouse: Warehouse, data: dict, grid:AgGrid, admin
             img =  ui.interactive_image(img_url).classes("max-sm:max-h-70")
         if admin:
             up = ui.upload(label=i18n.get("admin.upload"), auto_upload=True)
-            up.on_upload(lambda e: (upload_img(warehouse, e, data, grid), dia_content.refresh()))
+            up.on_upload(lambda e: upload_img(warehouse, e, data, grid))
             up.props('accept="image/*" max-files=1 capture=environment')
             ui.editor(value=data.get(columns["comment"])).bind_value_to(data, columns["comment"])
             if data.get(columns["image"]):
