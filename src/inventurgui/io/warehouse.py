@@ -23,11 +23,9 @@ class Warehouse(MenuItem):
         #    print(df.filter(pl.col(columns["object"]).str.contains("regal")))
         df = df.with_columns(
             [
-                pl.col(columns["count"]).cast(pl.Int32, strict=False),
-                pl.col(columns["category"]).cast(pl.Categorical, strict=False),
-                pl.col(columns["shelf"]).cast(pl.Categorical, strict=False),
+                pl.col(columns["count"]).cast(pl.Int64, strict=False),
                 pl.col(columns["weight"]).cast(pl.Float64, strict=False),
-                pl.col(columns["count"]).alias(columns["total"]).cast(pl.Int32, strict=False),
+                pl.col(columns["count"]).alias(columns["total"]).cast(pl.Int64, strict=False),
             ]
         )
         df.insert_column(1, (pl.col(columns["count"]) * pl.col(columns["weight"])).alias(columns["total_weight"]))
