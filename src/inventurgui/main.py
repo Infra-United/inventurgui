@@ -1,3 +1,4 @@
+import asyncio
 import locale
 import os
 
@@ -8,7 +9,7 @@ from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path, ensure_directory_structure
-from inventurgui.io.importer import read_inventory
+from inventurgui.io.importer import read_ods
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.io.wiki import read_wiki
@@ -17,14 +18,14 @@ from inventurgui.ui.root import root
 
 
 # Starts the UI
-def main():
+async def main():
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     locale.setlocale(locale.LC_TIME, settings.locale)
     display_wiki = settings.help["wiki"]
     if not ARGS.reload:
         Nextcloud.singleton().pull_files()
-    warehouses: list[Warehouse] = [w for w in read_inventory()]
+    warehouses: list[Warehouse] = [await read_ods(sheet) for sheet in settings.data["warehouses"]]
     ensure_directory_structure([w.name for w in warehouses])
     pages: dict[str, str] = {k: v for k, v in read_page_files()}
     if display_wiki:
@@ -48,10 +49,11 @@ def main():
         title=settings.title,
         favicon=get_path(settings.favicon),
         port=settings.port,
+        uvicorn_reload_excludes=str(get_path("")),
         storage_secret=storage_secret if storage_secret else "12341232312",
     )
     LOGGER.debug("Successfully started UI.")
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    main()
+    asyncio.run(main())

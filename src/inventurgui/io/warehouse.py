@@ -28,6 +28,12 @@ class Warehouse(MenuItem):
                 pl.col(columns["count"]).alias(columns["total"]).cast(pl.Int64, strict=False),
             ]
         )
+        """ df = df.with_columns(
+                pl.struct(src=pl.col(columns["image"]).fill_null(""), fname=pl.col(columns["object"]))
+                .map_elements(lambda cols: cache_image(cols['src'], name, cols['fname']), skip_nulls=True, return_dtype=pl.String)
+                .alias(columns["image"]))
+        """
+
         df.insert_column(1, (pl.col(columns["count"]) * pl.col(columns["weight"])).alias(columns["total_weight"]))
         warehouse = cls(name=name, inventory=df.select([c for c in columns.values()]).with_row_index())
         warehouse.inventory.insert_column(0, (pl.lit(name)).alias(settings.warehouse["label"]))

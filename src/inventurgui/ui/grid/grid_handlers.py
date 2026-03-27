@@ -1,4 +1,3 @@
-import re
 from contextlib import suppress
 
 from nicegui import app, ui
@@ -13,7 +12,6 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.helper.markdown import render_markdown
-from inventurgui.ui.helper.validators import URL_REGEX
 
 
 async def update_amount(grid: AgGrid, warehouse: Warehouse, event: GenericEventArguments):
@@ -68,6 +66,7 @@ def info_popup(warehouse: Warehouse, event_args: dict, grid: AgGrid):
     data = event_args["data"]
     with ui.dialog(value=True) as dia:
         dia_content(dia, warehouse, data, grid, admin)
+        dia.on("hide", lambda: update_row_data(data, grid, warehouse))
     return dia
 
 @ui.refreshable
@@ -76,23 +75,25 @@ def dia_content(dia:Dialog, warehouse: Warehouse, data: dict, grid:AgGrid, admin
     with dia.clear(), ui.card().classes("w-100 gap-2 items-center text-center py-4 text-bold"):
         ui.label(text=f"{data.get(columns['object'])}")
         if data.get(columns["image"]):
-            with suppress(AttributeError):
-                img_url = re.search(URL_REGEX, data.get(columns["image"])).group("url")
-            img =  ui.interactive_image(img_url).classes("max-sm:max-h-70")
+            img = ui.interactive_image(data.get(columns["image"]))
         if admin:
             up = ui.upload(label=i18n.get("admin.upload"), auto_upload=True)
-            up.on_upload(lambda e: upload_img(warehouse, e, data, grid))
+            up.on_upload(lambda e: upload_img(warehouse.name, e, data))
             up.props('accept="image/*" max-files=1 capture=environment')
             ui.editor(value=data.get(columns["comment"])).bind_value_to(data, columns["comment"])
             if data.get(columns["image"]):
                 with img:
                     up.on_upload(lambda: img.force_reload())
                     del_btn = ui.button(icon="delete").classes("absolute top-0 right-0")
-                    del_btn.on('click', lambda: delete_img(data, grid, warehouse))
-                    del_btn.on('click', lambda: img.force_reload())
+                    del_btn.on('click', lambda: delete_img(data))
+                    del_btn.on('click', lambda: img.delete())
         else:
             md = render_markdown().classes(remove="text-justify")
             md.bind_content_from(data, columns["comment"], backward=lambda x: "" if x is None else x)
             md.bind_visibility(md, "content")
         url = data.get(columns.get("url"))
         ui.link(url, url, new_tab=True) if url else None
+
+def update_row_data(data: dict, grid: AgGrid, warehouse: Warehouse):
+    grid.run_row_method(data.get("index"), "setData", data)
+    warehouse.inventory[data.get("index"), settings.columns["image"]] = data[settings.columns["image"]]

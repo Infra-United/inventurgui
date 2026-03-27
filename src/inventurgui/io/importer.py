@@ -1,21 +1,29 @@
-from typing import Generator
+from typing import Any
 
 import polars as pl
 from polars.exceptions import NoDataError
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.images import cache_image
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 from inventurgui.io.warehouse import Warehouse
 
 
-def read_inventory() -> Generator[Warehouse, None, None]:
+async def read_ods(sheet:str) -> Any | None:
     inventory = get_path(settings.data["path"])
     LOGGER.debug(f"Reading Data from {inventory}...")
-    for name in settings.data["warehouses"]:
-        try:
-            LOGGER.debug(f"Reading sheet {name}...")
-            df = pl.read_ods(source=inventory, sheet_name=name, drop_empty_cols=False)
-            yield Warehouse.create(name, df)
-        except NoDataError:
-            LOGGER.warning(f"No data found in sheet {name}. Please check if this is intended.")
+    try:
+        LOGGER.debug(f"Reading sheet {sheet}...")
+        df = pl.read_ods(source=inventory, sheet_name=sheet, drop_empty_cols=False)
+        columns = settings.columns
+        if columns["image"] in df.columns:
+            for idx, row in enumerate(df.iter_rows(named=True)):
+                if row[settings.columns["image"]] is None:
+                    continue
+                df[idx, columns["image"]] = await cache_image(row[columns["image"]], sheet,
+                                                              row[columns["object"]], thumbnail=True)
+        return Warehouse.create(sheet, df)
+    except NoDataError:
+        LOGGER.warning(f"No data found in sheet {sheet}. Please check if this is intended.")
+        return None

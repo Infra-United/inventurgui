@@ -1,3 +1,5 @@
+import asyncio
+
 from inventurgui.main import main
 
-main()
+asyncio.run(main())

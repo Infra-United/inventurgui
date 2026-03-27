@@ -5,7 +5,7 @@ from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.paths import ensure_directory_structure
 from inventurgui.io.cache import Cache
-from inventurgui.io.importer import read_inventory
+from inventurgui.io.importer import read_ods
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse, WAREHOUSE_ROOT
 from inventurgui.io.wiki import WikiChapter, WIKI_ROOT, pull_wiki, read_wiki
@@ -95,7 +95,7 @@ def root(
     # Set timers for refreshing files
     ui.timer(settings.refresh_timer, lambda: pull_wiki() if display_wiki else None, immediate=False)
     ui.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files(), immediate=False)
-    ui.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_inventory())), immediate=False)
+    ui.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_ods())), immediate=False)
     ui.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]), immediate=False)
     ui.timer(settings.refresh_timer, lambda: markdown.update({k: v for k, v in read_page_files()}), immediate=False)
     ui.timer(settings.refresh_timer, lambda: wiki.update(read_wiki()) if display_wiki else None, immediate=False)
