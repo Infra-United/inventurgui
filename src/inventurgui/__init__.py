@@ -1,5 +1,6 @@
 import asyncio
 
-from inventurgui.main import main
+from inventurgui.main import main, load_data
 
-asyncio.run(main())
+warehouses = asyncio.run(load_data())
+main(warehouses)
