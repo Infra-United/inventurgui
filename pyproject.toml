@@ -21,6 +21,7 @@ dependencies = [
     "xlsxwriter>=3.2.9",
     "email-validator>=2.3.0",
     "pillow>=12.1.1",
+    "beautifulsoup4>=4.14.3",
 ]
 
 [tool.hatch.build.targets.wheel]
