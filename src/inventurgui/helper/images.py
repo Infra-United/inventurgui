@@ -56,7 +56,7 @@ async def delete_img(data: dict):
         app.remove_route(url_dict.get("path"))
     data[settings.columns["image"]] = ""
 
-async def cache_image(src: str, subfolder:str, filename: str, thumbnail:bool = False):
+async def cache_image(src: str, subfolder:str, filename: str, thumbnail:bool = False, compress:bool = False):
     url_dict: dict|None = match_img_url(src)
     if url_dict and url_dict["domain"] != settings.domain:
         path = construct_img_path(subfolder, filename, url_dict.get("ext"))
@@ -66,7 +66,9 @@ async def cache_image(src: str, subfolder:str, filename: str, thumbnail:bool = F
                 if response.status_code == 200 and response.headers["content-type"].startswith("image"):
                     image = Image.open(BytesIO(response.content))
                     image.save(path)
-                    if thumbnail:
+                    if compress:
+                        compress_image(path)
+                    elif thumbnail:
                         make_thumbnail(path)
                     LOGGER.info(f"Successfully downloaded image from {url_dict['url']} and saved to {path}")
             except httpx.TimeoutException, UnidentifiedImageError, ValueError, OSError:
@@ -78,3 +80,13 @@ async def cache_image(src: str, subfolder:str, filename: str, thumbnail:bool = F
     else: # No img URL found in src
         LOGGER.debug(f"Could not download image in {src}")
         return None
+
+def compress_image(path:Path):
+    image = Image.open(path)
+    if image.format not in {".jpg", ".jpeg", ".png"}:
+        image.save(path)
+    # Save back to the same path, overwriting the original file
+    if image.format in {".jpg", ".jpeg"}:
+        image.save(path, quality=80, optimize=True)
+    else:
+        image.save(path, optimize=True, compress_level=9)
