@@ -121,12 +121,6 @@ def drawer_menu(
             )
             toggle = ui.toggle(item.children)
             parse_uri(exp, toggle)
-            exp.on(
-                "click",
-                lambda i=item: ui.navigate.to(
-                    f"/{menu_root}/{slugify(i.name)}/{slugify(settings.warehouse['everything'])}"
-                ),
-            )
             exp.on("click", lambda t=toggle, i=item: t.set_value(i.name))
             exp.on("click", lambda e=exp: e.open())
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
