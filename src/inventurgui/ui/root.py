@@ -100,8 +100,8 @@ def root(
     ui.timer(settings.refresh_timer, lambda: markdown.update({k: v for k, v in read_page_files()}), immediate=False)
     ui.timer(settings.refresh_timer, lambda: wiki.update(read_wiki()) if display_wiki else None, immediate=False)
 
-    # Set colors
-    Theme(settings.theme).set_colors()
+    # Instantiate Theme
+    Theme.singleton().set_colors()
 
     # Set default styles
     ui.query(".nicegui-content").classes("p-0 min-h-full bg-dark w-full no-scroll h-[calc(100vh-56px)]")
