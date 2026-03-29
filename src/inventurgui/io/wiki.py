@@ -1,9 +1,8 @@
 import dataclasses
-import html
-from contextlib import suppress
-from typing import Generator, Protocol
+from typing import Generator, Protocol, Tuple, override
 
 import httpx
+from bs4 import BeautifulSoup
 from slugify import slugify
 
 from inventurgui.helper.config import settings
@@ -19,6 +18,9 @@ class MenuItem(Protocol):
     @property
     def children(self) -> list[str]: ...
 
+    @property
+    def routes(self) -> dict[str, str]: ...
+
 
 @dataclasses.dataclass
 class WikiChapter(MenuItem):
@@ -30,9 +32,15 @@ class WikiChapter(MenuItem):
         for name, pages in chapter_dict.items():
             yield WikiChapter(name=name, pages=pages)
 
+    @override
     @property
     def children(self) -> list[str]:
         return list(self.pages.keys())
+
+    @override
+    @property
+    def routes(self) -> dict[str, str]:
+        return self.pages
 
 
 def pull_wiki():
@@ -51,36 +59,34 @@ def read_wiki() -> dict[str, str | list[WikiChapter]]:
     try:
         with open(file, "r") as f:
             content = str(f.read())
-            style = content[content.index("<style>") : content.index("</style>")] + "</style>"
+            soup = BeautifulSoup(content, "html.parser")
             pages = content[content.index("<div") : -1].split('<div class="page-break"></div>')
-            pages[0] = wiki_home(pages[0])
-            return {"style": fix_styles(style), "root": pages[0], "chapters": parse_menu(pages)}
+            home_page, wiki_menu = parse_home(pages[0])
+            pages = parse_pages(pages)
+            return {"style": fix_styles(str(soup.style)), "root": home_page, "menu": wiki_menu, "content": pages}
     except FileNotFoundError:
         LOGGER.exception(f"File {file.name} not found.")
         raise FileNotFoundError
 
 
-def wiki_home(home: str) -> str:
-    home = home.replace("4.8em", "")
-    menu_start = home.index('ul class="contents">')
-    menu_lines = home[menu_start:].splitlines()
-    for idx, line in enumerate(menu_lines):
-        with suppress(ValueError, IndexError):
-            to_replace = line[line.index("#") : line.rindex('"')]
-            if to_replace.startswith("#chapter"):
-                chapter_slug = slugify(line.split(">")[-3].rstrip("</a"))
-                replacement = f"/{WIKI_ROOT}/{chapter_slug}"
-            elif to_replace.startswith("#page"):
-                replacement = f"/{WIKI_ROOT}/{chapter_slug}/{slugify(line.split('>')[-3].rstrip('</a'))}"
-            else:
-                continue
-            menu_lines[idx] = line.replace(to_replace, replacement)
-    # home = home.replace(home[menu_start:-1], "\n".join(menu_lines))
-    home = home[: menu_start - 1]
-    return home
-
+def parse_home(home: str) -> Tuple[str, list[WikiChapter]]:
+    home = home.replace("4.8em", "") #TODO
+    soup = BeautifulSoup(home, "html.parser")
+    toc = soup.find('ul', class_="contents")
+    menu: dict[str, dict[str, str]] = {}
+    for item in toc.find_all('a'):
+        if item['href'].startswith("#chapter"):
+            chapter_name: str = item.string
+            item['href'] = f"/{WIKI_ROOT}/{slugify(f"{item.string}-{item['href'].split("-")[-1]}")}"
+            menu.update({item.string: {item.string: item['href']}})
+        else:
+            page_name = f"{item.string}-{item['href'].split("-")[-1]}"
+            item['href'] = f"/{WIKI_ROOT}/{slugify(chapter_name)}/{slugify(page_name)}"
+            menu[chapter_name].update({item.string: item['href']})
+    return soup.prettify(), [i for i in WikiChapter.create(menu)]
 
 def fix_styles(style: str):
+    style = style.replace("--color-link: #206ea7", f"--color-link: {settings.theme.get('links')}")
     style = style.replace("color:#222", "color:#fff")
     style = style.replace("font-style:italic", "")
     style = style.replace("font-family:", "")
@@ -88,36 +94,33 @@ def fix_styles(style: str):
     return style.replace("background-color:#f8f8f8", "background-color:#37474f")
 
 
-def parse_menu(pages: list[str]) -> list[WikiChapter]:
+def parse_pages(pages: list[str]) -> list[WikiChapter]:
     """
     Parses the table of contents from a list of page-html-strings.
     :param pages: The list of html-strings containing the pages
     :return: a list of WikiChapters
     """
-    chapters: dict[str, dict[str, str]] = {}
-    chapter_name = ""
+    page_dict: dict[str, dict[str, str]] = {}
+    chapter_id = 0
+    page_id = 0
     for idx, page in enumerate(pages[1:-1]):
         page = page.replace("background-color:#f1c40f", "background-color:#607d8b")
         page = page.replace("background-color:rgb(241,196,15)", "background-color:#607d8b")
-        id_line = html.unescape(page[page.index('<h1 id="') + 8 : page.index("</h1")])
-        if id_line.startswith("chapter"):
-            chapter_name = id_line.split(">")[-1].rstrip("</h1")
-            chapters.update({chapter_name: {chapter_name: pages[0] if idx == 0 else page}})
-        if id_line.startswith("page"):
-            page_name = id_line.split(">")[-1].rstrip("</h1")
-            chapters.get(chapter_name).update({page_name: page})
-    return [i for i in WikiChapter.create(chapters)]
-
-def compress_images():
-    from PIL import Image
-    src = get_path("images")
-
-    for p in src.glob("*.*"):
-        if p.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
-            continue
-        img = Image.open(p)
-        # Save back to the same path, overwriting the original file
-        if p.suffix.lower() in {".jpg", ".jpeg"}:
-            img.save(p, quality=80, optimize=True)
-        else:
-            img.save(p, optimize=True, compress_level=9)
+        soup = BeautifulSoup(page, "html.parser")
+        # Extract chapter and page names for menu
+        h1 = soup.find('h1')
+        if h1.get('id').startswith("chapter"):
+            chapter_id = h1.get('id').split("-")[-1]
+            page_dict.update({chapter_id: {chapter_id: pages[0] if idx == 0 else page}})
+        elif h1.get('id').startswith("page"):
+            page_id = h1.get('id').split("-")[-1]
+            page_dict.get(chapter_id).update({page_id: page})
+        # Cache images
+        images = soup.find_all('img')
+        for i, img in enumerate(images):
+            if not img:
+                continue
+            filename = f"{chapter_id}-{page_id}-{i}"
+            if link:= img.parent.get("href"):
+                pass #cache_image(link, "wiki", filename, compress=True)
+    return [i for i in WikiChapter.create(page_dict)]

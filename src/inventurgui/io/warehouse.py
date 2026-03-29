@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import override
 
 import polars as pl
 from polars import DataFrame
@@ -17,6 +18,19 @@ class Warehouse(MenuItem):
     name: str
     inventory: DataFrame
 
+    @override
+    @property
+    def children(self) -> list[str]:
+        return self.categories
+
+    @override
+    @property
+    def routes(self) -> dict[str, str]:
+        routes: dict[str, str] = {}
+        for category in self.categories:
+            routes.update({category: f"/{WAREHOUSE_ROOT}/{slugify(self.name)}/{slugify(category)}"})
+        return routes
+
     @classmethod
     def create(cls, name: str, df: DataFrame):
         # with pl.Config(tbl_cols=-1):
@@ -28,12 +42,6 @@ class Warehouse(MenuItem):
                 pl.col(columns["count"]).alias(columns["total"]).cast(pl.Int64, strict=False),
             ]
         )
-        """ df = df.with_columns(
-                pl.struct(src=pl.col(columns["image"]).fill_null(""), fname=pl.col(columns["object"]))
-                .map_elements(lambda cols: cache_image(cols['src'], name, cols['fname']), skip_nulls=True, return_dtype=pl.String)
-                .alias(columns["image"]))
-        """
-
         df.insert_column(1, (pl.col(columns["count"]) * pl.col(columns["weight"])).alias(columns["total_weight"]))
         warehouse = cls(name=name, inventory=df.select([c for c in columns.values()]).with_row_index())
         warehouse.inventory.insert_column(0, (pl.lit(name)).alias(settings.warehouse["label"]))
@@ -55,10 +63,6 @@ class Warehouse(MenuItem):
             )
         c.insert(0, settings.warehouse["selection"])
         return c
-
-    @property
-    def children(self) -> list[str]:
-        return self.categories
 
     def selected(self) -> DataFrame:
         return self.inventory.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))

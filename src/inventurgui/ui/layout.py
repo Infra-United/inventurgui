@@ -106,7 +106,7 @@ def drawer_menu(
         ui.label(config["label"].upper()).classes(classes).classes("text-secondary text-bold")
         row.on("click", lambda: (ui.navigate.to(f"/{menu_root}"), drawer_menu.refresh()))
 
-    for item in menu_items:
+    for idx, item in enumerate(menu_items):
         with ui.expansion(text=item.name.upper(), group=config["label"]).classes(classes) as exp:
             if isinstance(item, Warehouse):
                 with exp.add_slot("header"):
@@ -130,6 +130,9 @@ def drawer_menu(
             exp.on("click", lambda t=toggle, i=item: t.set_value(i.name))
             exp.on("click", lambda e=exp: e.open())
             toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
-            toggle.on_value_change(
-                lambda v, i=item: ui.navigate.to(f"/{menu_root}/{slugify(i.name)}/{slugify(v.value)}")
-            )
+            if isinstance(item, Warehouse):
+                toggle.on_value_change(
+                    lambda v, i=item: ui.navigate.to(f"/{menu_root}/{slugify(i.name)}/{slugify(v.value)}")
+                )
+            else: # Get route from page dict if handling wiki
+                toggle.on_value_change(lambda v, i=item: ui.navigate.to(i.routes.get(v.value)))
