@@ -43,4 +43,4 @@ Example Usage here: https://infra.uber.space
 ### Make everything even more customizable for different use cases
 - [ ] Option to optimize for many small requests (e.g. overview per Month)
 - [ ] Make Locations/Warehouses customizable so they can be managed by different groups
-- [ ] Add optional map
+- [ ] Add optional map and calendar for use case in cities
