@@ -22,8 +22,8 @@ Example Usage here: https://infra.uber.space
 - Showcase your Inventory grouped by Location and Category through the left sidebar
 - Streamlined Process for requesting items - simply follow the Floating Actions
 - Generate a Request [Form](#Form) tailored to your needs - including input validation 
-- Translation: English and German already available - add your language with ease, by adding another .yml file to files/locales.
-- Customization: any text and even all routes are customizable either through config or localization files
+- Translate: English and German already available - add your language with ease, by adding another .yml file to files/locales.
+- Customize: any text, icon, colors and even all routes are customizable either through config or localization files
 
 #### Optional: 📕 Wiki - Add your [Bookstack](https://www.bookstackapp.com/) Book as Wiki through the right drawer instead of a help page (Optional)
 
