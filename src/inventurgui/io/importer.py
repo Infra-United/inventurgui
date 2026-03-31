@@ -1,5 +1,3 @@
-from typing import Any
-
 import polars as pl
 from polars.exceptions import NoDataError
 
@@ -10,7 +8,7 @@ from inventurgui.helper.paths import get_path
 from inventurgui.io.warehouse import Warehouse
 
 
-async def read_ods(sheet:str) -> Any | None:
+async def read_ods(sheet:str) -> list[Warehouse] | None:
     inventory = get_path(settings.data["path"])
     LOGGER.debug(f"Reading Data from {inventory}...")
     try:
@@ -26,4 +24,4 @@ async def read_ods(sheet:str) -> Any | None:
         return Warehouse.create(sheet, df)
     except NoDataError:
         LOGGER.warning(f"No data found in sheet {sheet}. Please check if this is intended.")
-        return None
+        exit(1)
