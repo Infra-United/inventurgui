@@ -8,27 +8,18 @@ from nicegui import app, nicegui
 from nicegui.events import UploadEventArguments
 from slugify import slugify
 
+from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 from inventurgui.ui.helper.validators import IMG_URL_REGEX
 
 
-def make_thumbnail(path: Path):
+def make_thumbnail(path: Path, size: int = 600):
     if path.is_file():
         image = Image.open(path)
-        image.thumbnail((600, 600))
+        image.thumbnail((size, size))
         image.save(path)
-
-def compress_image(path:Path):
-    image = Image.open(path)
-    if image.format not in {".jpg", ".jpeg", ".png"}:
-        image.save(path)
-    # Save back to the same path, overwriting the original file
-    if image.format in {".jpg", ".jpeg"}:
-        image.save(path, quality=80, optimize=True)
-    else:
-        image.save(path, optimize=True, compress_level=9)
 
 def match_img_url(to_test: str) -> dict | None:
     try:
@@ -61,13 +52,13 @@ async def upload_img(warehouse_name:str, event: UploadEventArguments, data:dict)
 async def delete_img(data: dict):
     url_dict: dict|None = match_img_url(data[settings.columns["image"]])
     if url_dict and url_dict.get("domain") == settings.domain:
-        get_path(url_dict.get("path")).unlink()
+        get_path(url_dict["path"]).unlink()
         app.remove_route(url_dict.get("path"))
     data[settings.columns["image"]] = ""
 
-async def cache_image(url_dict: dict, subfolder:str, filename: str, thumbnail:bool = False, compress:bool = False):
-    path = construct_img_path(subfolder, filename, url_dict.get("ext"))
-    if not path.is_file() or url_dict["domain"] != settings.domain: # Guard clause for dev environment to download images only once
+async def cache_image(url_dict: dict[str, str], subfolder:str, filename: str, thumbnail_size:int = 600, compress:bool = False):
+    path = construct_img_path(subfolder, filename, url_dict["ext"])
+    if not path.is_file() or url_dict["domain"] != settings.domain or ARGS.images: # Guard clause for dev environment to download images only once
         try:
             response = await nicegui.run.io_bound(httpx.get,url_dict["url"], timeout=5)
             if response.status_code == 200 and response.headers["content-type"].startswith("image"):
@@ -75,17 +66,14 @@ async def cache_image(url_dict: dict, subfolder:str, filename: str, thumbnail:bo
                 if not get_path(subfolder, "images").is_dir():
                     mkdir(get_path(subfolder, "images"))
                 image.save(path)
-                if compress:
-                    compress_image(path)
-                elif thumbnail:
-                    make_thumbnail(path)
+                make_thumbnail(path, thumbnail_size)
                 LOGGER.info(f"Successfully downloaded image from {url_dict['url']} and saved to {path}")
         except httpx.TimeoutException, httpx.ReadTimeout, UnidentifiedImageError, ValueError, OSError:
             LOGGER.exception(f"Could not download image from {url_dict['url']} and save it to {path}", exc_info=True)
             return None
-    img_url = construct_img_url(subfolder, filename, url_dict.get("ext"), domain=False)
+    img_url = construct_img_url(subfolder, filename, url_dict["ext"], domain=False)
     try:
         app.add_static_file(local_file=path, url_path=img_url)
     except FileNotFoundError:
         return url_dict.get("url")
-    return construct_img_url(subfolder, filename, url_dict.get("ext"), domain=True)
+    return construct_img_url(subfolder, filename, url_dict["ext"], domain=True)
