@@ -1,3 +1,4 @@
+import base64
 from io import BytesIO
 from os import mkdir
 from pathlib import Path
@@ -58,7 +59,7 @@ async def delete_img(data: dict):
 
 async def cache_image(url_dict: dict[str, str], subfolder:str, filename: str, thumbnail_size:int = 600, compress:bool = False):
     path = construct_img_path(subfolder, filename, url_dict["ext"])
-    if not path.is_file() and url_dict["domain"] != settings.domain or ARGS.images: # Guard clause for dev environment to download images only once
+    if not path.is_file() and url_dict["domain"] != settings.domain or ARGS.images:
         try:
             response = await nicegui.run.io_bound(httpx.get,url_dict["url"], timeout=5)
             if response.status_code == 200 and response.headers["content-type"].startswith("image"):
@@ -77,3 +78,24 @@ async def cache_image(url_dict: dict[str, str], subfolder:str, filename: str, th
     except FileNotFoundError:
         return url_dict.get("url")
     return construct_img_url(subfolder, filename, url_dict["ext"], domain=True)
+
+async def cache_base64_img(src:str, subfolder:str, filename:str, thumbnail_size:int = 600):
+    split = src.split(";base64,")
+    base = split[-1]
+    ext = split[0].split("/")[-1]
+    path = construct_img_path(subfolder, filename, ext)
+    print(path)
+    if not path.is_file() or ARGS.images:
+        try:
+            Image.open(BytesIO(base64.b64decode(base))).save(path)
+            make_thumbnail(path, thumbnail_size)
+            LOGGER.info(f"Successfully converted image from {split[-1]} and saved to {path}.")
+        except IOError:
+            LOGGER.exception(f"Could not convert image from {split[-1]} and save it to {path}", exc_info=True)
+            return src
+    img_url = construct_img_url(subfolder, filename, ext, domain=False)
+    try:
+        app.add_static_file(local_file=path, url_path=img_url)
+    except FileNotFoundError:
+        return src
+    return construct_img_url(subfolder, filename, ext, domain=True)

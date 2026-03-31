@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from slugify import slugify
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.images import cache_image, match_img_url
+from inventurgui.helper.images import cache_image, match_img_url, cache_base64_img
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 
@@ -109,7 +109,6 @@ async def parse_pages(pages: list[str]) -> list[WikiChapter]:
     """
     page_dict: dict[str, dict[str, str]] = {}
     chapter_id = 0
-    page_id = 0
     for idx, page in enumerate(pages[1:]):
         page = page.replace("background-color:#f1c40f", "background-color:#607d8b")
         page = page.replace("background-color:rgb(241,196,15)", "background-color:#607d8b")
@@ -120,25 +119,29 @@ async def parse_pages(pages: list[str]) -> list[WikiChapter]:
         for i, img in enumerate(images):
             if not img:
                 continue
-            if img.parent.get("href"): # If there is a URL in <a href="">
-                link = img.parent.get("href")
+            if href:=img.parent.get("href"): # If there is a URL in <a href="">
+                link = str(href)
             else: # If there is a URL in <img src="">
-                link = img["src"]
+                link = str(img["src"])
             url_dict: dict | None = match_img_url(link)
-            if not url_dict: # Don't handle Base64 Strings for now
-                continue
-            filename = link.split("/")[-1].split("-")[0]
-            img_url = await cache_image(url_dict, "wiki", filename, thumbnail_size=800)
+            if url_dict:
+                filename = link.split("/")[-1].split("-")[0]
+                img_url = await cache_image(url_dict, "wiki", filename, thumbnail_size=800)
+            else: # Don't handle Base64 Strings for now
+                filename = img["src"][-30:]
+                img_url = await cache_base64_img(str(img["src"]), "wiki", filename, thumbnail_size=800)
             img.parent['href'] = img_url
             img['src'] = img_url
 
         # Extract chapter and page ids for routes
         h1 = soup.find('h1')
         if h1.get('id').startswith("chapter"):
+            # noinspection PyUnresolvedReferences
             chapter_id = h1.get('id').split("-")[-1]
             page_dict.update({chapter_id: {chapter_id: pages[0] if idx == 0 else soup.prettify()}})
         elif h1.get('id').startswith("page"):
+            # noinspection PyUnresolvedReferences
             page_id = h1.get('id').split("-")[-1]
-            page_dict.get(chapter_id).update({page_id: soup.prettify()})
+            page_dict[str(chapter_id)].update({page_id: soup.prettify()})
 
     return [i for i in WikiChapter.create(page_dict)]
