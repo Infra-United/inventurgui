@@ -1,11 +1,11 @@
 import dataclasses
 from typing import Generator, Protocol, Tuple, override
 
-import httpx
 from bs4 import BeautifulSoup
 from slugify import slugify
 
 from inventurgui.helper.config import settings
+from inventurgui.helper.images import cache_image, match_img_url
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
 
@@ -62,7 +62,7 @@ def read_wiki() -> dict[str, str | list[WikiChapter]]:
             soup = BeautifulSoup(content, "html.parser")
             pages = content[content.index("<div") : -1].split('<div class="page-break"></div>')
             home_page, wiki_menu = parse_home(pages[0])
-            pages = parse_pages(pages)
+            pages = await parse_pages(pages)
             return {"style": fix_styles(str(soup.style)), "root": home_page, "menu": wiki_menu, "content": pages}
     except FileNotFoundError:
         LOGGER.exception(f"File {file.name} not found.")
@@ -94,7 +94,7 @@ def fix_styles(style: str):
     return style.replace("background-color:#f8f8f8", "background-color:#37474f")
 
 
-def parse_pages(pages: list[str]) -> list[WikiChapter]:
+async def parse_pages(pages: list[str]) -> list[WikiChapter]:
     """
     Parses the table of contents from a list of page-html-strings.
     :param pages: The list of html-strings containing the pages
@@ -107,20 +107,31 @@ def parse_pages(pages: list[str]) -> list[WikiChapter]:
         page = page.replace("background-color:#f1c40f", "background-color:#607d8b")
         page = page.replace("background-color:rgb(241,196,15)", "background-color:#607d8b")
         soup = BeautifulSoup(page, "html.parser")
-        # Extract chapter and page names for menu
-        h1 = soup.find('h1')
-        if h1.get('id').startswith("chapter"):
-            chapter_id = h1.get('id').split("-")[-1]
-            page_dict.update({chapter_id: {chapter_id: pages[0] if idx == 0 else page}})
-        elif h1.get('id').startswith("page"):
-            page_id = h1.get('id').split("-")[-1]
-            page_dict.get(chapter_id).update({page_id: page})
+
         # Cache images
         images = soup.find_all('img')
         for i, img in enumerate(images):
             if not img:
                 continue
-            filename = f"{chapter_id}-{page_id}-{i}"
-            if link:= img.parent.get("href"):
-                pass #cache_image(link, "wiki", filename, compress=True)
+            if img.parent.get("href"): # If there is a URL in <a href="">
+                link = img.parent.get("href")
+            else: # If there is a URL in <img src="">
+                link = img["src"]
+            url_dict: dict | None = match_img_url(link)
+            if not url_dict: # Don't handle Base64 Strings for now
+                continue
+            filename = link.split("/")[-1].split("-")[0]
+            img_url = await cache_image(url_dict, "wiki", filename, compress=True)
+            img.parent['href'] = img_url
+            img['src'] = img_url
+
+        # Extract chapter and page ids for routes
+        h1 = soup.find('h1')
+        if h1.get('id').startswith("chapter"):
+            chapter_id = h1.get('id').split("-")[-1]
+            page_dict.update({chapter_id: {chapter_id: pages[0] if idx == 0 else soup.prettify()}})
+        elif h1.get('id').startswith("page"):
+            page_id = h1.get('id').split("-")[-1]
+            page_dict.get(chapter_id).update({page_id: soup.prettify()})
+
     return [i for i in WikiChapter.create(page_dict)]

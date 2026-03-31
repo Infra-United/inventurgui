@@ -2,5 +2,5 @@ import asyncio
 
 from inventurgui.main import main, load_data
 
-warehouses = asyncio.run(load_data())
-main(warehouses)
+warehouses, wiki = asyncio.run(load_data())
+main(warehouses, wiki)

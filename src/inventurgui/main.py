@@ -1,6 +1,7 @@
 import asyncio
 import locale
 import os
+from typing import Tuple
 
 import jwt
 from nicegui import ui, app
@@ -17,22 +18,21 @@ from inventurgui.ui.helper.markdown import read_page_files
 from inventurgui.ui.root import root
 
 
-async def load_data():
+async def load_data() -> Tuple[list[Warehouse], dict|None]:
     warehouses: list[Warehouse] = [await read_ods(sheet) for sheet in settings.data["warehouses"]]
     ensure_directory_structure([w.name for w in warehouses])
-    return warehouses
+    if settings.help["wiki"]:
+        wiki_dict = await read_wiki()
+    return warehouses, wiki_dict
 
 # Starts the UI
-def main(warehouses:list[Warehouse]):
+def main(warehouses:list[Warehouse], wiki:dict|None):
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     locale.setlocale(locale.LC_TIME, settings.locale)
-    display_wiki = settings.help["wiki"]
     if not ARGS.reload:
         Nextcloud.singleton().pull_files()
     pages: dict[str, str] = {k: v for k, v in read_page_files()}
-    if display_wiki:
-        wiki = read_wiki()
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_file(local_file=get_path("manifest.json"), url_path="/helpers/manifest.json", strict=False)
@@ -41,7 +41,7 @@ def main(warehouses:list[Warehouse]):
     app.add_static_files("/splash/", get_path("splash"))
     app.add_static_files("/icons/", get_path("icons"))
     ui.run(
-        root=lambda: root(warehouses, pages, wiki if display_wiki else None),
+        root=lambda: root(warehouses, pages, wiki),
         language=settings.language,
         uvicorn_logging_level="debug" if ARGS.debug else "info",
         show=False,
@@ -57,5 +57,5 @@ def main(warehouses:list[Warehouse]):
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    data = asyncio.run(load_data())
-    main(data)
+    data, wiki_dict = asyncio.run(load_data())
+    main(data, wiki_dict)

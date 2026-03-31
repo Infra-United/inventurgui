@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 from nicegui import ui, app
 from slugify import slugify
 
@@ -7,7 +9,7 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.importer import read_ods
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse, WAREHOUSE_ROOT
-from inventurgui.io.wiki import WikiChapter, WIKI_ROOT, pull_wiki, read_wiki
+from inventurgui.io.wiki import WikiChapter, WIKI_ROOT, read_wiki
 from inventurgui.ui.helper.markdown import read_page_files
 from inventurgui.ui.helper.theme import Theme
 from inventurgui.ui.layout import create_layout
@@ -144,7 +146,8 @@ def root(
     else: # Register wiki pages
         sub_pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.get("root"), ld, wiki.get("style")))
         for idx, chapter in enumerate(wiki.get("menu")):
-            pages = wiki['content'][idx].pages
+            with suppress(IndexError):
+                pages = wiki['content'][idx].pages
             for name, route in chapter.pages.items():
                 page = pages.get(route.split('-')[-1])
                 sub_pages.add(route, lambda n=name, p=page: wiki_page(n, p, ld, wiki.get("style")))

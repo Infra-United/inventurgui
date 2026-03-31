@@ -8,7 +8,7 @@ from inventurgui.helper.i18n import i18n
 
 INPUT_VALIDATION: Final[dict[str, Callable[[str], bool]]] = {i18n.get("form.please_fill_field"): lambda v: len(v) > 0}
 IMG_URL_REGEX: re.Pattern = re.compile(
-    "^(?P<url>(?P<domain>https?://[-a-zA-Z0-9@:%._\+~#=]+)(?P<path>((?P<subfolders>(?:/[-a-zA-Z0-9@:%._\+~#=]+/)*)?)(?P<filename>[^\s/]+?\.(?P<ext>jpg|jpeg|png|gif|bmp|tiff|webp))))$",
+    "^(?P<url>(?P<domain>https?://[-a-zA-Z0-9@:%._\+~#=]+)(?P<path>(?P<subfolders>(?:/[-a-zA-Z0-9@:%._\+~#=]+)*))?/?(?P<filename>[^\s/]+?\.(?P<ext>jpg|jpeg|png|gif|bmp|tiff|webp)))",
 re.IGNORECASE)
 
 

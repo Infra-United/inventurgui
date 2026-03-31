@@ -1,14 +1,13 @@
 from io import BytesIO
+from os import mkdir
 from pathlib import Path
 
 import httpx
-import nicegui.run
 from PIL import Image, UnidentifiedImageError
-from nicegui import app
+from nicegui import app, nicegui
 from nicegui.events import UploadEventArguments
 from slugify import slugify
 
-from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
@@ -20,6 +19,16 @@ def make_thumbnail(path: Path):
         image = Image.open(path)
         image.thumbnail((600, 600))
         image.save(path)
+
+def compress_image(path:Path):
+    image = Image.open(path)
+    if image.format not in {".jpg", ".jpeg", ".png"}:
+        image.save(path)
+    # Save back to the same path, overwriting the original file
+    if image.format in {".jpg", ".jpeg"}:
+        image.save(path, quality=80, optimize=True)
+    else:
+        image.save(path, optimize=True, compress_level=9)
 
 def match_img_url(to_test: str) -> dict | None:
     try:
@@ -56,37 +65,27 @@ async def delete_img(data: dict):
         app.remove_route(url_dict.get("path"))
     data[settings.columns["image"]] = ""
 
-async def cache_image(src: str, subfolder:str, filename: str, thumbnail:bool = False, compress:bool = False):
-    url_dict: dict|None = match_img_url(src)
-    if url_dict and url_dict["domain"] != settings.domain:
-        path = construct_img_path(subfolder, filename, url_dict.get("ext"))
-        if not path.is_file() and not ARGS.dev: # Guard clause for dev environment to download images only once
-            try:
-                response = await nicegui.run.io_bound(httpx.get,url_dict["url"], timeout=5)
-                if response.status_code == 200 and response.headers["content-type"].startswith("image"):
-                    image = Image.open(BytesIO(response.content))
-                    image.save(path)
-                    if compress:
-                        compress_image(path)
-                    elif thumbnail:
-                        make_thumbnail(path)
-                    LOGGER.info(f"Successfully downloaded image from {url_dict['url']} and saved to {path}")
-            except httpx.TimeoutException, UnidentifiedImageError, ValueError, OSError:
-                LOGGER.exception(f"Could not download image from {url_dict['url']} and save it to {path}", exc_info=True)
-                return None
-        img_url = construct_img_url(subfolder, filename, url_dict.get("ext"), domain=False)
+async def cache_image(url_dict: dict, subfolder:str, filename: str, thumbnail:bool = False, compress:bool = False):
+    path = construct_img_path(subfolder, filename, url_dict.get("ext"))
+    if not path.is_file() and url_dict["domain"] != settings.domain: # Guard clause for dev environment to download images only once
+        try:
+            response = await nicegui.run.io_bound(httpx.get,url_dict["url"], timeout=5)
+            if response.status_code == 200 and response.headers["content-type"].startswith("image"):
+                image = Image.open(BytesIO(response.content))
+                if not get_path(subfolder, "images").is_dir():
+                    mkdir(get_path(subfolder, "images"))
+                image.save(path)
+                if compress:
+                    compress_image(path)
+                elif thumbnail:
+                    make_thumbnail(path)
+                LOGGER.info(f"Successfully downloaded image from {url_dict['url']} and saved to {path}")
+        except httpx.TimeoutException, httpx.ReadTimeout, UnidentifiedImageError, ValueError, OSError:
+            LOGGER.exception(f"Could not download image from {url_dict['url']} and save it to {path}", exc_info=True)
+            return None
+    img_url = construct_img_url(subfolder, filename, url_dict.get("ext"), domain=False)
+    try:
         app.add_static_file(local_file=path, url_path=img_url)
-        return construct_img_url(subfolder, filename, url_dict.get("ext"), domain=True)
-    else: # No img URL found in src
-        LOGGER.debug(f"Could not download image in {src}")
-        return None
-
-def compress_image(path:Path):
-    image = Image.open(path)
-    if image.format not in {".jpg", ".jpeg", ".png"}:
-        image.save(path)
-    # Save back to the same path, overwriting the original file
-    if image.format in {".jpg", ".jpeg"}:
-        image.save(path, quality=80, optimize=True)
-    else:
-        image.save(path, optimize=True, compress_level=9)
+    except FileNotFoundError:
+        return url_dict.get("url")
+    return construct_img_url(subfolder, filename, url_dict.get("ext"), domain=True)
