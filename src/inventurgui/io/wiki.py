@@ -122,7 +122,7 @@ async def parse_pages(pages: list[str]) -> list[WikiChapter]:
             if not url_dict: # Don't handle Base64 Strings for now
                 continue
             filename = link.split("/")[-1].split("-")[0]
-            img_url = await cache_image(url_dict, "wiki", filename, compress=True)
+            img_url = await cache_image(url_dict, "wiki", filename, thumbnail_size=800)
             img.parent['href'] = img_url
             img['src'] = img_url
 

@@ -20,7 +20,7 @@ async def read_ods(sheet:str) -> list[Warehouse] | None:
                 if row[settings.columns["image"]] is None:
                     continue
                 if url_dict:=match_img_url(row[settings.columns["image"]]):
-                    df[idx, columns["image"]] = await cache_image(url_dict, sheet, row[columns["object"]], thumbnail=True)
+                    df[idx, columns["image"]] = await cache_image(url_dict, sheet, row[columns["object"]])
         return Warehouse.create(sheet, df)
     except NoDataError:
         LOGGER.warning(f"No data found in sheet {sheet}. Please check if this is intended.")
