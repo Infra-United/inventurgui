@@ -58,7 +58,7 @@ async def delete_img(data: dict):
 
 async def cache_image(url_dict: dict[str, str], subfolder:str, filename: str, thumbnail_size:int = 600, compress:bool = False):
     path = construct_img_path(subfolder, filename, url_dict["ext"])
-    if not path.is_file() or url_dict["domain"] != settings.domain or ARGS.images: # Guard clause for dev environment to download images only once
+    if not path.is_file() and url_dict["domain"] != settings.domain or ARGS.images: # Guard clause for dev environment to download images only once
         try:
             response = await nicegui.run.io_bound(httpx.get,url_dict["url"], timeout=5)
             if response.status_code == 200 and response.headers["content-type"].startswith("image"):
