@@ -39,4 +39,5 @@ admin:
   upload: "Upload an Image"
   save: "Save"
 wiki:
-  url_copied: "A short info of this wiki page has been copied to your clipboard."
+  url_copied: "Copied: The link to this wiki page."
+  info_copied: "Copied: A short info about this wiki page (incl. link)."

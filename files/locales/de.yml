@@ -39,4 +39,5 @@ admin:
   upload: "Bild Hochladen"
   save: "Speichern"
 wiki:
-  url_copied: "Eine Kurzinfo zu dieser Wiki-Seite wurde in deine Zwischenablage kopiert."
+  url_copied: "Kopiert: Der Link zu dieser Wiki-Seite."
+  info_copied: "Kopiert: Eine Kurzinfo (inkl. Link) zu dieser Wiki-Seite."
