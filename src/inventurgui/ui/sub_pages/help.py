@@ -45,10 +45,9 @@ async def wiki_page(name: str, content: str, ld: LeftDrawer, style: str):
             html = ui.html(f"<head>{style}</head> {content}", sanitize=False)
             html.classes("mx-auto items-center px-8 sm:px-20 text-base/6")
             html.classes("hyphens-none sm:text-base/6 sm:antialiasing text-gray-300 max-w-180")
-            if Cache.width() < 1024:
-                with ui.page_sticky(x_offset=40, y_offset=40):
-                    if Cache.share() is None:
-                        ui.add_head_html(
-                            """<script> emitEvent('share_check', {'is_allowed': navigator.share}); </script>""")
-                        ui.on('share_check', lambda e: Cache.set_share(True if e.args['is_allowed'] == 'true' else False))
-                    ui.fab(icon='share').on('click', share_content).props('active-icon=share')
+            with ui.page_sticky(x_offset=40, y_offset=40):
+                if Cache.share() is None:
+                    ui.add_head_html(
+                        """<script> emitEvent('share_check', {'is_allowed': navigator.share}); </script>""")
+                    ui.on('share_check', lambda e: Cache.set_share(True if e.args['is_allowed'] == 'true' else False))
+                ui.fab(icon='share').on('click', share_content).props('active-icon=share')
