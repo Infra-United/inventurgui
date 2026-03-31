@@ -8,6 +8,8 @@ class Cache:
     def __init__(self, warehouses):
         app.storage.user.indent = True
         app.storage.user.setdefault("Total", 0)
+        app.storage.user.setdefault("width", 0)
+        app.storage.user.setdefault("share", None)
         app.storage.user.setdefault(
             "form",
             {
@@ -42,6 +44,22 @@ class Cache:
     @classmethod
     def total(cls) -> int:
         return int(app.storage.user["Total"])
+
+    @classmethod
+    def width(cls) -> int:
+        return int(app.storage.user["width"])
+
+    @classmethod
+    def share(cls) -> bool:
+        return app.storage.user["share"]
+
+    @classmethod
+    def set_share(cls, share: bool):
+        app.storage.user["share"] = share
+
+    @classmethod
+    def set_width(cls, width: int):
+        app.storage.user["width"] = width
 
     @classmethod
     def notified(cls) -> bool:

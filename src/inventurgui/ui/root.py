@@ -43,6 +43,8 @@ def root(
         window.onresize = emitSize;
         </script>
     """)
+    ui.on('resize', lambda e: Cache.set_width(e.args['width']), trailing_events=True, throttle=0.2)
+
     ui.add_head_html(
         '<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>'
     )

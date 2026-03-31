@@ -9,6 +9,7 @@ from slugify import slugify
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.paths import get_path
+from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.io.wiki import WikiChapter, MenuItem
 from inventurgui.ui.auth import authenticate_user
@@ -51,10 +52,10 @@ def main_menu(
     ld: LeftDrawer,
     rd: None | RightDrawer,
     classes: str = "stretch",
-    props: str = "unelevated push no-wrap text-color=secondary square",
+    props: str = "unelevated no-wrap text-color=secondary square",
 ) -> None:
     warehouse_btn = ui.button(settings.warehouse["label"], icon=settings.warehouse["icon"], on_click=lambda: ld.show())
-    warehouse_btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.warehouse['label'])}"), drawer_menu.refresh()))
+    warehouse_btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.warehouse['label'])}"), drawer_menu.refresh()) if Cache.width() > 640 else None)
     warehouse_btn.classes(classes).props(props)
     start_btn: Button = ui.button(settings.start["label"], icon=settings.start["icon"]).classes(classes).props(props)
     start_btn.on_click(lambda: ui.navigate.to("/"))
@@ -72,7 +73,7 @@ def main_menu(
             settings.help["label"], icon=settings.help["icon"], on_click=lambda: rd.show() if rd else None
         )
         help_btn.classes(classes).props(props)
-        help_btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.help['label'])}"), drawer_menu.refresh()))
+        help_btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.help['label'])}"), drawer_menu.refresh()) if Cache.width() > 640 else None)
 
 
 @ui.refreshable
