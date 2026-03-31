@@ -38,3 +38,5 @@ admin:
   edits: "Meine Veränderungen"
   upload: "Bild Hochladen"
   save: "Speichern"
+wiki:
+  url_copied: "Eine Kurzinfo zu dieser Wiki-Seite wurde in deine Zwischenablage kopiert."

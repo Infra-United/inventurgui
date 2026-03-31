@@ -38,3 +38,5 @@ admin:
   edits: "My changes"
   upload: "Upload an Image"
   save: "Save"
+wiki:
+  url_copied: "A short info of this wiki page has been copied to your clipboard."
