@@ -22,6 +22,12 @@ class MenuItem(Protocol):
     @property
     def routes(self) -> dict[str, str]: ...
 
+@dataclasses.dataclass
+class Wiki:
+    style: str
+    root: str
+    menu: list[WikiChapter]
+    content: list[WikiChapter]
 
 @dataclasses.dataclass
 class WikiChapter(MenuItem):
@@ -55,7 +61,7 @@ def pull_wiki():
         LOGGER.warning(f"Error fetching {file.name} from {url}: \n\nException:{e}\n\n")
 
 
-async def read_wiki() -> dict[str, str | list[WikiChapter]]:
+async def read_wiki() -> Wiki:
     file = get_path(settings.help["path"], "pages")
     try:
         with open(file, "r") as f:
@@ -64,7 +70,7 @@ async def read_wiki() -> dict[str, str | list[WikiChapter]]:
             pages = content[content.index("<div") : -1].split('<div class="page-break"></div>')
             home_page, wiki_menu = parse_home(pages[0])
             pages = await parse_pages(pages)
-            return {"style": fix_styles(str(soup.style)), "root": home_page, "menu": wiki_menu, "content": pages}
+            return Wiki(style=fix_styles(str(soup.style)), root=home_page, menu=wiki_menu, content=pages)
     except FileNotFoundError:
         LOGGER.exception(f"File {file.name} not found.")
         raise FileNotFoundError
@@ -104,7 +110,7 @@ async def parse_pages(pages: list[str]) -> list[WikiChapter]:
     page_dict: dict[str, dict[str, str]] = {}
     chapter_id = 0
     page_id = 0
-    for idx, page in enumerate(pages[1:-1]):
+    for idx, page in enumerate(pages[1:]):
         page = page.replace("background-color:#f1c40f", "background-color:#607d8b")
         page = page.replace("background-color:rgb(241,196,15)", "background-color:#607d8b")
         soup = BeautifulSoup(page, "html.parser")

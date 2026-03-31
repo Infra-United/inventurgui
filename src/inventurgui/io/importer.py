@@ -8,7 +8,7 @@ from inventurgui.helper.paths import get_path
 from inventurgui.io.warehouse import Warehouse
 
 
-async def read_ods(sheet:str) -> list[Warehouse] | None:
+async def read_ods(sheet:str) -> Warehouse:
     inventory = get_path(settings.data["path"])
     LOGGER.debug(f"Reading Data from {inventory}...")
     try:

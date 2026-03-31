@@ -9,7 +9,7 @@ from inventurgui.io.cache import Cache
 from inventurgui.io.importer import read_ods
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse, WAREHOUSE_ROOT
-from inventurgui.io.wiki import WikiChapter, WIKI_ROOT, read_wiki
+from inventurgui.io.wiki import WIKI_ROOT, read_wiki, Wiki
 from inventurgui.ui.helper.markdown import read_page_files
 from inventurgui.ui.helper.theme import Theme
 from inventurgui.ui.layout import create_layout
@@ -27,7 +27,7 @@ from inventurgui.ui.sub_pages.start import start_page
 def root(
     warehouses: list[Warehouse],
     markdown: dict[str, str],
-    wiki: None | dict[str, str | dict[str, str] | list[WikiChapter]] = None,
+    wiki: Wiki = None,
     display_wiki=None,
 ) -> None:
     ui.add_head_html("""
@@ -93,7 +93,6 @@ def root(
 
 
     # Set timers for refreshing files
-    ui.timer(settings.refresh_timer, lambda: pull_wiki() if display_wiki else None, immediate=False)
     ui.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files(), immediate=False)
     ui.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_ods())), immediate=False)
     ui.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]), immediate=False)
@@ -111,7 +110,7 @@ def root(
     storage = Cache(warehouses)
 
     # Create Main Layout
-    ld, rd = create_layout(warehouses, wiki.get("menu") if wiki else None)
+    ld, rd = create_layout(warehouses, wiki.menu if wiki else None)
 
     # Register Pages
     user_id = app.storage.browser["id"]
@@ -123,7 +122,7 @@ def root(
             "user_id": user_id,
             "storage": storage,
             "md": markdown,
-            "style": wiki.get("style") if wiki else None,
+            "style": wiki.style if wiki else None,
         },
         show_404=False,
     )
@@ -144,10 +143,10 @@ def root(
     if not wiki:
         sub_pages.add(f"/{slugify(settings.help["label"])}", lambda: help_page(ld, markdown))
     else: # Register wiki pages
-        sub_pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.get("root"), ld, wiki.get("style")))
-        for idx, chapter in enumerate(wiki.get("menu")):
+        sub_pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.root, ld, wiki.style))
+        for idx, chapter in enumerate(wiki.menu):
             with suppress(IndexError):
-                pages = wiki['content'][idx].pages
+                pages = wiki.content[idx].pages
             for name, route in chapter.pages.items():
                 page = pages.get(route.split('-')[-1])
-                sub_pages.add(route, lambda n=name, p=page: wiki_page(n, p, ld, wiki.get("style")))
+                sub_pages.add(route, lambda n=name, p=page: wiki_page(n, p, ld, wiki.style))

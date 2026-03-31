@@ -13,20 +13,21 @@ from inventurgui.helper.paths import get_path, ensure_directory_structure
 from inventurgui.io.importer import read_ods
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.io.wiki import read_wiki
+from inventurgui.io.wiki import read_wiki, Wiki
 from inventurgui.ui.helper.markdown import read_page_files
 from inventurgui.ui.root import root
 
 
-async def load_data() -> Tuple[list[Warehouse], dict|None]:
+async def load_data() -> Tuple[list[Warehouse], Wiki|None]:
     warehouses: list[Warehouse] = [await read_ods(sheet) for sheet in settings.data["warehouses"]]
     ensure_directory_structure([w.name for w in warehouses])
     if settings.help["wiki"]:
-        wiki_dict = await read_wiki()
-    return warehouses, wiki_dict
+        wiki = await read_wiki()
+        return warehouses, wiki
+    return warehouses, None
 
 # Starts the UI
-def main(warehouses:list[Warehouse], wiki:dict|None):
+def main(warehouses:list[Warehouse], wiki:Wiki|None):
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     locale.setlocale(locale.LC_TIME, settings.locale)
@@ -57,5 +58,5 @@ def main(warehouses:list[Warehouse], wiki:dict|None):
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    data, wiki_dict = asyncio.run(load_data())
-    main(data, wiki_dict)
+    data, wiki = asyncio.run(load_data())
+    main(data, wiki)
