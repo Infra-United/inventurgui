@@ -51,11 +51,11 @@ def main_menu(
     ld: LeftDrawer,
     rd: None | RightDrawer,
     classes: str = "stretch",
-    props: str = "unelevated no-wrap text-color=secondary square",
+    props: str = "unelevated push no-wrap text-color=secondary square",
 ) -> None:
-    btn = ui.button(settings.warehouse["label"], icon=settings.warehouse["icon"], on_click=lambda: ld.show())
-    btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.warehouse['label'])}"), drawer_menu.refresh()))
-    btn.classes(classes).props(f"{props} :visible=Quasar.Screen.lt.md")
+    warehouse_btn = ui.button(settings.warehouse["label"], icon=settings.warehouse["icon"], on_click=lambda: ld.show())
+    warehouse_btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.warehouse['label'])}"), drawer_menu.refresh()))
+    warehouse_btn.classes(classes).props(props)
     start_btn: Button = ui.button(settings.start["label"], icon=settings.start["icon"]).classes(classes).props(props)
     start_btn.on_click(lambda: ui.navigate.to("/"))
     if authenticate_user():
@@ -88,45 +88,37 @@ def drawer_menu(
     def parse_uri(e: Expansion, t: Toggle):
         path_1 = ui.context.client.sub_pages_router.current_path.split("/")[-1]
         path_2 = ui.context.client.sub_pages_router.current_path.split("/")[-2]
-        if path_2.upper() == e.text:
+        if path_2 == e.text:
             e.open()
             t.set_value(path_1)
         else:
-            if e.text == menu_items[0].name.upper():
+            if e.text == menu_items[0].name:
                 e.open()
                 t.set_value(menu_items[0].name)
 
-    # t = ui.tree([{'id': w.name, 'label': w.name.upper(), 'children': [{'id': c, 'label': c.upper()} for c in w.categories]} for w in warehouses])
-    # t.props(f'{props} accordion no-connectors no-selection-unset selected-color=accent').classes(classes)
-    # t.on_select(lambda e: (ui.notify(e.value), t.expand(e.value)))
-
-    classes: str = "text-center text-gray-200 m-0 p-0 subpixel-antialiased tracking-widest"
+    classes: str = "text-center text-gray-200 text-bold m-0 subpixel-antialiased tracking-widest"
     with ui.row().classes("flex bg-primary row w-full px-20 py-3 mb-1") as row:
         ui.icon(config["icon"], size="20px", color="secondary").classes(classes)
         ui.label(config["label"].upper()).classes(classes).classes("text-secondary text-bold")
         row.on("click", lambda: (ui.navigate.to(f"/{menu_root}"), drawer_menu.refresh()))
 
     for idx, item in enumerate(menu_items):
-        with ui.expansion(text=item.name.upper(), group=config["label"]).classes(classes) as exp:
-            if isinstance(item, Warehouse):
-                with exp.add_slot("header"):
-                    with ui.label(item.name.upper()).classes("py-3 w-full"):
+        with ui.expansion(text=item.name, group=config["label"]).classes(f"{classes} mx-2") as exp:
+            with exp.add_slot("header"):
+                with ui.label(item.name).classes("py-3 text-base/7 w-full"):
+                    if isinstance(item, Warehouse):
                         badge("0").bind_text_from(app.storage.user["selected"], item.name, backward=lambda v: len(v))
 
-            exp.props("header-class='bg-secondary' popup hide-expand-icon")
+            exp.props("header-class='border' dense hide-expand-icon")
             exp.on_value_change(
                 lambda v, e=exp: e.props.update(
-                    {"header-class": "bg-accent"} if v.value else {"header-class": "bg-secondary"}
+                    {"header-class": "bg-accent"} if v.value else {"header-class": "bg-dark border"}
                 )
             )
             toggle = ui.toggle(item.children)
             parse_uri(exp, toggle)
-            exp.on("click", lambda t=toggle, i=item: t.set_value(i.name))
+            exp.on("click", lambda t=toggle, i=item: t.set_value(i.name if i.name in t.options else t.options[0]))
             exp.on("click", lambda e=exp: e.open())
-            toggle.classes(f"{classes} column").props("square unelevated stretch toggle-color=accent")
-            if isinstance(item, Warehouse):
-                toggle.on_value_change(
-                    lambda v, i=item: ui.navigate.to(f"/{menu_root}/{slugify(i.name)}/{slugify(v.value)}")
-                )
-            else: # Get route from page dict if handling wiki
-                toggle.on_value_change(lambda v, i=item: ui.navigate.to(i.routes.get(v.value)))
+            exp.on("click", lambda i=item, t=toggle: ui.navigate.to(i.routes.get(t.value)))
+            toggle.classes(f"{classes} column").props('stretch ripple unelevated no-caps padding="4px 8px" toggle-color=accent')
+            toggle.on_value_change(lambda v, i=item: ui.navigate.to(i.routes.get(v.value)))

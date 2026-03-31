@@ -1,4 +1,5 @@
 import dataclasses
+from contextlib import suppress
 from typing import Generator, Protocol, Tuple, override
 
 import httpx
@@ -21,6 +22,11 @@ class MenuItem(Protocol):
 
     @property
     def routes(self) -> dict[str, str]: ...
+
+
+def þroperty(args):
+    pass
+
 
 @dataclasses.dataclass
 class Wiki:
@@ -70,7 +76,8 @@ async def read_wiki() -> Wiki:
             pages = content[content.index("<div") : -1].split('<div class="page-break"></div>')
             home_page, wiki_menu = parse_home(pages[0])
             pages = await parse_pages(pages)
-            return Wiki(style=fix_styles(str(soup.style)), root=home_page, menu=wiki_menu, content=pages)
+            menu = [c for c in clean_menu(wiki_menu, pages)]
+            return Wiki(style=fix_styles(str(soup.style)), root=home_page, menu=menu, content=pages)
     except FileNotFoundError:
         LOGGER.exception(f"File {file.name} not found.")
         raise FileNotFoundError
@@ -83,14 +90,24 @@ def parse_home(home: str) -> Tuple[str, list[WikiChapter]]:
     menu: dict[str, dict[str, str]] = {}
     for item in toc.find_all('a'):
         if item['href'].startswith("#chapter"):
-            chapter_name: str = item.string
+            chapter_name: str = str(item.string)
             item['href'] = f"/{WIKI_ROOT}/{slugify(f"{item.string}-{item['href'].split("-")[-1]}")}"
-            menu.update({item.string: {item.string: item['href']}})
+            menu.update({item.string: {item.string: str(item['href'])}})
         else:
             page_name = f"{item.string}-{item['href'].split("-")[-1]}"
             item['href'] = f"/{WIKI_ROOT}/{slugify(chapter_name)}/{slugify(page_name)}"
-            menu[chapter_name].update({item.string: item['href']})
+            menu[chapter_name].update({str(item.string): str(item['href'])})
     return soup.prettify(), [i for i in WikiChapter.create(menu)]
+
+def clean_menu(menu: list[WikiChapter], content: list[WikiChapter]) -> Generator[WikiChapter, None, None]:
+    for idx, chapter in enumerate(menu):
+        with suppress(IndexError):
+            pages = content[idx].pages
+        for name, route in chapter.pages.copy().items():
+            page = pages.get(route.split('-')[-1])
+            if not page:
+                chapter.pages.pop(name)
+        yield chapter
 
 def fix_styles(style: str):
     style = style.replace("--color-link: #206ea7", f"--color-link: {settings.theme.get('links')}")
@@ -128,17 +145,21 @@ async def parse_pages(pages: list[str]) -> list[WikiChapter]:
                 filename = link.split("/")[-1].split("-")[0]
                 img_url = await cache_image(url_dict, "wiki", filename, thumbnail_size=800)
             else: # Don't handle Base64 Strings for now
-                filename = img["src"][-30:]
+                filename = str(img["src"][-30:])
                 img_url = await cache_base64_img(str(img["src"]), "wiki", filename, thumbnail_size=800)
             img.parent['href'] = img_url
             img['src'] = img_url
 
         # Extract chapter and page ids for routes
         h1 = soup.find('h1')
+        # noinspection PyUnresolvedReferences
         if h1.get('id').startswith("chapter"):
             # noinspection PyUnresolvedReferences
             chapter_id = h1.get('id').split("-")[-1]
-            page_dict.update({chapter_id: {chapter_id: pages[0] if idx == 0 else soup.prettify()}})
+            if len(soup.find_all(limit=5)) > 4:
+                page_dict.update({chapter_id: {chapter_id: pages[0] if idx == 0 else soup.prettify()}})
+            else:
+                page_dict.update({chapter_id: {}})
         elif h1.get('id').startswith("page"):
             # noinspection PyUnresolvedReferences
             page_id = h1.get('id').split("-")[-1]

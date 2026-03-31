@@ -7,7 +7,7 @@ from inventurgui.ui.auth import authenticate_user
 
 
 def badge(text: str):
-    return ui.badge(text, color="primary", text_color="secondary").props().classes("text-bold ml-2 py-1")
+    return ui.badge(text, color="secondary", text_color="white").props().classes("text-bold ml-2 py-1")
 
 
 def tabs():

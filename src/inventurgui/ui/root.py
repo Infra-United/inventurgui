@@ -149,4 +149,6 @@ def root(
                 pages = wiki.content[idx].pages
             for name, route in chapter.pages.items():
                 page = pages.get(route.split('-')[-1])
+                if not page:
+                    continue
                 sub_pages.add(route, lambda n=name, p=page: wiki_page(n, p, ld, wiki.style))

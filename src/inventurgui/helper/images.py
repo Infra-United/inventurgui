@@ -84,7 +84,6 @@ async def cache_base64_img(src:str, subfolder:str, filename:str, thumbnail_size:
     base = split[-1]
     ext = split[0].split("/")[-1]
     path = construct_img_path(subfolder, filename, ext)
-    print(path)
     if not path.is_file() or ARGS.images:
         try:
             Image.open(BytesIO(base64.b64decode(base))).save(path)
