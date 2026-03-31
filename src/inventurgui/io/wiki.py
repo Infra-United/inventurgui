@@ -1,6 +1,7 @@
 import dataclasses
 from typing import Generator, Protocol, Tuple, override
 
+import httpx
 from bs4 import BeautifulSoup
 from slugify import slugify
 
@@ -54,7 +55,7 @@ def pull_wiki():
         LOGGER.warning(f"Error fetching {file.name} from {url}: \n\nException:{e}\n\n")
 
 
-def read_wiki() -> dict[str, str | list[WikiChapter]]:
+async def read_wiki() -> dict[str, str | list[WikiChapter]]:
     file = get_path(settings.help["path"], "pages")
     try:
         with open(file, "r") as f:
