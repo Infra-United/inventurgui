@@ -1,7 +1,6 @@
 import time
 
 from nicegui import app, ui, PageArguments
-from nicegui.elements.drawer import LeftDrawer
 
 from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
@@ -13,7 +12,7 @@ from inventurgui.ui.helper.magic_links import load_data_from_magic_link
 from inventurgui.ui.helper.reusable_elements import badge, next_fab, tabs, tab_panels, back_fab
 
 
-async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArguments) -> None:
+async def cart_page(warehouses: list[Warehouse], args: PageArguments) -> None:
     ui.query(".nicegui-sub-pages").classes(replace="bg-dark w-full no-scroll").style(replace="gap:0")
 
     current_id = app.storage.browser["id"]
@@ -49,7 +48,8 @@ async def cart_page(ld: LeftDrawer, warehouses: list[Warehouse], args: PageArgum
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
                 await create_aggrid(w, cart=True)
-    truck_panels.set_value(warehouses[0].name.upper())
+        if not truck_panels.value:
+            truck_panels.set_value(w.name.upper())
     LOGGER.info("Created cart page")
     next_fab(settings.form)
     back_fab(settings.warehouse)
