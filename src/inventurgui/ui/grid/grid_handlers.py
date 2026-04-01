@@ -84,9 +84,12 @@ def dia_content(dia:Dialog, warehouse: Warehouse, data: dict[str, str], admin: b
         url = data.get(columns.get("url"))
         ui.link(url, url, new_tab=True) if url else None
         if admin:
-            i = ui.input(placeholder="URL:", value=url if url else "",
-                         validation=lambda v: validate_url(v,data)).props("outlined")
-            i.on("blur", lambda x=i: x.validate()).without_auto_validation().classes("w-80")
+            with ui.row(align_items='stretch').classes("w-80 gap-0 items-center text-center"):
+                i = ui.input(placeholder="URL:", value=url if url else "",
+                             validation=lambda v: validate_url(v,data)).props("outlined")
+                i.on("blur", lambda x=i: x.validate()).without_auto_validation().classes("w-65")
+                del_link = ui.button(icon='delete', on_click=lambda: i.set_value("")).classes("h-14")
+                del_link.on('click', lambda: data.update({columns.get("url") : ""}))
             ui.editor(value=data[columns["comment"]]).bind_value_to(data, columns["comment"])
             if data.get(columns["image"]):
                 with img:
