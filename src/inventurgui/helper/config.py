@@ -58,7 +58,7 @@ class Settings(BaseSettings):
         return self.dav["refresh_interval_hours"] * 3600
 
     data: dict[str, str | int | list[str] | dict[str, str]] = {
-        "path": "inventory.ods",
+        "filename": "inventory",
         "warehouses": [""],
         "columns": {
             "shelf": "Shelf",
@@ -74,12 +74,13 @@ class Settings(BaseSettings):
             "url": "url",
         },
     }
-    mail: dict[str, str] = {"mail_to": "hello@example.org", "admin": "admin@example.org"}
-
     @property
     def columns(self) -> dict[str, str]:
         return self.data["columns"]
-
+    @property
+    def data_filename(self) -> str:
+        return self.data["filename"]
+    mail: dict[str, str] = {"mail_to": "hello@example.org", "admin": "admin@example.org"}
     start: dict[str, str | bool] = {"label": "Start", "icon": "home", "path": "about.md"}
     help: dict[str, str | bool] = {
         "display": True,

@@ -10,7 +10,8 @@ from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path, ensure_directory_structure
-from inventurgui.io.importer import read_ods
+from inventurgui.io.database import DB
+from inventurgui.io.importer import read_ods, handle_images
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.io.wiki import read_wiki, Wiki
@@ -19,12 +20,18 @@ from inventurgui.ui.root import root
 
 
 async def load_data() -> Tuple[list[Warehouse], Wiki|None]:
-    warehouses: list[Warehouse] = [await read_ods(sheet) for sheet in settings.data["warehouses"]]
+    if DB.DB_FILE.is_file():
+        warehouses: list[Warehouse] = [DB.load(sheet) for sheet in settings.data["warehouses"]]
+    else:
+        warehouses: list[Warehouse] = [read_ods(sheet) for sheet in settings.data["warehouses"]]
+        [DB.save(w.name, w.inventory) for w in warehouses]
+    [await handle_images(w.name, w.inventory) for w in warehouses]
     ensure_directory_structure([w.name for w in warehouses])
     if settings.help["wiki"]:
         wiki = await read_wiki()
         return warehouses, wiki
     return warehouses, None
+
 
 # Starts the UI
 def main(warehouses:list[Warehouse], wiki:Wiki|None):
