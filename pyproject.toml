@@ -23,6 +23,7 @@ dependencies = [
     "beautifulsoup4>=4.14.3",
     "qrcode>=8.2",
     "duckdb>=1.5.1",
+    "pyarrow>=23.0.1",
 ]
 
 [tool.hatch.build.targets.wheel]
