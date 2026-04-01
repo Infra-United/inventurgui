@@ -3,7 +3,9 @@ from nicegui.elements.tabs import Tabs
 from slugify import slugify
 
 from inventurgui.helper.i18n import i18n
-from inventurgui.ui.auth import authenticate_user
+from inventurgui.io.database import DB
+from inventurgui.io.warehouse import Warehouse
+from inventurgui.ui.helper.share import share_content, get_qr_code
 
 
 def badge(text: str):
@@ -26,22 +28,15 @@ def tab_panels(_tabs: Tabs):
 
 def next_fab(next_page: dict[str, str]):
     props: str = "text-color=secondary"
-    if admin := authenticate_user():
-        next_page = {"icon": "save", "label": (i18n.get("admin.save"))}
     with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
-        fab = ui.fab(icon="navigate_next", direction="up").props(f"{props} active-icon='hourglass_top'")
-        if admin:
-            fab.on("click", lambda: ui.notify("saving..."))  # TODO handle save
-        else:
-            fab.on(
-                "click", lambda: ui.navigate.to(f"/{slugify(next_page.get('label'))}?id={app.storage.browser['id']}")
-            )
+        fab = ui.fab(icon="navigate_next").props(f"{props} active-icon='hourglass_top'")
+        fab.on("click", lambda: ui.navigate.to(f"/{slugify(next_page['label'])}?id={app.storage.browser['id']}"))
         fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
         with fab.add_slot("label"):
             with ui.row():
-                ui.icon(next_page.get("icon"))
-                label = ui.label(next_page.get("label")).classes("text-secondary text-base")
+                ui.icon(next_page["icon"])
+                label = ui.label(next_page["label"]).classes("text-secondary text-base")
                 label.set_visibility(False)
             badge = (
                 ui.badge("0", color="primary", text_color="secondary").props("rounded floating").classes("text-bold")
@@ -53,18 +48,45 @@ def next_fab(next_page: dict[str, str]):
 def back_fab(last_page: dict[str, str]):
     props: str = "text-color=primary"
     with ui.page_sticky(position="bottom-left", x_offset=30, y_offset=18).classes("z-999"):
-        fab = ui.fab(icon="navigate_before", direction="up", color="secondary").props(f"{props}")
-        fab.on("click", lambda: ui.navigate.to(f"/{slugify(last_page.get('label'))}?id={app.storage.browser['id']}"))
+        fab = ui.fab(icon="navigate_before", color="secondary").props(f"{props}")
+        fab.on("click", lambda: ui.navigate.to(f"/{slugify(last_page['label'])}?id={app.storage.browser['id']}"))
         fab.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
         fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
         with fab.add_slot("label"):
             with ui.row():
-                ui.icon(last_page.get("icon"))
-                label = ui.label(last_page.get("label")).classes("text-base")
+                ui.icon(last_page["icon"])
+                label = ui.label(last_page["label"]).classes("text-base")
                 label.set_visibility(False)
             badge = (
                 ui.badge("0", color="secondary", text_color="primary").props("rounded floating").classes("text-bold")
             )
             badge.bind_text_from(app.storage.user, "Total")
             badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
+
+def share_fab(name:str, content:str):
+    with ui.page_sticky(x_offset=40, y_offset=40):
+        with ui.fab(icon='share', direction='up'):
+            ui.fab_action(icon='link').on('click', lambda: share_content(name, content)).props('active-icon=share')
+            ui.fab_action(icon='description').on('click', lambda: share_content(name, content, verbose=True)).props(
+                'active-icon=share')
+            ui.fab_action(icon='qr_code').on('click', lambda: get_qr_code(name)).props('active-icon=share')
+
+
+def save_fab(warehouse: Warehouse):
+    async def save_data():
+        DB.save(warehouse.name, warehouse.inventory)
+        ui.navigate.reload()
+
+    with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
+        fab = ui.fab(icon="expand_more").props("text-color=secondary active-icon='hourglass_top'")
+        fab.on("click", save_data)
+        fab.on("mouseenter", lambda: label.set_visibility(True), throttle=0.2)
+        fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
+        with fab.add_slot("label"):
+            with ui.row():
+                ui.icon('save')
+                label = ui.label(i18n.get("admin.save")).classes("text-secondary text-base")
+                label.set_visibility(False)
+
+
