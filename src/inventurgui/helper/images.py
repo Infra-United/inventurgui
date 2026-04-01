@@ -1,4 +1,5 @@
 import base64
+from contextlib import suppress
 from io import BytesIO
 from os import mkdir
 from pathlib import Path
@@ -56,8 +57,9 @@ async def upload_img(warehouse_name:str, event: UploadEventArguments, data:dict)
 async def delete_img(data: dict):
     url_dict: dict|None = match_img_url(data[settings.columns["image"]])
     if url_dict and url_dict.get("domain") == settings.domain:
-        get_path(url_dict["path"]).unlink()
-        app.remove_route(url_dict.get("path"))
+        with suppress(FileNotFoundError):
+            get_path(url_dict["path"]).unlink()
+            app.remove_route(url_dict.get("path"))
     data[settings.columns["image"]] = ""
 
 async def cache_image(url_dict: dict[str, str], subfolder:str, filename: str, thumbnail_size:int = 600, compress:bool = False):

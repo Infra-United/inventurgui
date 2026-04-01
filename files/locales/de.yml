@@ -38,6 +38,7 @@ admin:
   edits: "Meine Veränderungen"
   upload: "Bild Hochladen"
   save: "Speichern"
+  url_invalid: "Dieser Link ist ungültig."
 wiki:
   url_copied: "Kopiert: Der Link zu dieser Wiki-Seite."
   info_copied: "Kopiert: Eine Kurzinfo (inkl. Link) zu dieser Wiki-Seite."

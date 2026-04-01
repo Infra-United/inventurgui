@@ -38,6 +38,7 @@ admin:
   edits: "My changes"
   upload: "Upload an Image"
   save: "Save"
+  url_invalid: "Not a valid URL."
 wiki:
   url_copied: "Copied: The link to this wiki page."
   info_copied: "Copied: A short info about this wiki page (incl. link)."
