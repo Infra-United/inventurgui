@@ -24,7 +24,8 @@ async def handle_request(
     path = get_path(f"{settings.requests['filename']}-20{year}.xlsx")
     sheets = {}
     name_col = settings.form["input"].get("name")
-
+    request_name:str = request["name"]
+    overview_name:str = f"20{year}"
     # Write Overview (Metadata)
     if not path.is_file(): # If it's the first request in this year
         overview = write_overview(request)
@@ -39,21 +40,21 @@ async def handle_request(
                                  for df in [overview, write_overview(request)]), how='diagonal_relaxed')
             # Unique drops any pre-existing rows with the same name (so it appears to be updated)
             overview = overview.unique(name_col, keep='last').sort(pl.col(i18n.get("form.start")))
-    sheets.update({f"20{year}": overview})
+    sheets.update({overview_name: overview})
 
     # Get Data and add request to sheets (updating if name already exists)
     dfs = [await w.get_final() for w in warehouses]
     df = pl.concat([df for df in dfs if df is not None], how="align")
 
     # TODO maybe move this back to submit function
-    if request.get("name") in sheets.keys() and not delete:  # Update
+    if request_name in sheets.keys() and not delete:  # Update
         request.update({"finish": i18n.get("finish.updated")})
     elif delete:
         request.update({"finish": i18n.get("finish.deleted")})
     else:  # Add
         request.update({"finish": i18n.get("finish.success")})
 
-    sheets.update({request.get("name"): df})
+    sheets.update({request_name: df})
 
     # Find overlaps and add overlap column to each sheet accordingly
     # TODO Known Bug: If there is a request overlapping with more than one other request and this request gets deleted,
@@ -61,10 +62,10 @@ async def handle_request(
     sheets = find_overlaps(sheets, request, delete)
 
     if delete:
-        sheets.pop(request.get("name"))  # Needs to happen before writing but after finding overlaps
+        sheets.pop(request_name)  # Needs to happen before writing but after finding overlaps
     else: # Write excel file for download
         dl_path.unlink(missing_ok=True)
-        data = sheets.get(request.get("name"))
+        data = sheets.get(request_name)
         LOGGER.info(f"Creating download list file @{dl_path}")
         names: list[str] = sorted(data[settings.warehouse["label"]].unique())
         with Workbook(dl_path) as dl_wb:
@@ -72,11 +73,11 @@ async def handle_request(
                 LOGGER.debug(f"Creating download list sheet {name} @{dl_path}")
                 write_sheet(data.filter(pl.col(settings.warehouse["label"]) == name), dl_wb.add_worksheet(name), dl_wb)
 
-
+    # TODO add DB
     with (Workbook(path, {'strings_to_numbers': True, 'default_date_format': settings.date_format}) as workbook):
         # Write Overview
-        worksheet = workbook.add_worksheet(f"20{year}")
-        write_sheet(sheets.get(f"20{year}"), worksheet, workbook)
+        worksheet = workbook.add_worksheet(overview_name)
+        write_sheet(sheets[overview_name], worksheet, workbook)
 
         # Write Request Sheets
         for name in overview.select(pl.col(name_col)).to_series().to_list():
@@ -84,11 +85,11 @@ async def handle_request(
                 worksheet.table_cells.clear()
             else:
                 worksheet = workbook.add_worksheet(name)
-            write_sheet(sheets.get(name), worksheet, workbook)
+            write_sheet(sheets[name], worksheet, workbook)
 
     LOGGER.info(f"Successfully wrote request to {path}")
     Nextcloud.singleton().push_file(path)
-    return sheets.get(request.get("name"))
+    return sheets[request_name]
 
 def write_overview(request: dict[str, str | dict[str, str]]):
     # Write Column Headers
