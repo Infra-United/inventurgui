@@ -165,6 +165,8 @@ class Settings(BaseSettings):
             file.write(yaml.dump(Settings().model_dump(), Dumper=yaml.SafeDumper, sort_keys=False))
         LOGGER.info(f"Successfully wrote default config to {default_config_file}.")
 
-
-Settings.create_default_config()
+if not config_file.is_file():
+    Settings.create_default_config()
+    print(f"Please copy {default_config_file} to {config_file} and edit it to your needs!")
+    exit(0)
 settings = Settings.load_config()
