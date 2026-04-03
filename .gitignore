@@ -169,3 +169,4 @@ cython_debug/
 /.idea/inspectionProfiles/Project_Default.xml
 /files/pages/*
 /.idea/vcs.xml
+/uv.lock
