@@ -42,3 +42,6 @@ admin:
 wiki:
   url_copied: "Copied: The link to this wiki page."
   info_copied: "Copied: A short info about this wiki page (incl. link)."
+settings:
+  title: "Page Title"
+  reload_data: "Reload data from external sources"

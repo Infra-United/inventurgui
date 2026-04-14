@@ -4,13 +4,9 @@ from nicegui import ui, app
 from slugify import slugify
 
 from inventurgui.helper.config import settings
-from inventurgui.helper.paths import ensure_directory_structure
 from inventurgui.io.cache import Cache
-from inventurgui.io.importer import read_ods
-from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse, WAREHOUSE_ROOT
-from inventurgui.io.wiki import WIKI_ROOT, read_wiki, Wiki
-from inventurgui.ui.helper.markdown import read_page_files
+from inventurgui.io.wiki import WIKI_ROOT, Wiki
 from inventurgui.ui.helper.theme import Theme
 from inventurgui.ui.layout import create_layout
 from inventurgui.ui.sub_pages.cart import cart_page
@@ -19,6 +15,7 @@ from inventurgui.ui.sub_pages.finish import finish_page
 from inventurgui.ui.sub_pages.form import form_page
 from inventurgui.ui.sub_pages.help import wiki_page, help_page
 from inventurgui.ui.sub_pages.login import login_page
+from inventurgui.ui.sub_pages.settings import settings_page
 from inventurgui.ui.sub_pages.start import start_page
 
 """The root page that constructs the layout and is only loaded on when requesting / ."""
@@ -93,14 +90,6 @@ def root(
 
     """)
 
-
-    # Set timers for refreshing files
-    ui.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files(), immediate=False)
-    ui.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_ods())), immediate=False)
-    ui.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]), immediate=False)
-    ui.timer(settings.refresh_timer, lambda: markdown.update({k: v for k, v in read_page_files()}), immediate=False)
-    ui.timer(settings.refresh_timer, lambda: wiki.update(read_wiki()) if display_wiki else None, immediate=False)
-
     # Instantiate Theme
     Theme.singleton().set_colors()
 
@@ -134,6 +123,7 @@ def root(
     sub_pages.add(f"/{slugify(settings.cart['label'])}", cart_page)
     sub_pages.add(f"/{slugify(settings.form['label'])}", form_page)
     sub_pages.add(f"/{slugify(settings.finish['label'])}", finish_page)
+    sub_pages.add(f"/{slugify("settings")}", settings_page)
 
     # Register category sub_pages
     sub_pages.add(f"/{WAREHOUSE_ROOT}", lambda: category_page(warehouses[0].name, warehouses[0], rd))

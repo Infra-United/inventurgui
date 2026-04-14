@@ -14,13 +14,14 @@ class DB:
 
     @classmethod
     def save(cls, name:str, df:DataFrame, db:Literal['inventory', 'request']):
-        with duckdb.connect(cls.Inventory_DB, read_only=False) as con:
+        file = cls.Inventory_DB if db == 'inventory' else cls.Request_DB
+        with duckdb.connect(file, read_only=False) as con:
             con.sql(f"DROP TABLE IF EXISTS {name}")
             con.sql(f"CREATE TABLE {name} AS SELECT * FROM df")
 
-
     @classmethod
     def load(cls, name:str, db:Literal['inventory', 'request']) -> Warehouse:
-        with duckdb.connect(database=cls.Inventory_DB, read_only=True) as con:
+        file = cls.Inventory_DB if db == 'inventory' else cls.Request_DB
+        with duckdb.connect(database=file, read_only=True) as con:
             df = con.query(f'SELECT * FROM {name}').pl()
             return Warehouse(name, df)

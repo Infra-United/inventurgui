@@ -23,8 +23,8 @@ def login_page():
         if os.environ["UI_ADMIN_PASSWORD"] == password:
             token = create_jwt()
             app.storage.user.update({"auth_token": token})
-            main_menu.refresh()
-            drawer_menu.refresh()
+            await main_menu.refresh()
+            await drawer_menu.refresh()
             ui.navigate.to("/")
         else:
             time.sleep(1)

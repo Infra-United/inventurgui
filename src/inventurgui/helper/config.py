@@ -132,6 +132,9 @@ class Settings(BaseSettings):
         "icon": "drafts",
         "filename": "requests",
     }
+    settings: dict[str, str] = {
+        "label": "Settings",
+    }
 
     @classmethod
     def load_config(cls) -> Self:

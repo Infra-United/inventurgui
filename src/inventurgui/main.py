@@ -1,7 +1,6 @@
 import asyncio
 import locale
 import os
-from typing import Tuple
 
 import jwt
 from nicegui import ui, app
@@ -9,38 +8,18 @@ from nicegui import ui, app
 from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
-from inventurgui.helper.paths import get_path, ensure_directory_structure
-from inventurgui.io.database import DB
-from inventurgui.io.importer import read_ods, handle_images
-from inventurgui.io.nextcloud import Nextcloud
+from inventurgui.helper.paths import get_path
+from inventurgui.io.load_data import load_data
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.io.wiki import read_wiki, Wiki
-from inventurgui.ui.helper.markdown import read_page_files
+from inventurgui.io.wiki import Wiki
 from inventurgui.ui.root import root
 
 
-async def load_data() -> Tuple[list[Warehouse], Wiki|None]:
-    if DB.Inventory_DB.is_file():
-        warehouses: list[Warehouse] = [DB.load(sheet, 'inventory') for sheet in settings.data["warehouses"]]
-    else:
-        warehouses: list[Warehouse] = [read_ods(sheet) for sheet in settings.data["warehouses"]]
-        [DB.save(w.name, w.inventory, 'inventory') for w in warehouses]
-    [await handle_images(w.name, w.inventory) for w in warehouses]
-    ensure_directory_structure([w.name for w in warehouses])
-    if settings.help["wiki"]:
-        wiki = await read_wiki()
-        return warehouses, wiki
-    return warehouses, None
-
-
 # Starts the UI
-def main(warehouses:list[Warehouse], wiki:Wiki|None):
+def main(warehouses:list[Warehouse], pages:dict[str, str], wiki:Wiki|None):
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     locale.setlocale(locale.LC_TIME, settings.locale)
-    if not ARGS.reload:
-        Nextcloud.singleton().pull_files()
-    pages: dict[str, str] = {k: v for k, v in read_page_files()}
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
     app.add_static_file(local_file=get_path("manifest.json"), url_path="/helpers/manifest.json", strict=False)
@@ -65,5 +44,5 @@ def main(warehouses:list[Warehouse], wiki:Wiki|None):
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    data, wiki = asyncio.run(load_data())
-    main(data, wiki)
+    data, pages, wiki = asyncio.run(load_data())
+    main(data, pages, wiki)

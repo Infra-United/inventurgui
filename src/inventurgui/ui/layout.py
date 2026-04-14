@@ -59,10 +59,11 @@ def main_menu(
     warehouse_btn.classes(classes).props(props)
     start_btn: Button = ui.button(settings.start["label"], icon=settings.start["icon"]).classes(classes).props(props)
     start_btn.on_click(lambda: ui.navigate.to("/"))
-    if authenticate_user():
+    """if authenticate_user():
         requests_btn: Button = ui.button(settings.requests["label"], icon=settings.requests["icon"])
         requests_btn.classes(classes).props(props)
         requests_btn.on_click(lambda: ui.navigate.to(f"/{slugify(settings.requests['label'])}"))
+    """
     ui.space().classes("max-sm:hidden")
     if authenticate_user():
         for label in ["settings", "logout"]:
