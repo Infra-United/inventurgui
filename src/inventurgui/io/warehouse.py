@@ -12,7 +12,6 @@ from inventurgui.io.wiki import MenuItem
 columns = settings.columns
 WAREHOUSE_ROOT = slugify(settings.warehouse["label"])
 
-
 @dataclass
 class Warehouse(MenuItem):
     name: str
@@ -66,15 +65,3 @@ class Warehouse(MenuItem):
 
     def selected(self) -> DataFrame:
         return self.inventory.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))
-
-    async def total_weight(self) -> int:
-        df = await self.get_final()
-        return df.select(columns["total_weight"]).sum().cast(pl.Int64).item()
-
-    async def get_final(self) -> DataFrame:
-        df = self.inventory
-        for row_idx, value in Cache.amounts(self.name).items():
-            df[int(row_idx), columns["count"]] = value
-        return (
-            df.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name))).drop("index")
-        ).with_columns((pl.col(columns["count"]) * pl.col(columns["weight"])).alias(columns["total_weight"]))

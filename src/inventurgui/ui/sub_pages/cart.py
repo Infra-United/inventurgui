@@ -8,6 +8,7 @@ from inventurgui.helper.logger import LOGGER
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.grid.grid import create_aggrid
+from inventurgui.ui.helper.calculations import total_weight
 from inventurgui.ui.helper.magic_links import load_data_from_magic_link
 from inventurgui.ui.helper.reusable_elements import badge, next_fab, tabs, tab_panels, back_fab
 
@@ -39,7 +40,7 @@ async def cart_page(warehouses: list[Warehouse], args: PageArguments) -> None:
             continue
         with truck_tabs:
             with ui.tab(w.name.upper()).props('alert="primary" alert-icon="local_shipping"'):
-                Cache.set_weight(w.name, await w.total_weight())
+                Cache.set_weight(w.name, await total_weight(w.name, w.selected()))
                 badge("").bind_text_from(
                     app.storage.user["weight"],
                     w.name,
@@ -47,7 +48,7 @@ async def cart_page(warehouses: list[Warehouse], args: PageArguments) -> None:
                 )
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
-                await create_aggrid(w, cart=True)
+                await create_aggrid(w.name, selected, cart=True)
         if not truck_panels.value:
             truck_panels.set_value(w.name.upper())
     LOGGER.info("Created cart page")

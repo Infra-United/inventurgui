@@ -14,6 +14,7 @@ from inventurgui.helper.paths import get_path
 from inventurgui.io.database import DB
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
+from inventurgui.ui.helper.calculations import get_final
 
 
 async def handle_request(
@@ -44,7 +45,7 @@ async def handle_request(
     sheets.update({overview_name: overview})
 
     # Get Data and add request to sheets (updating if name already exists)
-    dfs = [await w.get_final() for w in warehouses]
+    dfs = [await get_final(w.name, w.selected()) for w in warehouses]
     df = pl.concat([df for df in dfs if df is not None], how="align")
 
     # TODO maybe move this back to submit function

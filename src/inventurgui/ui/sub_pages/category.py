@@ -1,3 +1,4 @@
+import polars as pl
 from nicegui import ui
 from nicegui.elements.drawer import RightDrawer
 
@@ -14,7 +15,14 @@ async def category_page(category: str | None, warehouse: Warehouse, rd: RightDra
     path = f"{warehouse.name}/{category}" if category else warehouse.name
     ui.page_title(path)
     LOGGER.debug(f"Creating Grid for {path}...")
-    await create_aggrid(warehouse, category, cart=False)
+    # Data
+    if category == warehouse.name:
+        df = warehouse.inventory
+    elif category == settings.warehouse.get("selection"):
+        df = warehouse.selected()
+    else:
+        df = warehouse.inventory.filter(pl.col(settings.columns["category"]) == category)
+    await create_aggrid(warehouse.name, df)
     if authenticate_user():
         save_fab(warehouse)
     else:
