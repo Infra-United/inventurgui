@@ -8,11 +8,11 @@ from inventurgui.io.database import DB
 from inventurgui.io.importer import read_ods, handle_images
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
-from inventurgui.io.wiki import Wiki, read_wiki
+from inventurgui.io.wiki import Wiki, read_wiki, pull_wiki
 from inventurgui.ui.helper.markdown import read_page_files
 
 
-async def load_data(reload:bool=False) -> Tuple[list[Warehouse], dict[str, str], Wiki|None]:
+async def load_data_from_dav(reload:bool=False) -> Tuple[list[Warehouse], dict[str, str]]:
     if not ARGS.reload or reload:
         Nextcloud.singleton().pull_files()
     if DB.Inventory_DB.is_file() and not reload:
@@ -25,7 +25,9 @@ async def load_data(reload:bool=False) -> Tuple[list[Warehouse], dict[str, str],
     [await handle_images(w.name, w.inventory) for w in warehouses]
     ensure_directory_structure([w.name for w in warehouses])
     pages: dict[str, str] = {k: v for k, v in read_page_files()}
-    if settings.help["wiki"]:
-        wiki = await read_wiki()
-        return warehouses, pages, wiki
-    return warehouses, pages,  None
+    return warehouses, pages
+
+async def load_wiki(reload:bool=False) -> Wiki:
+    if not ARGS.reload or reload:
+        await pull_wiki()
+    return await read_wiki()

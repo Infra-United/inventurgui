@@ -9,14 +9,15 @@ from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
-from inventurgui.io.load_data import load_data
-from inventurgui.io.warehouse import Warehouse
-from inventurgui.io.wiki import Wiki
+from inventurgui.io.load_data import load_data_from_dav, load_wiki
 from inventurgui.ui.root import root
 
 
 # Starts the UI
-def main(warehouses:list[Warehouse], pages:dict[str, str], wiki:Wiki|None):
+def main():
+    warehouses, pages = asyncio.run(load_data_from_dav())
+    if settings.help["wiki"]:
+        wiki = asyncio.run(load_wiki())
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     locale.setlocale(locale.LC_TIME, settings.locale)
@@ -44,5 +45,4 @@ def main(warehouses:list[Warehouse], pages:dict[str, str], wiki:Wiki|None):
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    data, pages, wiki = asyncio.run(load_data())
-    main(data, pages, wiki)
+    main()

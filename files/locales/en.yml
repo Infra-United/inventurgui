@@ -39,9 +39,11 @@ admin:
   upload: "Upload an Image"
   save: "Save"
   url_invalid: "Not a valid URL."
+  not_admin: "You're not logged in as admin - therefore you cannot access this page."
 wiki:
   url_copied: "Copied: The link to this wiki page."
   info_copied: "Copied: A short info about this wiki page (incl. link)."
 settings:
   title: "Page Title"
-  reload_data: "Reload data from external sources"
+  reload_dav: "Reload data from Nextcloud"
+  reload_wiki: "Wiki neu laden"
