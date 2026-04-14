@@ -11,6 +11,7 @@ from inventurgui.helper.dates import convert_dates
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
+from inventurgui.io.database import DB
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 
@@ -73,7 +74,9 @@ async def handle_request(
                 LOGGER.debug(f"Creating download list sheet {name} @{dl_path}")
                 write_sheet(data.filter(pl.col(settings.warehouse["label"]) == name), dl_wb.add_worksheet(name), dl_wb)
 
-    # TODO add DB
+    # Save to database
+    [DB.save(name, df, 'request') for name, df in sheets.items()]
+
     with (Workbook(path, {'strings_to_numbers': True, 'default_date_format': settings.date_format}) as workbook):
         # Write Overview
         worksheet = workbook.add_worksheet(overview_name)
@@ -136,7 +139,7 @@ def find_overlaps(sheets:dict[str, DataFrame], request: dict[str, str | dict[str
     # Check if to requests overlap timewise
     overview = list(sheets.values())[0]
     overlap = i18n.get("form.overlap")
-    start, end, month, year = convert_dates(request.get("dates"), string=False)
+    start, end, month, year = convert_dates(request["dates"], string=False)
     col_start = pl.col(i18n.get("form.start")).str.strptime(pl.Date, settings.date_format)
     col_end = pl.col(i18n.get("form.end")).str.strptime(pl.Date, settings.date_format)
     start_check_1 = pl.lit(start).is_between(col_start, col_end)
@@ -157,7 +160,7 @@ def find_overlaps(sheets:dict[str, DataFrame], request: dict[str, str | dict[str
                 with suppress(ValueError):
                     overlap_names.remove(overlap_name)
             continue
-        other = sheets.get(request.get("name"))
+        other = sheets.get(request["name"])
         for name in [overlap_name, request.get("name")]:
             # Add overlap column (Updating existing)
             df = sheets.get(name)

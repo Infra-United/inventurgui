@@ -20,11 +20,11 @@ from inventurgui.ui.root import root
 
 
 async def load_data() -> Tuple[list[Warehouse], Wiki|None]:
-    if DB.DB_FILE.is_file():
-        warehouses: list[Warehouse] = [DB.load(sheet) for sheet in settings.data["warehouses"]]
+    if DB.Inventory_DB.is_file():
+        warehouses: list[Warehouse] = [DB.load(sheet, 'inventory') for sheet in settings.data["warehouses"]]
     else:
         warehouses: list[Warehouse] = [read_ods(sheet) for sheet in settings.data["warehouses"]]
-        [DB.save(w.name, w.inventory) for w in warehouses]
+        [DB.save(w.name, w.inventory, 'inventory') for w in warehouses]
     [await handle_images(w.name, w.inventory) for w in warehouses]
     ensure_directory_structure([w.name for w in warehouses])
     if settings.help["wiki"]:

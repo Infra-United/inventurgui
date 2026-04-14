@@ -75,7 +75,7 @@ def share_fab(name:str, content:str):
 
 def save_fab(warehouse: Warehouse):
     async def save_data():
-        DB.save(warehouse.name, warehouse.inventory)
+        DB.save(warehouse.name, warehouse.inventory, 'inventory')
         ui.navigate.reload()
 
     with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
