@@ -46,4 +46,5 @@ wiki:
 settings:
   title: "Seitenname"
   reload_dav: "Daten aus der Nextcloud neu laden"
+  export_inventory: "Inventur in die Nextcloud exportieren"
   reload_wiki: "Wiki neu laden"

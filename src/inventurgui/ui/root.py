@@ -15,7 +15,7 @@ from inventurgui.ui.sub_pages.finish import finish_page
 from inventurgui.ui.sub_pages.form import form_page
 from inventurgui.ui.sub_pages.help import wiki_page, help_page
 from inventurgui.ui.sub_pages.login import login_page
-from inventurgui.ui.sub_pages.settings import settings_page
+from inventurgui.ui.sub_pages.settings_page import settings_page
 from inventurgui.ui.sub_pages.start import start_page
 
 """The root page that constructs the layout and is only loaded on when requesting / ."""
