@@ -104,6 +104,7 @@ def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
             md = render_markdown().classes(remove="text-justify")
             md.bind_content_from(data, columns["comment"], backward=lambda x: "" if x is None else x)
             md.bind_visibility(md, "content")
+        ui.button("Fertig", icon="check", on_click=lambda: dia.close())
 
 def update_row_data(data: dict[str, str], grid: AgGrid, warehouse:Warehouse):
     grid.run_row_method(data["index"], "setData", data)

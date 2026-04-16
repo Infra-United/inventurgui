@@ -55,19 +55,20 @@ async def upload_img(warehouse_name:str, event: UploadEventArguments, data:dict)
         make_thumbnail(path)
         app.add_static_file(local_file=path, url_path=img_url)
         data[settings.columns["image"]] = construct_img_url(warehouse_name, filename, file_extension, domain=True)
+        ui.notify(f"Upload successful.")
     except ClientDisconnect:
         ui.notify("Connection failed, please retry uploading the image.")
 
-async def delete_img(warehouse_name: str, data: dict):
+async def delete_img(data: dict):
     url_dict: dict|None = match_img_url(data[settings.columns["image"]])
     if url_dict and url_dict.get("domain") == settings.domain:
         with suppress(FileNotFoundError):
-            ui.notify(f"Deleting {get_path(url_dict["path"])}")
             get_path(url_dict["path"]).unlink(missing_ok=True)
             app.remove_route(url_dict.get("path"))
+            ui.notify(f"Deleted {url_dict["path"]}")
     data[settings.columns["image"]] = ""
 
-async def cache_image(url_dict: dict[str, str], subfolder:str, filename: str, thumbnail_size:int = 600, compress:bool = False):
+async def cache_image(url_dict: dict[str, str], subfolder:str, filename: str, thumbnail_size:int = 600):
     path = construct_img_path(subfolder, filename, url_dict["ext"])
     if not path.is_file() and url_dict["domain"] != settings.domain or ARGS.images:
         try:
