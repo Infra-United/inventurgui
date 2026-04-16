@@ -98,7 +98,7 @@ def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
                 with img:
                     up.on_upload(lambda: img.force_reload())
                     del_btn = ui.button(icon="delete").classes("absolute top-0 right-0")
-                    del_btn.on('click', lambda: delete_img(data))
+                    del_btn.on('click', lambda: delete_img(name, data))
                     del_btn.on('click', lambda: img.delete())
         else:
             md = render_markdown().classes(remove="text-justify")

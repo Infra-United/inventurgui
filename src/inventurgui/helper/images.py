@@ -58,9 +58,11 @@ async def upload_img(warehouse_name:str, event: UploadEventArguments, data:dict)
     except ClientDisconnect:
         ui.notify("Connection failed, please retry uploading the image.")
 
-async def delete_img(data: dict):
+async def delete_img(warehouse_name: str, data: dict):
     url_dict: dict|None = match_img_url(data[settings.columns["image"]])
     if url_dict and url_dict.get("domain") == settings.domain:
+        path = construct_img_path(warehouse_name, url_dict["filename"], url_dict["extension"])
+        path.unlink(missing_ok=True)
         with suppress(FileNotFoundError):
             get_path(url_dict["path"]).unlink()
             app.remove_route(url_dict.get("path"))
