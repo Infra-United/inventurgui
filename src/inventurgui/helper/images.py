@@ -7,11 +7,12 @@ from pathlib import Path
 import httpx
 import qrcode
 from PIL import Image, UnidentifiedImageError
-from nicegui import app, nicegui
+from nicegui import app, nicegui, ui
 from nicegui.events import UploadEventArguments
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 from slugify import slugify
+from starlette.requests import ClientDisconnect
 
 from inventurgui.cli import ARGS
 from inventurgui.helper.config import settings
@@ -43,16 +44,19 @@ def construct_img_path(subfolder: str, filename: str, file_extension: str) -> Pa
     return get_path(f"{slugify(subfolder)}/{slugify(filename)}.{file_extension}", "images")
 
 async def upload_img(warehouse_name:str, event: UploadEventArguments, data:dict):
-    file_extension = event.file.name.split(".")[-1]
-    filename = data[settings.columns['object']]
-    path = construct_img_path(warehouse_name, filename, file_extension)
-    img_url = construct_img_url(warehouse_name, filename, file_extension, domain=False)
-    path.unlink(missing_ok=True)
-    app.remove_route(img_url)
-    await event.file.save(path)
-    make_thumbnail(path)
-    app.add_static_file(local_file=path, url_path=img_url)
-    data[settings.columns["image"]] = construct_img_url(warehouse_name, filename, file_extension, domain=True)
+    try:
+        file_extension = event.file.name.split(".")[-1]
+        filename = data[settings.columns['object']]
+        path = construct_img_path(warehouse_name, filename, file_extension)
+        img_url = construct_img_url(warehouse_name, filename, file_extension, domain=False)
+        path.unlink(missing_ok=True)
+        app.remove_route(img_url)
+        await event.file.save(path)
+        make_thumbnail(path)
+        app.add_static_file(local_file=path, url_path=img_url)
+        data[settings.columns["image"]] = construct_img_url(warehouse_name, filename, file_extension, domain=True)
+    except ClientDisconnect:
+        ui.notify("Connection failed, please retry uploading the image.")
 
 async def delete_img(data: dict):
     url_dict: dict|None = match_img_url(data[settings.columns["image"]])
