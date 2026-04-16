@@ -1,5 +1,6 @@
 from contextlib import suppress
 
+import polars as pl
 from nicegui import app, ui
 from nicegui.elements.aggrid import AgGrid
 from nicegui.elements.dialog import Dialog
@@ -10,21 +11,7 @@ from inventurgui.helper.config import settings
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.images import upload_img, delete_img
 from inventurgui.io.cache import Cache
-from inventurgui.ui.auth import authenticate_user
-from inventurgui.ui.helper.markdown import render_markdown
-from inventurgui.ui.helper.validators import validate_url
-from contextlib import suppress
-
-from nicegui import app, ui
-from nicegui.elements.aggrid import AgGrid
-from nicegui.elements.dialog import Dialog
-from nicegui.events import GenericEventArguments
-from polars import DataFrame
-
-from inventurgui.helper.config import settings
-from inventurgui.helper.i18n import i18n
-from inventurgui.helper.images import upload_img, delete_img
-from inventurgui.io.cache import Cache
+from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.helper.markdown import render_markdown
 from inventurgui.ui.helper.validators import validate_url
@@ -64,7 +51,7 @@ def handle_select(name: str, event: GenericEventArguments, grid: AgGrid):
         grid.run_row_method(row_id, "setSelected", False)
 
 
-def handle_click(name: str, df:DataFrame, grid: AgGrid, event: GenericEventArguments):
+def handle_click(warehouse:Warehouse, grid: AgGrid, event: GenericEventArguments):
     columns = settings.columns
     data = event.args["data"]
     admin = authenticate_user()
@@ -72,18 +59,18 @@ def handle_click(name: str, df:DataFrame, grid: AgGrid, event: GenericEventArgum
         any([data[columns["image"]], data[columns["comment"]], data[columns["url"]]])
         and event.args["colId"] == columns["image"] and not admin
     ):
-        info_popup(name, df, event.args, grid)
+        info_popup(warehouse, event.args, grid)
     elif admin and event.args["colId"] == columns["image"]:
-        info_popup(name, df, event.args, grid)
+        info_popup(warehouse, event.args, grid)
     else:
-        handle_select(name, event, grid) if not admin else None
+        handle_select(warehouse.name, event, grid) if not admin else None
 
-def info_popup(name: str, df:DataFrame, event_args: dict, grid: AgGrid):
+def info_popup(warehouse:Warehouse, event_args: dict, grid: AgGrid):
     admin = authenticate_user()
     data = event_args["data"]
     with ui.dialog(value=True) as dia:
-        dia_content(dia, name, data, admin)
-        dia.on("hide", lambda: update_row_data(data, grid, df))
+        dia_content(dia, warehouse.name, data, admin)
+        dia.on("hide", lambda: update_row_data(data, grid, warehouse))
     return dia
 
 @ui.refreshable
@@ -118,7 +105,7 @@ def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
             md.bind_content_from(data, columns["comment"], backward=lambda x: "" if x is None else x)
             md.bind_visibility(md, "content")
 
-def update_row_data(data: dict[str, str], grid: AgGrid, df: DataFrame):
+def update_row_data(data: dict[str, str], grid: AgGrid, warehouse:Warehouse):
     grid.run_row_method(data["index"], "setData", data)
-    for key, value in data.items():
-        df[data["index"], key] = value
+    updated = pl.from_dict(data)
+    warehouse.inventory = warehouse.inventory.update(updated, on="index", how="full")

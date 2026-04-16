@@ -7,7 +7,7 @@ from inventurgui.helper.config import settings
 from inventurgui.io.cache import Cache
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
-from inventurgui.ui.grid.grid_handlers import handle_select, handle_click, update_amount
+from inventurgui.ui.grid.grid_handlers import handle_select, update_amount
 from inventurgui.ui.grid.options import options
 
 """This module implements functions to create AG Grids which display the data."""
@@ -48,9 +48,7 @@ def register_event_handlers(grid: AgGrid, name: str, df: DataFrame, cart: bool, 
     """Register the event handlers for the given grid."""
     # Handle events
     grid.on("rowSelected", lambda e: handle_select(name, e, grid))
-    if not cart:
-        grid.on("cellClicked", lambda event: handle_click(name, df, grid, event))
-        if not admin:
+    if not cart and not admin:
             for row in Cache.selected(name):
                 grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     if cart:

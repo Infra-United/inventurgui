@@ -7,6 +7,7 @@ from inventurgui.helper.logger import LOGGER
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.auth import authenticate_user
 from inventurgui.ui.grid.grid import create_aggrid
+from inventurgui.ui.grid.grid_handlers import handle_click
 from inventurgui.ui.helper.reusable_elements import next_fab, save_fab
 
 
@@ -22,7 +23,8 @@ async def category_page(category: str | None, warehouse: Warehouse, rd: RightDra
         df = warehouse.selected()
     else:
         df = warehouse.inventory.filter(pl.col(settings.columns["category"]) == category)
-    await create_aggrid(warehouse.name, df)
+    grid = await create_aggrid(warehouse.name, df)
+    grid.on("cellClicked", lambda event: handle_click(warehouse, grid, event))
     if authenticate_user():
         save_fab(warehouse)
     else:
