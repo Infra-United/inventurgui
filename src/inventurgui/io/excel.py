@@ -11,7 +11,6 @@ from inventurgui.helper.dates import convert_dates
 from inventurgui.helper.i18n import i18n
 from inventurgui.helper.logger import LOGGER
 from inventurgui.helper.paths import get_path
-from inventurgui.io.database import DB
 from inventurgui.io.nextcloud import Nextcloud
 from inventurgui.io.warehouse import Warehouse
 from inventurgui.ui.helper.calculations import get_final
@@ -76,7 +75,7 @@ async def handle_request(
                 write_sheet(data.filter(pl.col(settings.warehouse["label"]) == name), dl_wb.add_worksheet(name), dl_wb)
 
     # Save to database
-    [DB.save(name, df, 'request') for name, df in sheets.items()]
+    #[DB.save(name, df, 'request') for name, df in sheets.items()]
 
     with (Workbook(path, {'strings_to_numbers': True, 'default_date_format': settings.date_format}) as workbook):
         # Write Overview
