@@ -83,7 +83,7 @@ def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
         if admin:
             up = ui.upload(label=i18n.get("admin.upload"), auto_upload=True)
             up.on_upload(lambda e: upload_img(name, e, data))
-            up.props('accept="image/*" flat bordered max-files=1 capture=environment')
+            up.props('accept="image/*" color=secondary flat bordered max-files=1 capture=environment')
         url = data.get(columns.get("url"))
         ui.link(url, url, new_tab=True) if url else None
         if admin:
@@ -91,20 +91,20 @@ def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
                 i = ui.input(placeholder="URL:", value=url if url else "",
                              validation=lambda v: validate_url(v,data)).props("outlined")
                 i.on("blur", lambda x=i: x.validate()).without_auto_validation().classes("w-65")
-                del_link = ui.button(icon='delete', on_click=lambda: i.set_value("")).classes("h-14")
+                del_link = ui.button(icon='delete', on_click=lambda: i.set_value("")).classes("h-14 bg-secondary")
                 del_link.on('click', lambda: data.update({columns.get("url") : ""}))
             ui.editor(value=data[columns["comment"]]).bind_value_to(data, columns["comment"])
             if data.get(columns["image"]):
                 with img:
                     up.on_upload(lambda: img.force_reload())
-                    del_btn = ui.button(icon="delete").classes("absolute top-0 right-0")
+                    del_btn = ui.button(icon="delete").classes("absolute top-0 right-0 bg-secondary")
                     del_btn.on('click', lambda: delete_img(data))
                     del_btn.on('click', lambda: img.delete())
         else:
             md = render_markdown().classes(remove="text-justify")
             md.bind_content_from(data, columns["comment"], backward=lambda x: "" if x is None else x)
             md.bind_visibility(md, "content")
-        ui.button("Fertig", icon="check", on_click=lambda: dia.close())
+        ui.button("Fertig", icon="check", on_click=lambda: dia.close()).props("text-color=secondary")
 
 def update_row_data(data: dict[str, str], grid: AgGrid, warehouse:Warehouse):
     grid.run_row_method(data["index"], "setData", data)
