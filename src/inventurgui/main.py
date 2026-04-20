@@ -18,6 +18,7 @@ def main():
     warehouses, pages = asyncio.run(load_data_from_dav())
     if settings.help["wiki"]:
         wiki = asyncio.run(load_wiki())
+    else: wiki = None
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     locale.setlocale(locale.LC_TIME, settings.locale)
