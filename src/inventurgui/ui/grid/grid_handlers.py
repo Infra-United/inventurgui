@@ -76,14 +76,14 @@ def info_popup(warehouse:Warehouse, event_args: dict, grid: AgGrid):
 @ui.refreshable
 def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
     columns = settings.columns
-    with dia.clear(), ui.card().classes("w-100 gap-2 items-center text-center py-4 text-bold"):
+    with (dia.clear(), ui.card().classes("w-100 gap-2 items-center text-center py-4 text-bold")):
         ui.label(text=f"{data.get(columns['object'])}")
         if src:=data.get(columns["image"]):
             img = ui.interactive_image(src)
         if admin:
             up = ui.upload(label=i18n.get("admin.upload"), auto_upload=True)
             up.on_upload(lambda e: upload_img(name, e, data))
-            up.props('accept="image/*" color=secondary flat bordered max-files=1 capture=environment')
+            up.props('accept="image/*" text-color=secondary flat bordered max-files=1 capture=environment')
         url = data.get(columns.get("url"))
         ui.link(url, url, new_tab=True) if url else None
         if admin:
@@ -91,7 +91,8 @@ def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
                 i = ui.input(placeholder="URL:", value=url if url else "",
                              validation=lambda v: validate_url(v,data)).props("outlined")
                 i.on("blur", lambda x=i: x.validate()).without_auto_validation().classes("w-65")
-                del_link = ui.button(icon='delete', on_click=lambda: i.set_value("")).classes("h-14 bg-secondary")
+                del_link = ui.button(icon='delete', on_click=lambda: i.set_value(""))
+                del_link.props("text-color=secondary").classes("h-14")
                 del_link.on('click', lambda: data.update({columns.get("url") : ""}))
             ui.editor(value=data[columns["comment"]]).bind_value_to(data, columns["comment"])
             if data.get(columns["image"]):
