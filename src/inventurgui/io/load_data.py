@@ -15,7 +15,7 @@ from inventurgui.ui.helper.markdown import read_page_files
 async def load_data_from_dav(reload:bool=False) -> Tuple[list[Warehouse], dict[str, str]]:
     if not ARGS.reload or reload:
         Nextcloud.singleton().pull_files()
-    if DB.Inventory_DB.is_file() and not reload:
+    if DB.Inventory_DB.is_file() and not reload and not ARGS.reload:
         warehouses: list[Warehouse] = [DB.load(sheet, 'inventory') for sheet in settings.data["warehouses"]]
         LOGGER.info("Found inventory DB and loaded data.")
     else:
