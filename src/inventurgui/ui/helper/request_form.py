@@ -68,6 +68,7 @@ class Form:
                 dates = self.dates.classes("w-full h-full p-0").props("range minimal flat")
                 dates.move(column)
                 dates.props[":options"] = f'date => date >= "{datetime.date.today():%Y/%m/%d}"'
+                dates.props("color=secondary text-color=primary")
                 dates.bind_value(self.request, "dates")
 
             with ui.column().classes("items-stretch max-sm:col-span-2"):
