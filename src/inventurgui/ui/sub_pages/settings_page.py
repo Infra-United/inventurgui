@@ -21,13 +21,13 @@ def settings_page(ld: LeftDrawer, warehouses:list[Warehouse]):
         ui.label("Achtung: Alle Bilder, Links & Kommentare die hier hochgeladen wurden gehen verloren! Falls du etwas geändert hast, exportiere zunächst.")
         ui.button(i18n.get("settings.reload_dav"), icon='update',
                   on_click=lambda: load_data_from_dav(reload=True)
-                ).classes("text-secondary")
+                ).props("text-color=secondary")
         ui.label("Achtung: Die Inventur in der Cloud wird überschrieben - wenn in der Zwischenzeit was geändert wurde, geht das verloren!")
         ui.button(i18n.get("settings.export_inventory"), icon='update',
                   on_click=lambda: export_inventory(warehouses)
-                ).classes("text-secondary")
+                ).props("text-color=secondary")
         if settings.help["wiki"]:
             ui.label("Hinweis: Wiki laden dauert ne halbe Minute, läuft im Hintergrund.")
             ui.button(i18n.get("settings.reload_wiki"), icon='update',
                   on_click=lambda: load_wiki(reload=True)
-                ).classes("text-secondary")
+                ).props("text-color=secondary")
