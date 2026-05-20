@@ -43,7 +43,6 @@ class Settings(BaseSettings):
     }
     dav: dict[str, str | float | dict[str, str]] = {
         "dir": "InventurGui",
-        "refresh_interval_hours": 24,
         "pull": {
             "logo": "logo.jpeg",
             "help": "help.md",
@@ -52,11 +51,6 @@ class Settings(BaseSettings):
             "inventory": "inventory.ods",
         },
     }
-
-    @property
-    def refresh_timer(self) -> float:
-        return self.dav["refresh_interval_hours"] * 3600
-
     data: dict[str, str | int | list[str] | dict[str, str]] = {
         "filename": "inventory",
         "warehouses": [""],

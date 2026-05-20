@@ -22,7 +22,7 @@ def read_ods(sheet:str) -> Warehouse:
 
 async def handle_images(subfolder:str, df:DataFrame):
     columns = settings.columns
-    if columns["image"] in df.columns:
+    if "image" in columns and "image" in df.columns:
         for idx, row in enumerate(df.iter_rows(named=True)):
             if row[settings.columns["image"]] is None:
                 continue
