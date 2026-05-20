@@ -35,6 +35,13 @@ Example Usage here: https://infra.uber.space
 
 #### Optional: Export all requests to excel and sync the file to your Nextcloud!
 
+## Install
+1) Clone this repository
+2) cd into it
+3) install uv if not already done: https://docs.astral.sh/uv/#installation
+4) Run `uv run inventurgui`
+
+
 ## Roadmap
 ### Make config available in admin page
 - [x] create /admin page accessible through /login

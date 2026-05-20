@@ -1,5 +1,5 @@
 [project]
-name = "inventurgui"
+name = "niceshare"
 version = "0.1.0"
 description = "This is a simple Python GUI that displays data from table sheets (.ods) on a Website in a nice way. It is used for inventory management in organizations that lend stuff for free or vs donations."
 authors = [{ name = "whoami", email = "schmusi@systemli.org" }]
@@ -27,10 +27,10 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/inventurgui"]
+packages = ["src/niceshare"]
 
 [project.scripts]
-inventurgui = "inventurgui:main"
+niceshare = "niceshare:main"
 
 [build-system]
 requires = ["hatchling"]
