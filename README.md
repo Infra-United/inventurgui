@@ -67,7 +67,7 @@ theme:
   dark_mode: True
 dav:
   dir: "My Folder/My Subfolder" (Path inside cloud to use for syncing)
-  pull: (Map of filenames to pull - the keys are relevant!)
+  pull: # Map of filenames to pull - the keys are relevant!
     logo: 'logo.png'
     help: 'help.md'
     terms: 'terms.md'
@@ -82,7 +82,7 @@ data:
     - "Mitte"
     - "Leipzig"
     - "Rheinland"
-  columns: (The columns in your inventory tables)
+  columns: # The columns in your inventory tables)
     shelf: Regal # Not necessary
     category: Kategorie # Necessary!
     object: Objekt # Necessary!
