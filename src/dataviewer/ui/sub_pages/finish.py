@@ -4,7 +4,6 @@ from dataviewer.helper.config import settings
 from dataviewer.helper.i18n import i18n
 from dataviewer.io.cache import Cache
 from dataviewer.io.selection import Selection
-from dataviewer.ui.helper.magic_links import get_magic_link
 from dataviewer.ui.helper.reusable_elements import back_fab
 from dataviewer.ui.layout import drawer_menu
 
@@ -29,12 +28,10 @@ async def finish_page(warehouses: list[Selection]):
                 drawer_menu.refresh()
                 ui.navigate.to("/")
             else:
-                magic_link = get_magic_link()
                 ui.label(f"{i18n.get('finish.editing_link')}:".upper()).classes(
                     "w-full antialiasing text-base/3 tracking-wider"
                 )
                 ui.label(i18n.get("finish.editing_link_tip")).classes(classes)
-                ui.link(magic_link, target=magic_link).classes(classes).classes("text-primary")
                 ui.markdown(i18n.get("finish.download_tip")).classes(classes)
                 btn = ui.button(i18n.get("finish.download_button"), icon="download").classes("bg-secondary")
                 btn.on_click(lambda: ui.download.file(Cache.form().get("download")))

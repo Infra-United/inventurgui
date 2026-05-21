@@ -2,12 +2,8 @@ from nicegui import ui, app
 from slugify import slugify
 
 from dataviewer.helper.config import settings
-from dataviewer.helper.paths import ensure_directory_structure
 from dataviewer.io.cache import Cache
-from dataviewer.io.importer import read_ods
-from dataviewer.io.nextcloud import Nextcloud
 from dataviewer.io.selection import Selection, WAREHOUSE_ROOT
-from dataviewer.ui.helper.markdown import read_page_files
 from dataviewer.ui.helper.theme import Theme
 from dataviewer.ui.layout import create_layout
 from dataviewer.ui.sub_pages.cart import cart_page
@@ -92,12 +88,6 @@ def root(
 
     """,
     )
-
-    # Set timers for refreshing files
-    ui.timer(settings.refresh_timer, lambda: Nextcloud.singleton().pull_files(), immediate=False)
-    ui.timer(settings.refresh_timer, lambda: (warehouses.clear(), warehouses.extend(read_ods())), immediate=False)
-    ui.timer(settings.refresh_timer, lambda: ensure_directory_structure([w.name for w in warehouses]), immediate=False)
-    ui.timer(settings.refresh_timer, lambda: markdown.update({k: v for k, v in read_page_files()}), immediate=False)
 
     # Instantiate Theme
     Theme.singleton().set_colors()

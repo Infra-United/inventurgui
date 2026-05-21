@@ -8,17 +8,11 @@ from dataviewer.helper.logger import LOGGER
 from dataviewer.io.cache import Cache
 from dataviewer.io.selection import Selection
 from dataviewer.ui.grid.grid import create_aggrid
-from dataviewer.ui.helper.magic_links import load_data_from_magic_link
 from dataviewer.ui.helper.reusable_elements import badge, next_fab, tabs, tab_panels, back_fab
 
 
 async def cart_page(warehouses: list[Selection], args: PageArguments) -> None:
     ui.query(".nicegui-sub-pages").classes(replace="bg-dark w-full no-scroll").style(replace="gap:0")
-
-    current_id = app.storage.browser["id"]
-    request_id = args.query_parameters.get("id")
-    if current_id != request_id:
-        load_data_from_magic_link(request_id)
 
     if Cache.total() == 0:
         ui.notify(i18n.get("cart.select_tip"), type="warning", position="center", color="primary", textColor="dark")

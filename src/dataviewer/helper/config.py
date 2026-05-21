@@ -79,7 +79,6 @@ class Settings(BaseSettings):
     def data_filename(self) -> str:
         return self.data["filename"]
 
-    mail: dict[str, str] = {"mail_to": "hello@example.org", "admin": "admin@example.org"}
     start: dict[str, str | bool] = {"label": "Start", "icon": "home", "path": "about.md"}
     help: dict[str, str | bool] = {
         "display": True,
@@ -113,7 +112,6 @@ class Settings(BaseSettings):
             "name": "Name",  # This field is required
             "place": "Ort",
             "donation": "Donation",
-            "email": "E-Mail",
             "messenger": "Messenger-Contact (Signal, etc.)",
         },
         "message": "Your Message - Questions, Notes and important Infos",

@@ -16,7 +16,6 @@ class Cache:
                 "name": "",
                 "place": "",
                 "donation": "",
-                "email": "",
                 "message": "",
                 "messenger": "",
                 "request": None,

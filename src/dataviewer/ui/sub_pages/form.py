@@ -1,11 +1,10 @@
 from contextlib import suppress
 
-from nicegui import app, ui, PageArguments
+from nicegui import ui, PageArguments
 from nicegui.elements.drawer import LeftDrawer
 
 from dataviewer.helper.config import settings
 from dataviewer.io.selection import Selection
-from dataviewer.ui.helper.magic_links import load_data_from_magic_link
 from dataviewer.ui.helper.markdown import render_markdown
 from dataviewer.ui.helper.request_form import Form
 from dataviewer.ui.helper.reusable_elements import back_fab, tabs, tab_panels
@@ -26,11 +25,6 @@ async def form_page(ld: LeftDrawer, warehouses: list[Selection], md: dict[str, s
                 form_panels.set_value([t.props.get("label") for t in form_tabs.descendants()][0])
         else:
             form_panels.set_value("default")
-
-    current_id = app.storage.browser["id"]
-    request_id = args.query_parameters.get("id")
-    if current_id != request_id:
-        load_data_from_magic_link(current_id, request_id)
 
     ld.hide()
     terms = form.get("terms")

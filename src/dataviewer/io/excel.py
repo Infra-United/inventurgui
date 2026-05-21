@@ -11,7 +11,6 @@ from dataviewer.helper.dates import convert_dates
 from dataviewer.helper.i18n import i18n
 from dataviewer.helper.logger import LOGGER
 from dataviewer.helper.paths import get_path
-from dataviewer.io.nextcloud import Nextcloud
 from dataviewer.io.selection import Selection
 
 
@@ -90,7 +89,6 @@ async def handle_request(
             write_sheet(sheets.get(name), worksheet, workbook)
 
     LOGGER.info(f"Successfully wrote request to {path}")
-    Nextcloud.singleton().push_file(path)
     return sheets.get(request.get("name"))
 
 

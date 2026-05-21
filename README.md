@@ -25,14 +25,6 @@ Example Usage here: https://infra.uber.space
 - Translate: English and German already available - add your language with ease, by adding another .yml file to files/locales.
 - Customize: any text, icon, colors and even all routes are customizable either through config or localization files
 
-#### Optional: 📕 Wiki - Add your [Bookstack](https://www.bookstackapp.com/) Book as Wiki through the right drawer instead of a help page (Optional)
-
-### Manage your Requests with ease
-- Send automated E-Mails to you and your clients on each Request, Update or Deletion with an Overview, the editing link and an excel file containing the the requested items with all relevant data.
-- You and your clients can use the magic editing link (no login required) to update and delete their requests.
-- Your Clients see directly after requesting if their items are available in the requested timeframe or if there is an overlapping prior request. If there is an overlap, those items are marked red in the excel file.
-- Stores requests with an overview of all requests per year, and the list for each request of course
-
 #### Optional: Export all requests to excel and sync the file to your Nextcloud!
 
 ## Install
