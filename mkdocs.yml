@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+site_name: Inventurgui Documentation
+nav:
+  - Home: index.md
+  - Getting Started: getting stared.md
+  - About: about.md
+extra_css:
+  - stylesheets/extra.css
+theme:
+  name: material
+  palette:
+    primary: custom
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
