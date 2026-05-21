@@ -165,6 +165,6 @@ class Settings(BaseSettings):
 
 if not config_file.is_file():
     Settings.create_default_config()
-    print(f"Please copy {default_config_file} to {config_file} and edit it to your needs!")
+    LOGGER.info(f"Please copy {default_config_file} to {config_file} and edit it to your needs!")
     exit(0)
 settings = Settings.load_config()
