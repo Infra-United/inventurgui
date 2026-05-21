@@ -60,17 +60,14 @@ class Settings(BaseSettings):
         "filename": "inventory",
         "warehouses": [""],
         "columns": {
-            "shelf": "Shelf",
-            "category": "Category",
-            "object": "Name",
-            "count": "Amount",
-            "total": "of",
-            "pack": "Package",
-            "weight": "Weight",
-            "total_weight": "Total Weight",
-            "comment": "Comment",
-            "image": "Image",
-            "url": "url",
+            "category": "Selection",
+            "title": "title",
+            "tone": "tone",
+            "chord": "chord",
+            "lyrics": "lyrics",
+            "desc": "description",
+            "dance": "dance_description",
+            "url": "link"
         },
     }
 

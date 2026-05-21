@@ -45,7 +45,7 @@ def image_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
         "colId": columns["url"],
         "editable": False,
-        ":cellRenderer": f"""(p) => p.data.{columns["comment"]} || p.data.{columns["url"]} ? 
+        ":cellRenderer": f"""(p) => p.data.{columns["dance"]} || p.data.{columns["url"]} ? 
         "<span class='material-icons-outlined bg-secondary text-3xl' >info</span>" : null""",
         "lockPosition": "left",
         "hide": cart,
@@ -66,18 +66,6 @@ def object_col(columns: colSettings, cart: bool) -> dict[str, Any]:
         "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"},
     }
 
-
-@register_column("desc")
-def description_col(columns: colSettings, cart: bool) -> dict[str, Any]:
-    return {
-        "field": columns["desc"],
-        "suppressSizeToFit": False,
-        "wrapText": True,
-        "autoHeight": False,
-        "sortable": False,
-    }
-
-
 @register_column("lyrics")
 def description_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
@@ -87,42 +75,6 @@ def description_col(columns: colSettings, cart: bool) -> dict[str, Any]:
         "autoHeight": False,
         "sortable": False,
     }
-
-
-@register_column("weight")
-def weight_col(columns: colSettings, cart: bool) -> dict[str, Any]:
-    return {
-        "field": columns["weight"],
-        ":valueFormatter": "(p) => p.value != null ? p.value + ' kg' : null",
-        # ":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
-        # ":colId": f"(p) => p.data.{config['weight']}.reduce((acc, x) => acc + (x || 0), 0);",
-        # ":headerValueGetter": f"(p) => p.location === 'header' ? p.column.colId : null;",
-        "headerName": f"[kg/{columns['pack']}]",
-        "cellDataType": "number",
-        ":hide": "Quasar.Screen.lt.sm" if not cart else "",
-    }
-
-
-@register_column("count")
-def count_col(columns: colSettings, cart: bool) -> dict[str, Any]:
-    return {
-        "colId": columns["count"],
-        ":valueGetter": f"(p) => p.data.{columns['count']}",
-        ":valueFormatter": f"(p) => p.data.{columns['total']} > 1 ? p.value + ' {columns['total']} ' "
-        f"+ p.data.{columns['total']} : p.value"
-        if cart
-        else "",
-        "headerName": "",
-        "editable": cart,
-        "cellDataType": "number",
-        "maxWidth": 80 if not cart else None,
-        "lockPosition": "left" if cart else "",
-        "sort": "desc" if cart else "",
-        "cellClassRules": {"bg-accent": f"data.{columns['total']} > 1", "text-bold": f"data.{columns['total']} > 1"}
-        if cart
-        else "",
-    }
-
 
 @register_column("tone")
 def pack_col(columns: colSettings, cart: bool) -> dict[str, Any]:
@@ -154,16 +106,4 @@ def delete_col() -> dict[str, Any]:
                  "<span class='material-icons-outlined' style='font-size:28px'>add</span>" :
                   "<span class='material-icons-outlined' style='font-size:28px'>delete</span>"''',
         "maxWidth": 60,
-    }
-
-
-@register_column("total_weight")
-def total_weight_col(columns: colSettings, cart: bool) -> dict[str, Any]:
-    return {
-        "colId": columns["total_weight"],
-        "field": columns["total_weight"],
-        "cellDataType": "number",
-        ":valueFormatter": "(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
-        "hide": not cart,
-        "cellClassRules": {"text-bold": "x", "tracking-wider": "x"},
     }
