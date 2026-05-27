@@ -88,9 +88,7 @@ class Settings(BaseSettings):
     }
     selection: dict[str, str | bool] = {
         "label": "Lager",
-        "display": True,
         "icon": "warehouse",
-        "path": "lager.md",
         "everything": "Everything",
         "selection": "My Selection",
     }
