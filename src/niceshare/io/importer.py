@@ -1,4 +1,6 @@
+import duckdb
 import polars as pl
+from _duckdb import CatalogException, IOException
 from polars import DataFrame
 from polars.exceptions import NoDataError
 
@@ -9,18 +11,30 @@ from niceshare.helper.paths import get_path
 from niceshare.io.warehouse import Warehouse
 
 
-def read_ods(sheet:str) -> Warehouse:
-    inventory = get_path(f"{settings.data_filename}.ods")
-    LOGGER.debug(f"Reading Data from {inventory}...")
+def read_inventory(sheet: str) -> Warehouse:
+    inventory = get_path(settings.data_filename)
     try:
-        LOGGER.debug(f"Reading sheet {sheet}...")
-        df = pl.read_ods(source=inventory, sheet_name=sheet, drop_empty_cols=False)
+        LOGGER.debug(f"Reading sheet {sheet} from {inventory.name}...")
+        match inventory.suffix:
+            case ".duckdb":
+                with duckdb.connect(database=inventory, read_only=True) as con:
+                    df = con.query(f"SELECT * FROM {sheet}").pl()
+            case ".xlsx":
+                df = pl.read_excel(source=inventory, sheet_name=sheet, engine="openpyxl", drop_empty_cols=False)
+            case ".ods":
+                df = pl.read_ods(source=inventory, sheet_name=sheet, drop_empty_cols=False)
+            case ".csv":
+                df = pl.read_csv(source=inventory)
+            case _:
+                LOGGER.warning(f"This file type is not supported: {inventory.name}")
+                exit(1)
         return Warehouse.create(sheet, df)
-    except NoDataError:
-        LOGGER.warning(f"No data found in sheet {sheet}. Please check if this is intended.")
+    except (NoDataError, IOException, CatalogException) as e:
+        LOGGER.warning(f"Unable to read {sheet} from {inventory.name}. Full error: {e}", exc_info=True)
         exit(1)
 
-async def handle_images(subfolder:str, df:DataFrame):
+
+async def handle_images(subfolder: str, df: DataFrame):
     columns = settings.columns
     if "image" in columns and "image" in df.columns:
         for idx, row in enumerate(df.iter_rows(named=True)):

@@ -50,7 +50,7 @@ class Warehouse(MenuItem):
             df.with_columns(pl.col(columns["count"]) * pl.col(columns["weight"]).alias(columns["total_weight"]))
         warehouse = cls(name=name, inventory=df.select([c for c in columns.values()]).with_row_index())
         warehouse.inventory.insert_column(0, (pl.lit(name)).alias(settings.warehouse["label"]))
-        LOGGER.info(f"Successfully loaded warehouse {name}")
+        LOGGER.info(f"Successfully created warehouse {name}")
         return warehouse
 
     @property

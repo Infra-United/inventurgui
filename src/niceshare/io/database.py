@@ -10,8 +10,8 @@ from niceshare.io.warehouse import Warehouse
 
 
 class DB:
-    Inventory_DB = get_path(f"{settings.data_filename.split('.')[0]}.duckdb")
-    Request_DB = get_path(f"{settings.requests['filename']}.duckdb")
+    Inventory_DB = get_path(settings.data_filename).with_suffix(".duckdb")
+    Request_DB = get_path(settings.requests["filename"]).with_suffix(".duckdb")
 
     @classmethod
     def save(cls, name: str, df: DataFrame, db: Literal["inventory", "request"]):
