@@ -5,7 +5,6 @@ from polars import DataFrame
 
 from niceshare.helper.config import settings
 from niceshare.io.cache import Cache
-from niceshare.io.warehouse import Warehouse
 from niceshare.ui.auth import authenticate_user
 from niceshare.ui.grid.grid_handlers import handle_select, update_amount
 from niceshare.ui.grid.options import options
@@ -15,12 +14,12 @@ from niceshare.ui.grid.options import options
 columns = settings.columns
 
 
-async def create_aggrid(name: str, df:DataFrame, cart: bool = False) -> AgGrid:
+async def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
 
     Args:
         category (str): name of the Category to display
-        warehouse (Warehouse): The warehouse the category belongs to.
+        warehouse (Selection): The warehouse the category belongs to.
         cart (bool): Whether the grid is for the cart page. Defaults to False.
 
     Returns:
@@ -36,8 +35,6 @@ async def create_aggrid(name: str, df:DataFrame, cart: bool = False) -> AgGrid:
     ui.add_body_html(f"<style>.ag-row-hover .ag-cell  {background('accent')}</style>")
     ui.add_body_html(f"<style>.ag-row-pinned .ag-cell  {background('secondary')}</style>")
 
-
-
     # Create Grid with given Data
     grid = aggrid.from_polars(df, options=options(cart, admin), html_columns=[0], theme="alpine").classes("h-dvh")
     register_event_handlers(grid, name, df, cart, admin)
@@ -49,8 +46,8 @@ def register_event_handlers(grid: AgGrid, name: str, df: DataFrame, cart: bool, 
     # Handle events
     grid.on("rowSelected", lambda e: handle_select(name, e, grid))
     if not cart and not admin:
-            for row in Cache.selected(name):
-                grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
+        for row in Cache.selected(name):
+            grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     if cart:
         for row, value in Cache.amounts(name).items():
             grid.on(

@@ -18,7 +18,7 @@ from niceshare.helper.paths import get_path
 from niceshare.io.cache import Cache
 from niceshare.io.excel import handle_request
 from niceshare.io.mail import send_mail, RequestType
-from niceshare.io.warehouse import Warehouse
+from niceshare.io.selection import Selection
 from niceshare.ui.helper.magic_links import get_magic_link
 from niceshare.ui.helper.validators import validate_mail, INPUT_VALIDATION, validate_number
 
@@ -45,7 +45,7 @@ class Form:
                 return True
         return False
 
-    def create(self, warehouses: list[Warehouse]):
+    def create(self, warehouses: list[Selection]):
         with ui.dialog() as delete_dialog:
             with ui.card():
                 ui.label(i18n.get("finish.are_you_sure").upper()).classes("w-full pt-2 text-center tracking-widest")
@@ -76,7 +76,9 @@ class Form:
                     i = ui.input(
                         value,
                         validation=(lambda v, k=key: validate_mail(k, v, self.request))
-                        if key == "email" else (lambda v, k=key: validate_number(k, v, self.request)) if key == "donation"
+                        if key == "email"
+                        else (lambda v, k=key: validate_number(k, v, self.request))
+                        if key == "donation"
                         else INPUT_VALIDATION,
                     )
                     i.without_auto_validation()
@@ -107,13 +109,19 @@ class Form:
             submit.bind_icon_from(self.request, "request", backward=lambda v: "save" if v else "outgoing_mail")
 
 
-async def submit_form(request: ObservableDict, warehouses: list[Warehouse], delete:bool = False) -> None:
+async def submit_form(request: ObservableDict, warehouses: list[Selection], delete: bool = False) -> None:
     is_update = True if request.get("request") else False
     request.update({"finish": i18n.get("finish.processing")})
     ui.navigate.to(f"/{slugify(settings.finish['label'])}")
     magic_link = get_magic_link()
     request.update({"edit_link": magic_link})
-    request.update({"update": time.time()} if is_update and not delete else {"delete": time.time()} if delete else {"request": time.time()})
+    request.update(
+        {"update": time.time()}
+        if is_update and not delete
+        else {"delete": time.time()}
+        if delete
+        else {"request": time.time()}
+    )
     try:
         dl_path = get_path(f"{settings.organization}-{request.get('name')}.xlsx", "lists")
         await handle_request(request, warehouses, dl_path, delete)

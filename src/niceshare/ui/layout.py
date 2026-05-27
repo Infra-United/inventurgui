@@ -10,14 +10,14 @@ from slugify import slugify
 from niceshare.helper.config import settings
 from niceshare.helper.paths import get_path
 from niceshare.io.cache import Cache
-from niceshare.io.warehouse import Warehouse
+from niceshare.io.selection import Selection
 from niceshare.io.wiki import WikiChapter, MenuItem
 from niceshare.ui.auth import authenticate_user
 from niceshare.ui.helper.reusable_elements import badge
 
 
 def create_layout(
-    warehouses: list[Warehouse], wiki_menu: list[WikiChapter] | None
+    warehouses: list[Selection], wiki_menu: list[WikiChapter] | None
 ) -> Tuple[LeftDrawer, RightDrawer | None]:
     # Drawers
     with ui.left_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as ld:
@@ -55,7 +55,13 @@ def main_menu(
     props: str = "unelevated no-wrap text-color=secondary square",
 ) -> None:
     warehouse_btn = ui.button(settings.warehouse["label"], icon=settings.warehouse["icon"], on_click=lambda: ld.show())
-    warehouse_btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.warehouse['label'])}"), drawer_menu.refresh()) if Cache.width() > 640 else None)
+    warehouse_btn.on_click(
+        lambda: (
+            (ui.navigate.to(f"/{slugify(settings.warehouse['label'])}"), drawer_menu.refresh())
+            if Cache.width() > 640
+            else None
+        )
+    )
     warehouse_btn.classes(classes).props(props)
     start_btn: Button = ui.button(settings.start["label"], icon=settings.start["icon"]).classes(classes).props(props)
     start_btn.on_click(lambda: ui.navigate.to("/"))
@@ -74,7 +80,13 @@ def main_menu(
             settings.help["label"], icon=settings.help["icon"], on_click=lambda: rd.show() if rd else None
         )
         help_btn.classes(classes).props(props)
-        help_btn.on_click(lambda: (ui.navigate.to(f"/{slugify(settings.help['label'])}"), drawer_menu.refresh()) if Cache.width() > 640 else None)
+        help_btn.on_click(
+            lambda: (
+                (ui.navigate.to(f"/{slugify(settings.help['label'])}"), drawer_menu.refresh())
+                if Cache.width() > 640
+                else None
+            )
+        )
 
 
 @ui.refreshable
@@ -109,7 +121,7 @@ def drawer_menu(
         with ui.expansion(text=item.name, group=config["label"]).classes(f"{classes} mx-2") as exp:
             with exp.add_slot("header"):
                 with ui.label(item.name).classes("py-3 text-base/7 w-full"):
-                    if isinstance(item, Warehouse):
+                    if isinstance(item, Selection):
                         badge("0").bind_text_from(app.storage.user["selected"], item.name, backward=lambda v: len(v))
 
             exp.props("header-class='border' dense hide-expand-icon")
@@ -123,6 +135,8 @@ def drawer_menu(
             exp.on("click", lambda t=toggle, i=item: t.set_value(i.name if i.name in t.options else t.options[0]))
             exp.on("click", lambda e=exp: e.open())
             exp.on("click", lambda i=item, t=toggle: ui.navigate.to(i.routes.get(t.value)))
-            toggle.classes(f"{classes} column").props('stretch ripple unelevated no-caps padding="4px 8px" toggle-color=accent')
+            toggle.classes(f"{classes} column").props(
+                'stretch ripple unelevated no-caps padding="4px 8px" toggle-color=accent'
+            )
             toggle.on_value_change(lambda v, i=item: ui.navigate.to(i.routes.get(v.value)))
-            #toggle.on_value_change(lambda: ld.hide() if Cache.width() < 1024 else None)
+            # toggle.on_value_change(lambda: ld.hide() if Cache.width() < 1024 else None)

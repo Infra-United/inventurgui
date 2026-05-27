@@ -4,7 +4,7 @@ from nicegui import app, ui, PageArguments
 from nicegui.elements.drawer import LeftDrawer
 
 from niceshare.helper.config import settings
-from niceshare.io.warehouse import Warehouse
+from niceshare.io.selection import Selection
 from niceshare.ui.helper.magic_links import load_data_from_magic_link
 from niceshare.ui.helper.markdown import render_markdown
 from niceshare.ui.helper.request_form import Form
@@ -14,7 +14,7 @@ from niceshare.ui.helper.reusable_elements import back_fab, tabs, tab_panels
 # TODO check why the formatting is incorrect with default_conf
 
 
-async def form_page(ld: LeftDrawer, warehouses: list[Warehouse], md: dict[str, str], args: PageArguments) -> None:
+async def form_page(ld: LeftDrawer, warehouses: list[Selection], md: dict[str, str], args: PageArguments) -> None:
     form: dict[str, str | dict[str, str]] = settings.form
 
     ui.page_title(f"{form['label']}")
