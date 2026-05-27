@@ -6,11 +6,13 @@ from polars import DataFrame
 from slugify import slugify
 
 from niceshare.helper.config import settings
+from niceshare.helper.logger import LOGGER
 from niceshare.io.cache import Cache
 from niceshare.io.wiki import MenuItem
 
 columns = settings.columns
 WAREHOUSE_ROOT = slugify(settings.warehouse["label"])
+
 
 @dataclass
 class Warehouse(MenuItem):
@@ -32,8 +34,9 @@ class Warehouse(MenuItem):
 
     @classmethod
     def create(cls, name: str, df: DataFrame):
+        LOGGER.debug(f"Creating warehouse {name}...")
         # with pl.Config(tbl_cols=-1):
-        #    print(df.filter(pl.col(columns["object"]).str.contains("regal")))
+        #   print(df.filter(pl.col(columns["object"]).str.contains("regal")))
         df = df.with_columns(
             [
                 pl.col(columns["count"]).cast(pl.Int64, strict=False),
@@ -41,9 +44,13 @@ class Warehouse(MenuItem):
                 pl.col(columns["count"]).alias(columns["total"]).cast(pl.Int64, strict=False),
             ]
         )
-        df.insert_column(1, (pl.col(columns["count"]) * pl.col(columns["weight"])).alias(columns["total_weight"]))
+        if columns["total_weight"] not in df.columns:
+            df.insert_column(1, (pl.col(columns["count"]) * pl.col(columns["weight"])).alias(columns["total_weight"]))
+        else:
+            df.with_columns(pl.col(columns["count"]) * pl.col(columns["weight"]).alias(columns["total_weight"]))
         warehouse = cls(name=name, inventory=df.select([c for c in columns.values()]).with_row_index())
         warehouse.inventory.insert_column(0, (pl.lit(name)).alias(settings.warehouse["label"]))
+        LOGGER.info(f"Successfully loaded warehouse {name}")
         return warehouse
 
     @property
@@ -65,3 +72,15 @@ class Warehouse(MenuItem):
 
     def selected(self) -> DataFrame:
         return self.inventory.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name)))
+
+    async def total_weight(self) -> int:
+        df = await self.get_final()
+        return df.select(columns["total_weight"]).sum().cast(pl.Int64).item()
+
+    async def get_final(self) -> DataFrame:
+        df = self.inventory
+        for row_idx, value in Cache.amounts(self.name).items():
+            df[int(row_idx), columns["count"]] = value
+        return (
+            df.filter(pl.arange(0, self.inventory.height).is_in(Cache.selected(self.name))).drop("index")
+        ).with_columns((pl.col(columns["count"]) * pl.col(columns["weight"])).alias(columns["total_weight"]))
