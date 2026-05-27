@@ -1,8 +1,6 @@
-from typing import Tuple
-
 from nicegui import ui, app
 from nicegui.elements.button import Button
-from nicegui.elements.drawer import LeftDrawer, RightDrawer
+from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.expansion import Expansion
 from nicegui.elements.toggle import Toggle
 from slugify import slugify
@@ -11,53 +9,45 @@ from niceshare.helper.config import settings
 from niceshare.helper.paths import get_path
 from niceshare.io.cache import Cache
 from niceshare.io.selection import Selection
-from niceshare.io.wiki import WikiChapter, MenuItem
-from niceshare.ui.auth import authenticate_user
 from niceshare.ui.helper.reusable_elements import badge
 
 
 def create_layout(
-    warehouses: list[Selection], wiki_menu: list[WikiChapter] | None
-) -> Tuple[LeftDrawer, RightDrawer | None]:
+    warehouses: list[Selection],
+) -> LeftDrawer:
     # Drawers
     with ui.left_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as ld:
         ui.space().classes("sm:hidden")
-    if wiki_menu:
-        with ui.right_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as rd:
-            ui.space().classes("sm:hidden")
-            drawer_menu([c for c in wiki_menu], settings.help, ld)
     with ld:
-        drawer_menu(warehouses, settings.warehouse, ld)
+        drawer_menu(warehouses, settings.selection, ld)
 
     # Header
     with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
         img = ui.image(source=get_path(settings.logo)).classes("h-full m-0 p-0 w-[56px]")
         img.on("click", lambda: ui.navigate.to("/"))
         ui.label(str(settings.title).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
-        main_menu(ld, rd if wiki_menu else None, classes="stretch h-full")
+        main_menu(ld, classes="stretch h-full")
 
     # Footer is only shown on small screens
     with ui.footer(fixed=True).classes("sm:hidden p-0 gap-0 h-[56px]"):
         main_menu(
             ld,
-            rd if wiki_menu else None,
             props='label="" unelevated no-wrap text-color=dark square',
             classes="flex-auto stretch h-full",
         )
-    return ld, rd if wiki_menu else None
+    return ld
 
 
 @ui.refreshable
 def main_menu(
     ld: LeftDrawer,
-    rd: None | RightDrawer,
     classes: str = "stretch",
     props: str = "unelevated no-wrap text-color=secondary square",
 ) -> None:
-    warehouse_btn = ui.button(settings.warehouse["label"], icon=settings.warehouse["icon"], on_click=lambda: ld.show())
+    warehouse_btn = ui.button(settings.selection["label"], icon=settings.selection["icon"], on_click=lambda: ld.show())
     warehouse_btn.on_click(
         lambda: (
-            (ui.navigate.to(f"/{slugify(settings.warehouse['label'])}"), drawer_menu.refresh())
+            (ui.navigate.to(f"/{slugify(settings.selection['label'])}"), drawer_menu.refresh())
             if Cache.width() > 640
             else None
         )
@@ -71,27 +61,13 @@ def main_menu(
         requests_btn.on_click(lambda: ui.navigate.to(f"/{slugify(settings.requests['label'])}"))
     """
     ui.space().classes("max-sm:hidden")
-    if authenticate_user():
-        for label in ["settings", "logout"]:
-            btn: Button = ui.button(icon=label).classes(classes).props(props)
-            btn.on_click(lambda l=label: ui.navigate.to(f"/{slugify(l)}"))
-    elif settings.help.get("display"):
-        help_btn: Button = ui.button(
-            settings.help["label"], icon=settings.help["icon"], on_click=lambda: rd.show() if rd else None
-        )
-        help_btn.classes(classes).props(props)
-        help_btn.on_click(
-            lambda: (
-                (ui.navigate.to(f"/{slugify(settings.help['label'])}"), drawer_menu.refresh())
-                if Cache.width() > 640
-                else None
-            )
-        )
-
+    for label in ["settings"]:
+        btn: Button = ui.button(icon=label).classes(classes).props(props)
+        btn.on_click(lambda l=label: ui.navigate.to(f"/{slugify(l)}"))
 
 @ui.refreshable
 def drawer_menu(
-    menu_items: list[MenuItem],
+    menu_items: list[Selection],
     config: dict[str, str],
     ld: LeftDrawer,
 ):

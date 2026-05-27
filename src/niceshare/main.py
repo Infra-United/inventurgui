@@ -1,26 +1,35 @@
-import asyncio
 import locale
 import os
 
 import jwt
+from _duckdb import IOException, CatalogException
 from nicegui import ui, app
 
 from niceshare.cli import ARGS
 from niceshare.helper.config import settings
 from niceshare.helper.logger import LOGGER
 from niceshare.helper.paths import get_path
-from niceshare.io.load_data import load_data_from_dav, load_wiki
+from niceshare.io.database import DB
+from niceshare.io.importer import read_inventory
+from niceshare.io.selection import Selection
+from niceshare.ui.helper.markdown import read_page_files
 from niceshare.ui.root import root
 
 
 # Starts the UI
 def main():
-    warehouses, pages = asyncio.run(load_data_from_dav())
-    if settings.help["wiki"]:
-        wiki = asyncio.run(load_wiki())
-    else: wiki = None
+    selections: list[Selection] = []
+    for sheet in settings.data["warehouses"]:
+        try:
+            selection: Selection = DB.load(sheet, "inventory")
+        except IOException, CatalogException:
+            LOGGER.warning(f"Could not load {sheet} from database. Trying to import it.")
+            selection: Selection = read_inventory(sheet)
+            DB.save(selection.name, selection.inventory, "inventory")
+        selections.append(selection)
     if len(os.environ["UI_AUTH_SECRET"]) < 32:
         raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
+    pages: dict[str, str] = {k: v for k, v in read_page_files()}
     locale.setlocale(locale.LC_TIME, settings.locale)
     storage_secret = os.environ["UI_STORAGE_SECRET"]
     os.environ.setdefault("NICEGUI_STORAGE_PATH", str(get_path("users")))
@@ -30,7 +39,7 @@ def main():
     app.add_static_files("/splash/", get_path("splash"))
     app.add_static_files("/icons/", get_path("icons"))
     ui.run(
-        root=lambda: root(warehouses, pages, wiki),
+        root=lambda: root(selections, pages),
         language=settings.language,
         uvicorn_logging_level="debug" if ARGS.debug else "info",
         show=False,

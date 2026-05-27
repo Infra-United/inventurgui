@@ -1,6 +1,6 @@
 import time
 
-from nicegui import app, ui, PageArguments
+from nicegui import app, ui
 
 from niceshare.helper.config import settings
 from niceshare.helper.i18n import i18n
@@ -8,18 +8,11 @@ from niceshare.helper.logger import LOGGER
 from niceshare.io.cache import Cache
 from niceshare.io.selection import Selection
 from niceshare.ui.grid.grid import create_aggrid
-from niceshare.ui.helper.calculations import total_weight
-from niceshare.ui.helper.magic_links import load_data_from_magic_link
 from niceshare.ui.helper.reusable_elements import badge, next_fab, tabs, tab_panels, back_fab
 
 
-async def cart_page(warehouses: list[Selection], args: PageArguments) -> None:
+async def cart_page(warehouses: list[Selection]) -> None:
     ui.query(".nicegui-sub-pages").classes(replace="bg-dark w-full no-scroll").style(replace="gap:0")
-
-    current_id = app.storage.browser["id"]
-    request_id = args.query_parameters.get("id")
-    if current_id != request_id:
-        load_data_from_magic_link(request_id)
 
     if Cache.total() == 0:
         ui.notify(i18n.get("cart.select_tip"), type="warning", position="center", color="primary", textColor="dark")
@@ -40,11 +33,9 @@ async def cart_page(warehouses: list[Selection], args: PageArguments) -> None:
             continue
         with truck_tabs:
             with ui.tab(w.name.upper()).props('alert="primary" alert-icon="local_shipping"'):
-                Cache.set_weight(w.name, await total_weight(w.name, w.selected()))
                 badge("").bind_text_from(
-                    app.storage.user["weight"],
+                    app.storage.user["selected"],
                     w.name,
-                    backward=lambda v: f"{float(v) / 1000:.2f} t" if v > 1000 else f"{v} kg",
                 )
         with truck_panels:
             with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
@@ -53,4 +44,4 @@ async def cart_page(warehouses: list[Selection], args: PageArguments) -> None:
             truck_panels.set_value(w.name.upper())
     LOGGER.info("Created cart page")
     next_fab(settings.form)
-    back_fab(settings.warehouse)
+    back_fab(settings.selection)

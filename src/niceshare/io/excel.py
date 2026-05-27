@@ -11,9 +11,7 @@ from niceshare.helper.dates import convert_dates
 from niceshare.helper.i18n import i18n
 from niceshare.helper.logger import LOGGER
 from niceshare.helper.paths import get_path
-from niceshare.io.nextcloud import Nextcloud
 from niceshare.io.selection import Selection
-from niceshare.ui.helper.calculations import get_final
 
 
 async def handle_request(
@@ -48,7 +46,7 @@ async def handle_request(
     sheets.update({overview_name: overview})
 
     # Get Data and add request to sheets (updating if name already exists)
-    dfs = [await get_final(w.name, w.selected()) for w in warehouses]
+    dfs = [w.selected() for w in warehouses]
     df = pl.concat([df for df in dfs if df is not None], how="align")
 
     # TODO maybe move this back to submit function
@@ -72,11 +70,11 @@ async def handle_request(
         dl_path.unlink(missing_ok=True)
         data = sheets.get(request_name)
         LOGGER.info(f"Creating download list file @{dl_path}")
-        names: list[str] = sorted(data[settings.warehouse["label"]].unique())
+        names: list[str] = sorted(data[settings.selection["label"]].unique())
         with Workbook(dl_path) as dl_wb:
             for name in names:
                 LOGGER.debug(f"Creating download list sheet {name} @{dl_path}")
-                write_sheet(data.filter(pl.col(settings.warehouse["label"]) == name), dl_wb.add_worksheet(name), dl_wb)
+                write_sheet(data.filter(pl.col(settings.selection["label"]) == name), dl_wb.add_worksheet(name), dl_wb)
 
     # Save to database
     # [DB.save(name, df, 'request') for name, df in sheets.items()]
@@ -95,7 +93,6 @@ async def handle_request(
             write_sheet(sheets[name], worksheet, workbook)
 
     LOGGER.info(f"Successfully wrote request to {path}")
-    Nextcloud.singleton().push_file(path)
     return sheets[request_name]
 
 

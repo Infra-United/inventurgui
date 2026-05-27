@@ -3,7 +3,6 @@ import socket
 import time
 from contextlib import suppress
 
-import nicegui.run
 from nicegui import ui
 from nicegui.elements.checkbox import Checkbox
 from nicegui.elements.date import Date
@@ -17,9 +16,7 @@ from niceshare.helper.logger import LOGGER
 from niceshare.helper.paths import get_path
 from niceshare.io.cache import Cache
 from niceshare.io.excel import handle_request
-from niceshare.io.mail import send_mail, RequestType
 from niceshare.io.selection import Selection
-from niceshare.ui.helper.magic_links import get_magic_link
 from niceshare.ui.helper.validators import validate_mail, INPUT_VALIDATION, validate_number
 
 
@@ -113,7 +110,6 @@ async def submit_form(request: ObservableDict, warehouses: list[Selection], dele
     is_update = True if request.get("request") else False
     request.update({"finish": i18n.get("finish.processing")})
     ui.navigate.to(f"/{slugify(settings.finish['label'])}")
-    magic_link = get_magic_link()
     request.update({"edit_link": magic_link})
     request.update(
         {"update": time.time()}
@@ -125,21 +121,11 @@ async def submit_form(request: ObservableDict, warehouses: list[Selection], dele
     try:
         dl_path = get_path(f"{settings.organization}-{request.get('name')}.xlsx", "lists")
         await handle_request(request, warehouses, dl_path, delete)
-        await nicegui.run.io_bound(
-            lambda: send_mail(
-                request,
-                request_type=RequestType.update if is_update else RequestType.delete if delete else RequestType.request,
-                filename=dl_path,
-            )
-        )
         request.update({"download": str(dl_path)})
     except Exception as exception:
         request.update({"finish": i18n.get("finish.failure_mail")})
         try:
             LOGGER.exception(exception)
-            await nicegui.run.io_bound(
-                lambda: send_mail(request, request_type=RequestType.failure, exception=exception)
-            )
             request.update({"finish": i18n.get("finish.failure_success")})
         except socket.gaierror:
             request.update({"finish": i18n.get("finish.mail_exception")})

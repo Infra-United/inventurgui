@@ -1,20 +1,15 @@
-from contextlib import suppress
-
 from nicegui import ui, app
 from slugify import slugify
 
 from niceshare.helper.config import settings
 from niceshare.io.cache import Cache
 from niceshare.io.selection import Selection, SELECTION_ROOT
-from niceshare.io.wiki import WIKI_ROOT, Wiki
 from niceshare.ui.helper.theme import Theme
 from niceshare.ui.layout import create_layout
 from niceshare.ui.sub_pages.cart import cart_page
 from niceshare.ui.sub_pages.category import category_page
 from niceshare.ui.sub_pages.finish import finish_page
 from niceshare.ui.sub_pages.form import form_page
-from niceshare.ui.sub_pages.help import wiki_page, help_page
-from niceshare.ui.sub_pages.login import login_page
 from niceshare.ui.sub_pages.settings_page import settings_page
 from niceshare.ui.sub_pages.start import start_page
 
@@ -24,8 +19,6 @@ from niceshare.ui.sub_pages.start import start_page
 def root(
     warehouses: list[Selection],
     markdown: dict[str, str],
-    wiki: Wiki = None,
-    display_wiki=None,
 ) -> None:
     ui.add_head_html("""
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -107,7 +100,7 @@ def root(
     storage = Cache(warehouses)
 
     # Create Main Layout
-    ld, rd = create_layout(warehouses, wiki.menu if wiki else None)
+    ld = create_layout(warehouses)
 
     # Register Pages
     user_id = app.storage.browser["id"]
@@ -115,38 +108,21 @@ def root(
         data={
             "warehouses": warehouses,
             "ld": ld,
-            "rd": rd,
             "user_id": user_id,
             "storage": storage,
             "md": markdown,
-            "style": wiki.style if wiki else None,
         },
         show_404=False,
     )
     sub_pages.add("/", start_page)
-    sub_pages.add("/login", login_page)
-    sub_pages.add("/logout", login_page)
     sub_pages.add(f"/{slugify(settings.cart['label'])}", cart_page)
     sub_pages.add(f"/{slugify(settings.form['label'])}", form_page)
     sub_pages.add(f"/{slugify(settings.finish['label'])}", finish_page)
     sub_pages.add(f"/{slugify('settings')}", settings_page)
 
     # Register category sub_pages
-    sub_pages.add(f"/{SELECTION_ROOT}", lambda: category_page(warehouses[0].name, warehouses[0], rd))
+    sub_pages.add(f"/{SELECTION_ROOT}", lambda: category_page(warehouses[0].name, warehouses[0]))
     for warehouse in warehouses:
         for category, route in warehouse.routes.items():
-            sub_pages.add(route, lambda w=warehouse, c=category: category_page(c, w, rd))
+            sub_pages.add(route, lambda w=warehouse, c=category: category_page(c, w))
 
-    # Register help page    md_page =
-    if not wiki:
-        sub_pages.add(f"/{slugify(settings.help['label'])}", lambda: help_page(ld, markdown))
-    else:  # Register wiki pages
-        sub_pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.root, ld, wiki.style))
-        for idx, chapter in enumerate(wiki.menu):
-            with suppress(IndexError):
-                pages = wiki.content[idx].pages
-            for name, route in chapter.pages.items():
-                page = pages.get(route.split("-")[-1])
-                if not page:
-                    continue
-                sub_pages.add(route, lambda n=name, p=page: wiki_page(n, p, ld, wiki.style))

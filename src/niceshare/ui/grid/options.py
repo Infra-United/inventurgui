@@ -1,10 +1,10 @@
 from niceshare.ui.grid.columns import default_col_defs, col_defs
 
 
-def options(cart: bool, admin: bool) -> dict:
+def options(cart: bool) -> dict:
     return {
         "selectionColumnDef": {"hide": cart, "maxWidth": 35, "sortable": True},
-        "columnDefs": col_defs(cart, admin),
+        "columnDefs": col_defs(cart),
         "defaultColDef": default_col_defs(),
         "alwaysMultiSort": True,
         "rowSelection": {
@@ -14,7 +14,7 @@ def options(cart: bool, admin: bool) -> dict:
             "headerCheckbox": True,
             ":isRowSelectable": "(r) => r.isRowPinned",
         }
-        if not cart and not admin
+        if not cart
         else "",
         "autoSizePadding": 1,
         "autoSizeStrategy": {
@@ -23,9 +23,9 @@ def options(cart: bool, admin: bool) -> dict:
         "suppressRowHoverHighlight": cart,
         "undoRedoCellEditing": True,
         "undoRedoCellEditingLimit": 20,
-        "readOnlyEdit": not admin,
-        "invalidEditValueMode": "block" if not admin else "",
-        "suppressCellFocus": not admin,
+        "readOnlyEdit": True,
+        "invalidEditValueMode": "block",
+        "suppressCellFocus": True,
         "enterNavigatesVerticallyAfterEdit": True,
         "singleClickEdit": True,
         "stopEditingWhenCellsLoseFocus": True,

@@ -4,11 +4,11 @@ from typing import Any, Callable
 from niceshare.helper.config import settings
 
 type colSettings = dict[str, str]
-type colDefFunction = Callable[[colSettings, bool, bool], dict[str, Any]]
+type colDefFunction = Callable[[colSettings, bool], dict[str, Any]]
 
 
-def col_defs(cart: bool, admin: bool, columns=settings.columns) -> list[dict[str, Any]]:
-    return [col_fns.get(c)(columns, cart, admin) if col_fns.get(c) else {"hide": True} for c in columns.keys()]
+def col_defs(cart: bool, columns=settings.columns) -> list[dict[str, Any]]:
+    return [col_fns.get(c)(columns, cart) if col_fns.get(c) else {"hide": True} for c in columns.keys()]
 
 
 col_fns = {}
@@ -17,8 +17,8 @@ col_fns = {}
 def register_column(name: str) -> Callable[[colDefFunction], colDefFunction]:
     def decorator(func: colDefFunction) -> colDefFunction:
         @wraps(func)
-        def wrapper(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
-            return func(columns, cart, admin)
+        def wrapper(columns: colSettings, cart: bool) -> dict[str, Any]:
+            return func(columns, cart)
 
         col_fns[name] = wrapper
         return wrapper
@@ -41,15 +41,11 @@ def default_col_defs() -> dict[str, Any]:
 
 
 @register_column("image")
-def image_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
+def image_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
         "colId": columns["image"],
         "editable": False,
-        ":cellRenderer": f'''(p) => p.data.{columns["image"]} ?
-         "<span class='material-icons-outlined' style='font-size:28px'>image</span>" :
-          "<span class='material-icons-outlined' style='font-size:28px'>camera_alt</span>"'''
-        if admin
-        else f"""(p) => p.data.{columns["image"]} || p.data.{columns["comment"]} || p.data.{columns["url"]} ? 
+        ":cellRenderer": f"""(p) => p.data.{columns["image"]} || p.data.{columns["comment"]} || p.data.{columns["url"]} ? 
         "<span class='material-icons-outlined bg-secondary text-3xl' >info</span>" : null""",
         "lockPosition": "left",
         "hide": cart,
@@ -58,7 +54,7 @@ def image_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
 
 
 @register_column("object")
-def object_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
+def object_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
         "field": columns["object"],
         "filter": not cart,
@@ -72,7 +68,7 @@ def object_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
 
 
 # Not used at the moment
-def description_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
+def description_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
         "colId": columns["type"],
         "field": columns["type"],
@@ -84,7 +80,7 @@ def description_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, 
 
 
 @register_column("weight")
-def weight_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
+def weight_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
         "field": columns["weight"],
         ":valueFormatter": "(p) => p.value != null ? p.value + ' kg' : null",
@@ -98,7 +94,7 @@ def weight_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
 
 
 @register_column("count")
-def count_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
+def count_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
         "colId": columns["count"],
         ":valueGetter": f"(p) => p.data.{columns['count']}",
@@ -107,7 +103,7 @@ def count_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
         if cart
         else "",
         "headerName": "",
-        "editable": cart or admin,
+        "editable": cart,
         "cellDataType": "number",
         "maxWidth": 80 if not cart else None,
         "lockPosition": "left" if cart else "",
@@ -119,7 +115,7 @@ def count_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
 
 
 @register_column("pack")
-def pack_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
+def pack_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
         "field": columns["pack"],
         "lockPosition": "left" if cart else "",
@@ -138,16 +134,4 @@ def delete_col() -> dict[str, Any]:
                  "<span class='material-icons-outlined' style='font-size:28px'>add</span>" :
                   "<span class='material-icons-outlined' style='font-size:28px'>delete</span>"''',
         "maxWidth": 60,
-    }
-
-
-@register_column("total_weight")
-def total_weight_col(columns: colSettings, cart: bool, admin: bool) -> dict[str, Any]:
-    return {
-        "colId": columns["total_weight"],
-        "field": columns["total_weight"],
-        "cellDataType": "number",
-        ":valueFormatter": "(p) => p.value != null ? Math.round(p.value) + ' kg' : null",
-        "hide": not cart,
-        "cellClassRules": {"text-bold": "x", "tracking-wider": "x"},
     }

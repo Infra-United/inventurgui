@@ -5,7 +5,6 @@ from slugify import slugify
 from niceshare.helper.i18n import i18n
 from niceshare.io.database import DB
 from niceshare.io.selection import Selection
-from niceshare.ui.helper.share import share_content, get_qr_code
 
 
 def badge(text: str):
@@ -63,17 +62,6 @@ def back_fab(last_page: dict[str, str]):
             )
             badge.bind_text_from(app.storage.user, "Total")
             badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
-
-
-def share_fab(name: str, content: str):
-    with ui.page_sticky(x_offset=40, y_offset=40):
-        with ui.fab(icon="share", direction="up"):
-            ui.fab_action(icon="link").on("click", lambda: share_content(name, content)).props("active-icon=share")
-            ui.fab_action(icon="description").on("click", lambda: share_content(name, content, verbose=True)).props(
-                "active-icon=share"
-            )
-            ui.fab_action(icon="qr_code").on("click", lambda: get_qr_code(name)).props("active-icon=share")
-
 
 def save_fab(warehouse: Selection):
     async def save_data():

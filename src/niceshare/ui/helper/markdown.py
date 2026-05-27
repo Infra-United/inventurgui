@@ -15,7 +15,7 @@ def render_markdown(text: str|None = "") -> Markdown:
 
 
 def read_page_files() -> Generator[tuple[str, str], None, None]:
-    for idx, page_conf in enumerate([settings.start, settings.help, settings.form.get("terms"), settings.warehouse]):
+    for idx, page_conf in enumerate([settings.start, settings.help, settings.form.get("terms"), settings.selection]):
         if not isinstance(page_conf, dict) or not idx == 0 and not page_conf.get("display"):
             continue
         label = page_conf.get("label")

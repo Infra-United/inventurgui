@@ -5,7 +5,6 @@ from polars import DataFrame
 
 from niceshare.helper.config import settings
 from niceshare.io.cache import Cache
-from niceshare.ui.auth import authenticate_user
 from niceshare.ui.grid.grid_handlers import handle_select, update_amount
 from niceshare.ui.grid.options import options
 
@@ -25,8 +24,6 @@ async def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     Returns:
         AgGrid: The AG Grid that results from the given Arguments.
     """
-    admin = authenticate_user()
-
     # Styling
     def background(color: str):
         return f"""{{background-color: {settings.theme[color]}}}"""
@@ -36,16 +33,16 @@ async def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     ui.add_body_html(f"<style>.ag-row-pinned .ag-cell  {background('secondary')}</style>")
 
     # Create Grid with given Data
-    grid = aggrid.from_polars(df, options=options(cart, admin), html_columns=[0], theme="alpine").classes("h-dvh")
-    register_event_handlers(grid, name, df, cart, admin)
+    grid = aggrid.from_polars(df, options=options(cart), html_columns=[0], theme="alpine").classes("h-dvh")
+    register_event_handlers(grid, name, df, cart)
     return grid
 
 
-def register_event_handlers(grid: AgGrid, name: str, df: DataFrame, cart: bool, admin: bool):
+def register_event_handlers(grid: AgGrid, name: str, df: DataFrame, cart: bool):
     """Register the event handlers for the given grid."""
     # Handle events
     grid.on("rowSelected", lambda e: handle_select(name, e, grid))
-    if not cart and not admin:
+    if not cart:
         for row in Cache.selected(name):
             grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
     if cart:
