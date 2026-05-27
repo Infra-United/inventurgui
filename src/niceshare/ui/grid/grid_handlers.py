@@ -55,14 +55,17 @@ def handle_click(warehouse:Warehouse, grid: AgGrid, event: GenericEventArguments
     columns = settings.columns
     data = event.args["data"]
     admin = authenticate_user()
-    if (
-        any([data[columns["image"]], data[columns["comment"]], data[columns["url"]]])
-        and event.args["colId"] == columns["image"] and not admin
-    ):
-        info_popup(warehouse, event.args, grid)
-    elif admin and event.args["colId"] == columns["image"]:
-        info_popup(warehouse, event.args, grid)
-    else:
+    try:
+        if (
+                any([data[columns["image"]], data[columns["comment"]], data[columns["url"]]])
+                and event.args["colId"] == columns["image"] and not admin
+        ):
+            info_popup(warehouse, event.args, grid)
+        elif admin and event.args["colId"] == columns["image"]:
+            info_popup(warehouse, event.args, grid)
+        else:
+            handle_select(warehouse.name, event, grid) if not admin else None
+    except KeyError:
         handle_select(warehouse.name, event, grid) if not admin else None
 
 def info_popup(warehouse:Warehouse, event_args: dict, grid: AgGrid):

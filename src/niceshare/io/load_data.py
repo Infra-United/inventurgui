@@ -4,6 +4,7 @@ from _duckdb import IOException, CatalogException
 
 from niceshare.cli import ARGS
 from niceshare.helper.config import settings
+from niceshare.helper.logger import LOGGER
 from niceshare.helper.paths import ensure_directory_structure
 from niceshare.io.database import DB
 from niceshare.io.importer import read_inventory, handle_images
@@ -21,6 +22,7 @@ async def load_data_from_dav(reload: bool = False) -> Tuple[list[Warehouse], dic
         try:
             warehouse: Warehouse = DB.load(sheet, "inventory")
         except IOException, CatalogException:
+            LOGGER.warning(f"Could not load {sheet} from database. Trying to import it.")
             warehouse: Warehouse = read_inventory(sheet)
             DB.save(warehouse.name, warehouse.inventory, "inventory")
         warehouses.append(warehouse)

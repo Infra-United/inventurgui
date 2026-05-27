@@ -22,7 +22,7 @@ class DB:
 
     @classmethod
     def load(cls, name: str, db: Literal["inventory", "request"]) -> Warehouse:
-        LOGGER.debug(f"Loading {name} from database {cls.Inventory_DB.name}...")
+        LOGGER.debug(f"Trying to load {name} from database {cls.Inventory_DB.name}...")
         file = cls.Inventory_DB if db == "inventory" else cls.Request_DB
         with duckdb.connect(database=file, read_only=True) as con:
             df = con.query(f"SELECT * FROM {name}").pl()
