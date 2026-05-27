@@ -11,13 +11,13 @@ from niceshare.helper.config import settings
 from niceshare.helper.i18n import i18n
 from niceshare.helper.images import upload_img, delete_img
 from niceshare.io.cache import Cache
-from niceshare.io.warehouse import Warehouse
+from niceshare.io.selection import Selection
 from niceshare.ui.auth import authenticate_user
 from niceshare.ui.helper.markdown import render_markdown
 from niceshare.ui.helper.validators import validate_url
 
 
-async def update_amount(grid: AgGrid, name:str, df: DataFrame, event: GenericEventArguments):
+async def update_amount(grid: AgGrid, name: str, df: DataFrame, event: GenericEventArguments):
     with suppress(KeyError):
         if event.args["rowPinned"]:
             return
@@ -33,6 +33,7 @@ async def update_amount(grid: AgGrid, name:str, df: DataFrame, event: GenericEve
         data[settings.columns["total_weight"]] = int(new_value) * data[settings.columns["weight"]]
     await grid.run_row_method(row_id, "setData", data)
     from niceshare.ui.helper.calculations import total_weight
+
     Cache.set_weight(name, await total_weight(name, df))
 
 
@@ -51,13 +52,14 @@ def handle_select(name: str, event: GenericEventArguments, grid: AgGrid):
         grid.run_row_method(row_id, "setSelected", False)
 
 
-def handle_click(warehouse:Warehouse, grid: AgGrid, event: GenericEventArguments):
+def handle_click(warehouse: Selection, grid: AgGrid, event: GenericEventArguments):
     columns = settings.columns
     data = event.args["data"]
     admin = authenticate_user()
     if (
         any([data[columns["image"]], data[columns["comment"]], data[columns["url"]]])
-        and event.args["colId"] == columns["image"] and not admin
+        and event.args["colId"] == columns["image"]
+        and not admin
     ):
         info_popup(warehouse, event.args, grid)
     elif admin and event.args["colId"] == columns["image"]:
@@ -65,7 +67,8 @@ def handle_click(warehouse:Warehouse, grid: AgGrid, event: GenericEventArguments
     else:
         handle_select(warehouse.name, event, grid) if not admin else None
 
-def info_popup(warehouse:Warehouse, event_args: dict, grid: AgGrid):
+
+def info_popup(warehouse: Selection, event_args: dict, grid: AgGrid):
     admin = authenticate_user()
     data = event_args["data"]
     with ui.dialog(value=True) as dia:
@@ -73,12 +76,13 @@ def info_popup(warehouse:Warehouse, event_args: dict, grid: AgGrid):
         dia.on("hide", lambda: update_row_data(data, grid, warehouse))
     return dia
 
+
 @ui.refreshable
-def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
+def dia_content(dia: Dialog, name: str, data: dict[str, str], admin: bool):
     columns = settings.columns
-    with (dia.clear(), ui.card().classes("w-100 gap-2 items-center text-center py-4 text-bold")):
+    with dia.clear(), ui.card().classes("w-100 gap-2 items-center text-center py-4 text-bold"):
         ui.label(text=f"{data.get(columns['object'])}")
-        if src:=data.get(columns["image"]):
+        if src := data.get(columns["image"]):
             img = ui.interactive_image(src)
         if admin:
             up = ui.upload(label=i18n.get("admin.upload"), auto_upload=True)
@@ -87,27 +91,29 @@ def dia_content(dia:Dialog, name: str, data: dict[str, str], admin: bool):
         url = data.get(columns.get("url"))
         ui.link(url, url, new_tab=True) if url else None
         if admin:
-            with ui.row(align_items='stretch').classes("w-80 gap-0 items-center text-center"):
-                i = ui.input(placeholder="URL:", value=url if url else "",
-                             validation=lambda v: validate_url(v,data)).props("outlined")
+            with ui.row(align_items="stretch").classes("w-80 gap-0 items-center text-center"):
+                i = ui.input(
+                    placeholder="URL:", value=url if url else "", validation=lambda v: validate_url(v, data)
+                ).props("outlined")
                 i.on("blur", lambda x=i: x.validate()).without_auto_validation().classes("w-65")
-                del_link = ui.button(icon='delete', on_click=lambda: i.set_value(""))
+                del_link = ui.button(icon="delete", on_click=lambda: i.set_value(""))
                 del_link.props("text-color=secondary").classes("h-14")
-                del_link.on('click', lambda: data.update({columns.get("url") : ""}))
+                del_link.on("click", lambda: data.update({columns.get("url"): ""}))
             ui.editor(value=data[columns["comment"]]).bind_value_to(data, columns["comment"])
             if data.get(columns["image"]):
                 with img:
                     up.on_upload(lambda: img.force_reload())
                     del_btn = ui.button(icon="delete").classes("absolute top-0 right-0 bg-secondary")
-                    del_btn.on('click', lambda: delete_img(data))
-                    del_btn.on('click', lambda: img.delete())
+                    del_btn.on("click", lambda: delete_img(data))
+                    del_btn.on("click", lambda: img.delete())
         else:
             md = render_markdown().classes(remove="text-justify")
             md.bind_content_from(data, columns["comment"], backward=lambda x: "" if x is None else x)
             md.bind_visibility(md, "content")
         ui.button("Fertig", icon="check", on_click=lambda: dia.close()).props("text-color=secondary")
 
-def update_row_data(data: dict[str, str], grid: AgGrid, warehouse:Warehouse):
+
+def update_row_data(data: dict[str, str], grid: AgGrid, warehouse: Selection):
     grid.run_row_method(data["index"], "setData", data)
     updated = pl.from_dict(data)
     warehouse.inventory = warehouse.inventory.update(updated, on="index", how="full")

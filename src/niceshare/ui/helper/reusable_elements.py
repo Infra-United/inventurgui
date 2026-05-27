@@ -4,7 +4,7 @@ from slugify import slugify
 
 from niceshare.helper.i18n import i18n
 from niceshare.io.database import DB
-from niceshare.io.warehouse import Warehouse
+from niceshare.io.selection import Selection
 from niceshare.ui.helper.share import share_content, get_qr_code
 
 
@@ -64,18 +64,20 @@ def back_fab(last_page: dict[str, str]):
             badge.bind_text_from(app.storage.user, "Total")
             badge.bind_visibility_from(app.storage.user, "Total", backward=lambda v: v > 0)
 
-def share_fab(name:str, content:str):
+
+def share_fab(name: str, content: str):
     with ui.page_sticky(x_offset=40, y_offset=40):
-        with ui.fab(icon='share', direction='up'):
-            ui.fab_action(icon='link').on('click', lambda: share_content(name, content)).props('active-icon=share')
-            ui.fab_action(icon='description').on('click', lambda: share_content(name, content, verbose=True)).props(
-                'active-icon=share')
-            ui.fab_action(icon='qr_code').on('click', lambda: get_qr_code(name)).props('active-icon=share')
+        with ui.fab(icon="share", direction="up"):
+            ui.fab_action(icon="link").on("click", lambda: share_content(name, content)).props("active-icon=share")
+            ui.fab_action(icon="description").on("click", lambda: share_content(name, content, verbose=True)).props(
+                "active-icon=share"
+            )
+            ui.fab_action(icon="qr_code").on("click", lambda: get_qr_code(name)).props("active-icon=share")
 
 
-def save_fab(warehouse: Warehouse):
+def save_fab(warehouse: Selection):
     async def save_data():
-        DB.save(warehouse.name, warehouse.inventory, 'inventory')
+        DB.save(warehouse.name, warehouse.inventory, "inventory")
         ui.navigate.reload()
 
     with ui.page_sticky(position="bottom-right", x_offset=18, y_offset=18).classes("z-999"):
@@ -85,8 +87,6 @@ def save_fab(warehouse: Warehouse):
         fab.on("mouseleave", lambda: label.set_visibility(False), throttle=0.2)
         with fab.add_slot("label"):
             with ui.row():
-                ui.icon('save')
+                ui.icon("save")
                 label = ui.label(i18n.get("admin.save")).classes("text-secondary text-base")
                 label.set_visibility(False)
-
-

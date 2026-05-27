@@ -5,7 +5,7 @@ from slugify import slugify
 
 from niceshare.helper.config import settings
 from niceshare.io.cache import Cache
-from niceshare.io.warehouse import Warehouse, WAREHOUSE_ROOT
+from niceshare.io.selection import Selection, SELECTION_ROOT
 from niceshare.io.wiki import WIKI_ROOT, Wiki
 from niceshare.ui.helper.theme import Theme
 from niceshare.ui.layout import create_layout
@@ -22,7 +22,7 @@ from niceshare.ui.sub_pages.start import start_page
 
 
 def root(
-    warehouses: list[Warehouse],
+    warehouses: list[Selection],
     markdown: dict[str, str],
     wiki: Wiki = None,
     display_wiki=None,
@@ -40,14 +40,19 @@ def root(
         window.onresize = emitSize;
         </script>
     """)
-    ui.on('resize', lambda e: Cache.set_width(e.args['width']), trailing_events=True, throttle=0.2)
+    ui.on("resize", lambda e: Cache.set_width(e.args["width"]), trailing_events=True, throttle=0.2)
 
     ui.add_head_html(
         '<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>'
     )
     ui.add_head_html(shared=True, code='<link rel="manifest" href="/helpers/manifest.json">')
-    ui.add_head_html(shared=True, code='<script>if("serviceWorker" in navigator) { navigator.serviceWorker.register("/helpers/service_worker.js"); };</script>')
-    ui.add_head_html(shared=True, code="""
+    ui.add_head_html(
+        shared=True,
+        code='<script>if("serviceWorker" in navigator) { navigator.serviceWorker.register("/helpers/service_worker.js"); };</script>',
+    )
+    ui.add_head_html(
+        shared=True,
+        code="""
     <!-- PWA Meta Tags generated with https://www.pwa-icon-generator.com/-->
         <link rel="icon" href="/favicon.ico" sizes="48x48">
         <link rel="icon" href="/icons/icon-192x192.png" type="image/png" sizes="192x192">
@@ -88,7 +93,8 @@ def root(
         <link rel="apple-touch-startup-image" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/splash-1536x2048.png">
         <link rel="apple-touch-startup-image" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="/splash/splash-2048x1536.png">
 
-    """)
+    """,
+    )
 
     # Instantiate Theme
     Theme.singleton().set_colors()
@@ -123,24 +129,24 @@ def root(
     sub_pages.add(f"/{slugify(settings.cart['label'])}", cart_page)
     sub_pages.add(f"/{slugify(settings.form['label'])}", form_page)
     sub_pages.add(f"/{slugify(settings.finish['label'])}", finish_page)
-    sub_pages.add(f"/{slugify("settings")}", settings_page)
+    sub_pages.add(f"/{slugify('settings')}", settings_page)
 
     # Register category sub_pages
-    sub_pages.add(f"/{WAREHOUSE_ROOT}", lambda: category_page(warehouses[0].name, warehouses[0], rd))
+    sub_pages.add(f"/{SELECTION_ROOT}", lambda: category_page(warehouses[0].name, warehouses[0], rd))
     for warehouse in warehouses:
         for category, route in warehouse.routes.items():
             sub_pages.add(route, lambda w=warehouse, c=category: category_page(c, w, rd))
 
     # Register help page    md_page =
     if not wiki:
-        sub_pages.add(f"/{slugify(settings.help["label"])}", lambda: help_page(ld, markdown))
-    else: # Register wiki pages
+        sub_pages.add(f"/{slugify(settings.help['label'])}", lambda: help_page(ld, markdown))
+    else:  # Register wiki pages
         sub_pages.add(f"/{WIKI_ROOT}", lambda: wiki_page(WIKI_ROOT, wiki.root, ld, wiki.style))
         for idx, chapter in enumerate(wiki.menu):
             with suppress(IndexError):
                 pages = wiki.content[idx].pages
             for name, route in chapter.pages.items():
-                page = pages.get(route.split('-')[-1])
+                page = pages.get(route.split("-")[-1])
                 if not page:
                     continue
                 sub_pages.add(route, lambda n=name, p=page: wiki_page(n, p, ld, wiki.style))

@@ -6,14 +6,14 @@ from niceshare.helper.config import settings
 from niceshare.helper.i18n import i18n
 from niceshare.helper.logger import LOGGER
 from niceshare.io.cache import Cache
-from niceshare.io.warehouse import Warehouse
+from niceshare.io.selection import Selection
 from niceshare.ui.grid.grid import create_aggrid
 from niceshare.ui.helper.calculations import total_weight
 from niceshare.ui.helper.magic_links import load_data_from_magic_link
 from niceshare.ui.helper.reusable_elements import badge, next_fab, tabs, tab_panels, back_fab
 
 
-async def cart_page(warehouses: list[Warehouse], args: PageArguments) -> None:
+async def cart_page(warehouses: list[Selection], args: PageArguments) -> None:
     ui.query(".nicegui-sub-pages").classes(replace="bg-dark w-full no-scroll").style(replace="gap:0")
 
     current_id = app.storage.browser["id"]

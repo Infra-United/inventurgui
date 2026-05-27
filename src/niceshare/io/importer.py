@@ -8,10 +8,10 @@ from niceshare.helper.config import settings
 from niceshare.helper.images import cache_image, match_img_url
 from niceshare.helper.logger import LOGGER
 from niceshare.helper.paths import get_path
-from niceshare.io.warehouse import Warehouse
+from niceshare.io.selection import Selection
 
 
-def read_inventory(sheet: str) -> Warehouse:
+def read_inventory(sheet: str) -> Selection:
     inventory = get_path(settings.data_filename)
     try:
         LOGGER.debug(f"Reading sheet {sheet} from {inventory.name}...")
@@ -28,7 +28,7 @@ def read_inventory(sheet: str) -> Warehouse:
             case _:
                 LOGGER.warning(f"This file type is not supported: {inventory.name}")
                 exit(1)
-        return Warehouse.create(sheet, df)
+        return Selection.create(sheet, df)
     except (NoDataError, IOException, CatalogException) as e:
         LOGGER.warning(f"Unable to read {sheet} from {inventory.name}. Full error: {e}", exc_info=True)
         exit(1)

@@ -68,12 +68,15 @@ class Settings(BaseSettings):
             "url": "url",
         },
     }
+
     @property
     def columns(self) -> dict[str, str]:
         return self.data["columns"]
+
     @property
     def data_filename(self) -> str:
         return self.data["filename"]
+
     mail: dict[str, str] = {"mail_to": "hello@example.org", "admin": "admin@example.org"}
     start: dict[str, str | bool] = {"label": "Start", "icon": "home", "path": "about.md"}
     help: dict[str, str | bool] = {
@@ -83,7 +86,7 @@ class Settings(BaseSettings):
         "icon": "help_outline",
         "path": "help.md",
     }
-    warehouse: dict[str, str | bool] = {
+    selection: dict[str, str | bool] = {
         "label": "Lager",
         "display": True,
         "icon": "warehouse",
@@ -161,6 +164,7 @@ class Settings(BaseSettings):
         with open(default_config_file, "w") as file:
             file.write(yaml.dump(Settings().model_dump(), Dumper=yaml.SafeDumper, sort_keys=False))
         LOGGER.info(f"Successfully wrote default config to {default_config_file}.")
+
 
 if not config_file.is_file():
     Settings.create_default_config()
