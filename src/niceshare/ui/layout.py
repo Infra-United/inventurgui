@@ -1,4 +1,4 @@
-from nicegui import ui
+from nicegui import ui, app
 from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.expansion import Expansion
@@ -7,7 +7,6 @@ from slugify import slugify
 
 from niceshare.helper.config import settings
 from niceshare.helper.paths import get_path
-from niceshare.io.cache import Cache
 from niceshare.io.selection import Selection
 
 
@@ -16,14 +15,12 @@ def create_layout(
 ) -> LeftDrawer:
     # Drawers
     with ui.left_drawer(bordered=True).classes("gap-y-2 p-0 items-stretch").props("width=250") as ld:
-        ui.space().classes("sm:hidden")
-    with ld:
         drawer_menu(warehouses, settings.selection, ld)
 
     # Header
     with ui.header().classes("fixed max-sm:hidden h-[56px] bg-primary flex-nowrap m-0 pr-3 p-0 items-center"):
         img = ui.image(source=get_path(settings.logo)).classes("h-full m-0 p-0 w-[56px]")
-        img.on("click", lambda: ui.navigate.to("/"))
+        img.on("click", lambda: ui.navigate.to(f"/{settings.selection['label']}"))
         ui.label(str(settings.title).upper()).classes("text-secondary w-[161px] max-lg:hidden text-bold text-xl")
         main_menu(ld, classes="stretch h-full")
 
@@ -43,7 +40,7 @@ def main_menu(
     classes: str = "stretch",
     props: str = "unelevated no-wrap text-color=secondary square",
 ) -> None:
-    warehouse_btn = ui.button(settings.selection["label"], icon=settings.selection["icon"], on_click=lambda: ld.show())
+    """warehouse_btn = ui.button(settings.selection["label"], icon=settings.selection["icon"], on_click=lambda: ld.show())
     warehouse_btn.on_click(
         lambda: (
             (ui.navigate.to(f"/{slugify(settings.selection['label'])}"), drawer_menu.refresh())
@@ -52,6 +49,7 @@ def main_menu(
         )
     )
     warehouse_btn.classes(classes).props(props)
+    """
     #start_btn: Button = ui.button(settings.start["label"], icon=settings.start["icon"]).classes(classes).props(props)
     #start_btn.on_click(lambda: ui.navigate.to("/"))
     """if authenticate_user():
@@ -60,6 +58,9 @@ def main_menu(
         requests_btn.on_click(lambda: ui.navigate.to(f"/{slugify(settings.requests['label'])}"))
     """
     ui.space().classes("max-sm:hidden")
+    lyrics = ui.checkbox("full lyrics", on_change=ui.context.client.sub_pages_router.refresh)
+    lyrics.bind_value(app.storage.user, "show_lyrics")
+    lyrics.props("dense color=secondary keep-color").classes("text-secondary")
     for label in ["settings"]:
         btn: Button = ui.button(icon=label).classes(classes).props(props)
         btn.on_click(lambda l=label: ui.navigate.to(f"/{slugify(l)}"))
@@ -115,4 +116,3 @@ def drawer_menu(
                 toggle.on_value_change(lambda v, i=item: ui.navigate.to(i.routes.get(v.value)))
             else:
                 exp.on("click", lambda i=item: ui.navigate.to(i.routes.get(i.name)))
-            # toggle.on_value_change(lambda: ld.hide() if Cache.width() < 1024 else None)

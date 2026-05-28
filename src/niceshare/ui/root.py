@@ -125,4 +125,3 @@ def root(
     for warehouse in warehouses:
         for category, route in warehouse.routes.items():
             sub_pages.add(route, lambda w=warehouse, c=category: category_page(c, w))
-

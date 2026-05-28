@@ -2,6 +2,7 @@ from functools import wraps
 from typing import Any, Callable
 
 from niceshare.helper.config import settings
+from niceshare.io.cache import Cache
 
 type colSettings = dict[str, str]
 type colDefFunction = Callable[[colSettings, bool], dict[str, Any]]
@@ -34,7 +35,7 @@ def default_col_defs() -> dict[str, Any]:
         "lockPinned": True,
         "lockVisible": True,
         "suppressMovable": True,
-        "resizable": False,
+        "resizable": True,
         "filter": False,
         "floatingFilter": False,
     }
@@ -60,7 +61,6 @@ def object_col(columns: colSettings, cart: bool) -> dict[str, Any]:
         "filter": not cart,
         "wrapText": True,
         "autoHeight": True,
-        ":suppressSizeToFit": "Quasar.Screen.lt.sm",
         "floatingFilter": not cart,
         "sort": "asc",
         "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"},
@@ -70,8 +70,9 @@ def object_col(columns: colSettings, cart: bool) -> dict[str, Any]:
 def description_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return ({
         "field": columns["tone"],
-        "suppressSizeToFit": False,
         "wrapText": True,
+        "filter": not cart,
+        "floatingFilter": not cart,
         "autoHeight": True,
         "sortable": False,
     })
@@ -84,17 +85,18 @@ def description_col(columns: colSettings, cart: bool) -> dict[str, Any]:
         "wrapText": True,
         "filter": not cart,
         "floatingFilter": not cart,
-        #"autoHeight": True,
+        "autoHeight": Cache.show_lyrics(),
         "sortable": False,
     }
 
 @register_column("chord")
 def pack_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
+        "wrapText": True,
         "field": columns["chord"],
-        #"lockPosition": "left" if cart else "",
+        "filter": not cart,
+        "floatingFilter": not cart,
         "sortable": False,
-        # ":hide": "Quasar.Screen.lt.sm" if not cart else "",
     }
 
 

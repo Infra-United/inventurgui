@@ -31,6 +31,7 @@ class Cache:
         app.storage.user.setdefault("deleted", [])
         app.storage.user.setdefault("edited", [])
         app.storage.user.setdefault("selected", [])
+        app.storage.user.setdefault("show_lyrics", False)
 
     @classmethod
     def total(cls) -> int:
@@ -67,3 +68,7 @@ class Cache:
     @classmethod
     def selected(cls) -> ObservableList:
         return app.storage.user["selected"]
+
+    @classmethod
+    def show_lyrics(cls) -> bool:
+        return app.storage.user["show_lyrics"]
