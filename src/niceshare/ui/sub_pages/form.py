@@ -26,7 +26,6 @@ async def form_page(ld: LeftDrawer, warehouses: list[Selection], md: dict[str, s
         else:
             form_panels.set_value("default")
 
-    ld.hide()
     terms = form.get("terms")
     form_tabs = tabs()
     form_panels = tab_panels(form_tabs)

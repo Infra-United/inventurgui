@@ -9,7 +9,6 @@ from niceshare.io.selection import Selection
 
 
 def settings_page(ld: LeftDrawer, warehouses:list[Selection]):
-    ld.hide()
     ui.page_title(f"{settings.settings['label']}")
     LOGGER.debug(f"Creating settings page...")
     with ui.tab_panel("settings").classes("m-0 p-10 max-sm:pb-20 items-center w-full scroll h-dvh"):
