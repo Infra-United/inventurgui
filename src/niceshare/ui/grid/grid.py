@@ -12,7 +12,7 @@ from niceshare.ui.grid.options import options
 
 columns = settings.columns
 
-
+@ui.refreshable
 async def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
     """Returns an AG Grid displaying the given data in the given configuration.
 

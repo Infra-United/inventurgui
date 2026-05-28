@@ -9,6 +9,7 @@ from niceshare.ui.grid.grid_handlers import handle_click
 from niceshare.ui.helper.reusable_elements import next_fab, save_fab
 
 
+@ui.refreshable
 async def category_page(category: str | None, warehouse: Selection) -> None:
     path = f"{warehouse.name}/{category}" if category else warehouse.name
     ui.page_title(path)
