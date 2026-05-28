@@ -23,6 +23,7 @@ def get_args() -> Namespace:
     argparser.add_argument("-ld", "--debug", dest="debug", help="set the log level to debug", action="store_true")
     argparser.add_argument("-d", "--dev", dest="dev", help="mark that you are developing", action="store_true")
     argparser.add_argument("-i", "--images", dest="images", help="reload all images from their source url", action="store_true")
+    argparser.add_argument("-n", "--native", dest="native", help="run program as a native application", action="store_true")
     argparser.set_defaults(config_file="config.yml")
     # Parse args to dictionary
     args: Namespace = argparser.parse_args()

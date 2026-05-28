@@ -17,7 +17,7 @@ from niceshare.helper.paths import get_path
 from niceshare.io.cache import Cache
 from niceshare.io.excel import handle_request
 from niceshare.io.selection import Selection
-from niceshare.ui.helper.validators import validate_mail, INPUT_VALIDATION, validate_number
+from niceshare.ui.helper.validators import INPUT_VALIDATION, validate_number
 
 
 class Form:
@@ -71,10 +71,7 @@ class Form:
             with ui.column().classes("items-stretch max-sm:col-span-2"):
                 for key, value in settings.form.get("input").items():
                     i = ui.input(
-                        value,
-                        validation=(lambda v, k=key: validate_mail(k, v, self.request))
-                        if key == "email"
-                        else (lambda v, k=key: validate_number(k, v, self.request))
+                        value, validation=(lambda v, k=key: validate_number(k, v, self.request))
                         if key == "donation"
                         else INPUT_VALIDATION,
                     )
@@ -110,7 +107,6 @@ async def submit_form(request: ObservableDict, warehouses: list[Selection], dele
     is_update = True if request.get("request") else False
     request.update({"finish": i18n.get("finish.processing")})
     ui.navigate.to(f"/{slugify(settings.finish['label'])}")
-    request.update({"edit_link": magic_link})
     request.update(
         {"update": time.time()}
         if is_update and not delete

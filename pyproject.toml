@@ -22,6 +22,8 @@ dependencies = [
     "pandas>=3.0.3",
     "nicegui>=3.12.1",
     "xlsxwriter>=3.2.9",
+    "pywebview[qt]>=6.2.1",
+    "pygobject>=3.56.3",
 ]
 
 [tool.hatch.build.targets.wheel]

@@ -1,7 +1,6 @@
 import locale
 import os
 
-import jwt
 from _duckdb import IOException, CatalogException
 from nicegui import ui, app
 
@@ -27,8 +26,6 @@ def main():
             selection: Selection = read_inventory(sheet)
             DB.save(selection.name, selection.inventory, "inventory")
         selections.append(selection)
-    if len(os.environ["UI_AUTH_SECRET"]) < 32:
-        raise jwt.exceptions.InvalidKeyError("Auth Secret must be at least 32 characters long")
     pages: dict[str, str] = {k: v for k, v in read_page_files()}
     locale.setlocale(locale.LC_TIME, settings.locale)
     storage_secret = os.environ["UI_STORAGE_SECRET"]
@@ -39,6 +36,7 @@ def main():
     app.add_static_files("/splash/", get_path("splash"))
     app.add_static_files("/icons/", get_path("icons"))
     ui.run(
+        native=ARGS.native,
         root=lambda: root(selections, pages),
         language=settings.language,
         uvicorn_logging_level="debug" if ARGS.debug else "info",

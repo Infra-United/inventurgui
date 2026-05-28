@@ -5,12 +5,9 @@ from os import mkdir
 from pathlib import Path
 
 import httpx
-import qrcode
 from PIL import Image, UnidentifiedImageError
 from nicegui import app, nicegui, ui
 from nicegui.events import UploadEventArguments
-from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
 from slugify import slugify
 from starlette.requests import ClientDisconnect
 
@@ -109,11 +106,3 @@ async def cache_base64_img(src:str, subfolder:str, filename:str, thumbnail_size:
     except FileNotFoundError:
         return src
     return construct_img_url(subfolder, filename, ext, domain=True)
-
-def generate_qrcode(data: str, subfolder:str, filename:str):
-    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
-    qr.add_data(data)
-    img = qr.make_image(image_factory=StyledPilImage, module_drawer=RoundedModuleDrawer(), embedded_image_path=get_path(settings.logo))
-    path = construct_img_path(subfolder, filename, "png")
-    img.save(path)
-    return img, path

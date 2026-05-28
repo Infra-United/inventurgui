@@ -1,7 +1,6 @@
 import re
 from typing import Final, Callable
 
-from email_validator import validate_email, EmailNotValidError
 from nicegui.observables import ObservableDict
 
 from niceshare.helper.config import settings
@@ -13,13 +12,6 @@ IMG_URL_REGEX: re.Pattern = re.compile(
 re.IGNORECASE)
 URL_REGEX: re.Pattern = re.compile("^(https):\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[^\s]*)?$")
 
-
-def validate_mail(key: str, email: str, request: ObservableDict):
-    try:
-        request.update({key: validate_email(email, check_deliverability=True, strict=True).normalized})
-        return None
-    except EmailNotValidError as e:
-        return e.args[0]
 
 def validate_number(key: str, donation: str, request: ObservableDict):
     try:
