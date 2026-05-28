@@ -32,17 +32,17 @@ async def update_amount(grid: AgGrid, name: str, df: DataFrame, event: GenericEv
     await grid.run_row_method(row_id, "setData", data)
 
 
-def handle_select(name: str, event: GenericEventArguments, grid: AgGrid):
+def handle_select(event: GenericEventArguments, grid: AgGrid):
     with suppress(KeyError):
         if event.args["source"] == "api":
             return
     row_id = event.args["rowId"]
-    if int(row_id) not in Cache.selected(name):
-        Cache.selected(name).append(int(row_id))
+    if int(row_id) not in Cache.selected():
+        Cache.selected().append(int(row_id))
         app.storage.user["Total"] += 1
         grid.run_row_method(row_id, "setSelected", True)
     else:
-        Cache.selected(name).remove(int(row_id))
+        Cache.selected().remove(int(row_id))
         app.storage.user["Total"] -= 1
         grid.run_row_method(row_id, "setSelected", False)
 
@@ -51,14 +51,14 @@ def handle_click(selection: Selection, grid: AgGrid, event: GenericEventArgument
     columns = settings.columns
     data = event.args["data"]
     if (
-        any([data[columns["image"]], data[columns["comment"]], data[columns["url"]]])
-        and event.args["colId"] == columns["image"]
+        any([data[columns["dance"]], data[columns["artist"]], data[columns["desc"]], data[columns["comment"]], data[columns["url"]]])
+        and event.args["colId"] == columns["url"]
     ):
         info_popup(selection, event.args, grid)
-    elif event.args["colId"] == columns["image"]:
+    elif event.args["colId"] == columns["url"]:
         info_popup(selection, event.args, grid)
     else:
-        handle_select(selection.name, event, grid)
+        handle_select(event, grid)
 
 
 def info_popup(selection: Selection, event_args: dict, grid: AgGrid):
@@ -73,9 +73,7 @@ def info_popup(selection: Selection, event_args: dict, grid: AgGrid):
 def dia_content(dia: Dialog, name: str, data: dict[str, str]):
     columns = settings.columns
     with dia.clear(), ui.card().classes("w-100 gap-2 items-center text-center py-4 text-bold"):
-        ui.label(text=f"{data.get(columns['object'])}")
-        if src := data.get(columns["image"]):
-            img = ui.interactive_image(src)
+        ui.label(text=f"{data.get(columns['title'])}")
         url = data.get(columns.get("url"))
         ui.link(url, url, new_tab=True) if url else None
         with ui.row(align_items="stretch").classes("w-80 gap-0 items-center text-center"):

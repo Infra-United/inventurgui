@@ -40,12 +40,12 @@ def default_col_defs() -> dict[str, Any]:
     }
 
 
-@register_column("image")
+@register_column("url")
 def image_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
-        "colId": columns["image"],
+        "colId": columns["url"],
         "editable": False,
-        ":cellRenderer": f"""(p) => p.data.{columns["image"]} || p.data.{columns["comment"]} || p.data.{columns["url"]} ? 
+        ":cellRenderer": f"""(p) => p.data.{columns["dance"]} || p.data.{columns["desc"]} || p.data.{columns["artist"]} || p.data.{columns["comment"]} || p.data.{columns["url"]} ? 
         "<span class='material-icons-outlined bg-secondary text-3xl' >info</span>" : null""",
         "lockPosition": "left",
         "hide": cart,
@@ -53,72 +53,46 @@ def image_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     }
 
 
-@register_column("object")
+@register_column("title")
 def object_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
-        "field": columns["object"],
+        "field": columns["title"],
         "filter": not cart,
         "wrapText": True,
         "autoHeight": True,
         ":suppressSizeToFit": "Quasar.Screen.lt.sm",
         "floatingFilter": not cart,
-        "sort": "asc" if not cart else "",
+        "sort": "asc",
         "cellClassRules": {"text-primary": "x", "text-bold": "x", "tracking-wider": "x"},
     }
 
-
-# Not used at the moment
+@register_column("tone")
 def description_col(columns: colSettings, cart: bool) -> dict[str, Any]:
-    return {
-        "colId": columns["type"],
-        "field": columns["type"],
+    return ({
+        "field": columns["tone"],
         "suppressSizeToFit": False,
         "wrapText": True,
         "autoHeight": True,
         "sortable": False,
-    }
+    })
 
-
-@register_column("weight")
-def weight_col(columns: colSettings, cart: bool) -> dict[str, Any]:
+@register_column("lyrics")
+def description_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
-        "field": columns["weight"],
-        ":valueFormatter": "(p) => p.value != null ? p.value + ' kg' : null",
-        # ":comparator": f'(a, b) => (a == {np.inf}) ? -1 : a - b',
-        # ":colId": f"(p) => p.data.{config['weight']}.reduce((acc, x) => acc + (x || 0), 0);",
-        # ":headerValueGetter": f"(p) => p.location === 'header' ? p.column.colId : null;",
-        "headerName": f"[kg/{columns['pack']}]",
-        "cellDataType": "number",
-        ":hide": "Quasar.Screen.lt.sm" if not cart else "",
+        "field": columns["lyrics"],
+        "suppressSizeToFit": False,
+        "wrapText": True,
+        "filter": not cart,
+        "floatingFilter": not cart,
+        #"autoHeight": True,
+        "sortable": False,
     }
 
-
-@register_column("count")
-def count_col(columns: colSettings, cart: bool) -> dict[str, Any]:
-    return {
-        "colId": columns["count"],
-        ":valueGetter": f"(p) => p.data.{columns['count']}",
-        ":valueFormatter": f"(p) => p.data.{columns['total']} > 1 ? p.value + ' {columns['total']} ' "
-        f"+ p.data.{columns['total']} : p.value"
-        if cart
-        else "",
-        "headerName": "",
-        "editable": cart,
-        "cellDataType": "number",
-        "maxWidth": 80 if not cart else None,
-        "lockPosition": "left" if cart else "",
-        "sort": "desc" if cart else "",
-        "cellClassRules": {"bg-accent": f"data.{columns['total']} > 1", "text-bold": f"data.{columns['total']} > 1"}
-        if cart
-        else "",
-    }
-
-
-@register_column("pack")
+@register_column("chord")
 def pack_col(columns: colSettings, cart: bool) -> dict[str, Any]:
     return {
-        "field": columns["pack"],
-        "lockPosition": "left" if cart else "",
+        "field": columns["chord"],
+        #"lockPosition": "left" if cart else "",
         "sortable": False,
         # ":hide": "Quasar.Screen.lt.sm" if not cart else "",
     }

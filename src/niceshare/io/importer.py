@@ -8,6 +8,7 @@ from niceshare.helper.config import settings
 from niceshare.helper.images import cache_image, match_img_url
 from niceshare.helper.logger import LOGGER
 from niceshare.helper.paths import get_path
+from niceshare.io.database import DB
 from niceshare.io.selection import Selection
 
 
@@ -17,6 +18,7 @@ def read_inventory(sheet: str) -> Selection:
         LOGGER.debug(f"Reading sheet {sheet} from {inventory.name}...")
         match inventory.suffix:
             case ".duckdb":
+                LOGGER.info(f"Found these tables {DB.tables("inventory")} in {inventory.name}")
                 with duckdb.connect(database=inventory, read_only=True) as con:
                     df = con.query(f"SELECT * FROM {sheet}").pl()
             case ".xlsx":
@@ -29,7 +31,7 @@ def read_inventory(sheet: str) -> Selection:
                 LOGGER.warning(f"This file type is not supported: {inventory.name}")
                 exit(1)
         return Selection.create(sheet, df)
-    except (NoDataError, IOException, CatalogException) as e:
+    except (NoDataError, IOException, CatalogException, ValueError) as e:
         LOGGER.warning(f"Unable to read {sheet} from {inventory.name}. Full error: {e}", exc_info=True)
         exit(1)
 

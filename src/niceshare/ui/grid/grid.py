@@ -5,7 +5,7 @@ from polars import DataFrame
 
 from niceshare.helper.config import settings
 from niceshare.io.cache import Cache
-from niceshare.ui.grid.grid_handlers import handle_select, update_amount
+from niceshare.ui.grid.grid_handlers import handle_select
 from niceshare.ui.grid.options import options
 
 """This module implements functions to create AG Grids which display the data."""
@@ -41,14 +41,8 @@ async def create_aggrid(name: str, df: DataFrame, cart: bool = False) -> AgGrid:
 def register_event_handlers(grid: AgGrid, name: str, df: DataFrame, cart: bool):
     """Register the event handlers for the given grid."""
     # Handle events
-    grid.on("rowSelected", lambda e: handle_select(name, e, grid))
+    grid.on("rowSelected", lambda e: handle_select(e, grid))
     if not cart:
-        for row in Cache.selected(name):
+        for row in Cache.selected():
             grid.on("firstDataRendered", lambda r=row: grid.run_row_method(r, "setSelected", True))
-    if cart:
-        for row, value in Cache.amounts(name).items():
-            grid.on(
-                "firstDataRendered", lambda r=row, v=value: grid.run_row_method(r, "setDataValue", columns["count"], v)
-            )
-        grid.on("cellEditRequest", lambda event: update_amount(grid, name, df, event))
     grid.on("gridReady", lambda: grid.run_grid_method("sizeColumnsToFit"), trailing_events=True)

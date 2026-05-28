@@ -27,21 +27,19 @@ async def cart_page(warehouses: list[Selection]) -> None:
     truck_tabs = tabs()
     truck_panels = tab_panels(truck_tabs)
     LOGGER.debug("Creating Cart page...")
-    for w in warehouses:
-        selected = w.selected()
-        if selected.is_empty():
-            continue
-        with truck_tabs:
-            with ui.tab(w.name.upper()).props('alert="primary" alert-icon="local_shipping"'):
-                badge("").bind_text_from(
-                    app.storage.user["selected"],
-                    w.name,
-                )
-        with truck_panels:
-            with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
-                await create_aggrid(w.name, selected, cart=True)
-        if not truck_panels.value:
-            truck_panels.set_value(w.name.upper())
+    w = warehouses[0]
+    with truck_tabs:
+        with ui.tab(w.name.upper()).props(f'alert="primary" alert-icon="{settings.cart['tab_icon']}"'):
+            badge("").bind_text_from(
+                app.storage.user,
+                "selected",
+                backward=lambda v: len(v)
+            )
+    with truck_panels:
+        with ui.tab_panel(w.name.upper()).classes("m-0 p-0 w-full"):
+            await create_aggrid(w.name, w.selected(), cart=True)
+    if not truck_panels.value:
+        truck_panels.set_value(w.name.upper())
     LOGGER.info("Created cart page")
     next_fab(settings.form)
     back_fab(settings.selection)

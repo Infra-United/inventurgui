@@ -1,4 +1,4 @@
-from nicegui import ui, app
+from nicegui import ui
 from nicegui.elements.button import Button
 from nicegui.elements.drawer import LeftDrawer
 from nicegui.elements.expansion import Expansion
@@ -9,7 +9,6 @@ from niceshare.helper.config import settings
 from niceshare.helper.paths import get_path
 from niceshare.io.cache import Cache
 from niceshare.io.selection import Selection
-from niceshare.ui.helper.reusable_elements import badge
 
 
 def create_layout(
@@ -53,8 +52,8 @@ def main_menu(
         )
     )
     warehouse_btn.classes(classes).props(props)
-    start_btn: Button = ui.button(settings.start["label"], icon=settings.start["icon"]).classes(classes).props(props)
-    start_btn.on_click(lambda: ui.navigate.to("/"))
+    #start_btn: Button = ui.button(settings.start["label"], icon=settings.start["icon"]).classes(classes).props(props)
+    #start_btn.on_click(lambda: ui.navigate.to("/"))
     """if authenticate_user():
         requests_btn: Button = ui.button(settings.requests["label"], icon=settings.requests["icon"])
         requests_btn.classes(classes).props(props)
@@ -88,7 +87,7 @@ def drawer_menu(
                 t.set_value(menu_items[0].name)
 
     classes: str = "text-center text-gray-200 text-bold m-0 subpixel-antialiased tracking-widest"
-    with ui.row().classes("flex bg-primary row w-full px-20 py-3 mb-1") as row:
+    with ui.row().classes("flex bg-primary row w-full px-18 py-3 mb-1") as row:
         ui.icon(config["icon"], size="20px", color="secondary").classes(classes)
         ui.label(config["label"].upper()).classes(classes).classes("text-secondary text-bold")
         row.on("click", lambda: (ui.navigate.to(f"/{menu_root}"), drawer_menu.refresh()))
@@ -97,22 +96,23 @@ def drawer_menu(
         with ui.expansion(text=item.name, group=config["label"]).classes(f"{classes} mx-2") as exp:
             with exp.add_slot("header"):
                 with ui.label(item.name).classes("py-3 text-base/7 w-full"):
-                    if isinstance(item, Selection):
-                        badge("0").bind_text_from(app.storage.user["selected"], item.name, backward=lambda v: len(v))
-
-            exp.props("header-class='border' dense hide-expand-icon")
+                    pass
+            exp.props("header-class='border' dense popup hide-expand-icon")
             exp.on_value_change(
                 lambda v, e=exp: e.props.update(
                     {"header-class": "bg-accent"} if v.value else {"header-class": "bg-dark border"}
                 )
             )
-            toggle = ui.toggle(item.children)
-            parse_uri(exp, toggle)
-            exp.on("click", lambda t=toggle, i=item: t.set_value(i.name if i.name in t.options else t.options[0]))
-            exp.on("click", lambda e=exp: e.open())
-            exp.on("click", lambda i=item, t=toggle: ui.navigate.to(i.routes.get(t.value)))
-            toggle.classes(f"{classes} column").props(
-                'stretch ripple unelevated no-caps padding="4px 8px" toggle-color=accent'
-            )
-            toggle.on_value_change(lambda v, i=item: ui.navigate.to(i.routes.get(v.value)))
+            if item.children is not None:
+                toggle = ui.toggle(item.children)
+                parse_uri(exp, toggle)
+                exp.on("click", lambda t=toggle, i=item: t.set_value(i.name if i.name in t.options else t.options[0]))
+                exp.on("click", lambda e=exp: e.open())
+                exp.on("click", lambda i=item, t=toggle: ui.navigate.to(i.routes.get(t.value)))
+                toggle.classes(f"{classes} column").props(
+                    'stretch ripple unelevated no-caps padding="4px 8px" toggle-color=accent'
+                )
+                toggle.on_value_change(lambda v, i=item: ui.navigate.to(i.routes.get(v.value)))
+            else:
+                exp.on("click", lambda i=item: ui.navigate.to(i.routes.get(i.name)))
             # toggle.on_value_change(lambda: ld.hide() if Cache.width() < 1024 else None)
