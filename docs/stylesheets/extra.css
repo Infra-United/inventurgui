@@ -1,0 +1,17 @@
+:root  > * {
+  --md-primary-fg-color:        #e89769;
+  --md-primary-fg-color--light: #e89769;
+  --md-primary-fg-color--dark:  #e89769; # Primary
+  --md-primary-bg-color:        #37474f; # Secondary
+  --md-primary-bg-color--light: #37474f; # Secondary
+  --md-accent-fg-color:         #607d8b; # Accent
+  --md-accent-fg-color--light:  #607d8b;
+  --md-accent-fg-color--dark:   #607d8b;
+  --md-default-bg-color:        #0d1626; # Dark Page
+  --md-footer-bg-color:         #37474f;
+  --md-footer-bg-color--dark:   #37474f;
+  --md-typeset-color:           #d1d5dc; # Font
+  --md-default-fg-color:        #d1d5dc;
+  --md-default-fg-color--light: #d1d5dc;
+}
+
